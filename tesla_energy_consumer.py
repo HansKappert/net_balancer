@@ -1,12 +1,9 @@
 import logging
-#from geopy.geocoders import Nominatim
-#from geopy.exc import GeocoderTimedOut
+from abc_energy_consumer import energy_consumer
 from teslapy import Tesla
 
-class energy_consumer:
+class tesla_energy_consumer(energy_consumer):
     def __init__(self, email,password) -> None:
-        default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        logging.basicConfig(level=logging.DEBUG, format=default_format)
         self.tesla = Tesla(email, password)
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()

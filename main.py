@@ -1,24 +1,13 @@
-import time
 import argparse
-import threading
-from P1reader import P1reader
+import logging
+from unittests.P1reader_fake import P1reader
 from energy_producer import energy_producer
-from tesla_energy_consumer import energy_consumer
-
-def main(consumer, producer):
-    th = threading.Thread(target=producer.start_reading)
-    th.start()
-
-    while True:
-        energy_surplus = producer.surpluss()
-        if energy_surplus > 1000:
-            consumer.start_charging()
-        if energy_surplus < -1000:
-            consumer.stop_charging()
-        
-        time.sleep(10000)
+from tesla_energy_consumer import tesla_energy_consumer
+from energy_mediator import mediator
+from model import model
 
 if __name__ == "__main__":
+        
     ap = argparse.ArgumentParser()
     ap.add_argument("-u", "--user_email", type=str,
                     help="Tesla account user name (e-mail address)")
@@ -28,11 +17,16 @@ if __name__ == "__main__":
                     help="tty device name as listed by ls /dev/tt*")
     args = ap.parse_args()
 
+    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    # loging level can be parameterized if needed. Fixed seting to DEBUG for now
+    logging.basicConfig(level=logging.DEBUG, format=default_format)
+    
     if (args.user_email == "" or args.password == ""):
         print("Please specify your Tesla account credentials")
         quit()
-    current_data_supplier = P1reader.P1reader(port=args.device_name)
-    producer = energy_producer(current_data_supplier)
-    consumer = energy_consumer(args.user_email, args.password)
-    
-    main(consumer, producer)
+
+    data_model = model()
+    current_data_supplier = P1reader(port=args.device_name)
+    producer = energy_producer(current_reader=current_data_supplier, data_model = data_model)
+    consumer = tesla_energy_consumer(args.user_email, args.password)
+    mediator.mediate(consumer, producer, data_model)

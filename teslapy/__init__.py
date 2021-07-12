@@ -19,12 +19,14 @@ import logging
 import pkgutil
 import tempfile
 import webbrowser
-try:
-    from HTMLParser import HTMLParser
-    from urlparse import urljoin
-except ImportError:
-    from html.parser import HTMLParser
-    from urllib.parse import urljoin
+#try:
+#    from HTMLParser import HTMLParser
+#    from urlparse import urljoin
+#except ImportError:
+#    from html.parser import HTMLParser
+#    from urllib.parse import urljoin
+from html.parser import HTMLParser
+from urllib.parse import urljoin
 import requests
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import *
@@ -70,10 +72,10 @@ logger.addFilter(PasswdFilter())
 logging.getLogger('requests_oauthlib.oauth2_session').addFilter(PasswdFilter())
 
 # Py2/3 compatibility
-try:
-    input = raw_input
-except NameError:
-    pass
+#try:
+#    input = raw_input
+#except NameError:
+#    pass
 
 
 class Tesla(requests.Session):
