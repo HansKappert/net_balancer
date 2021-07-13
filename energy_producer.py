@@ -18,7 +18,7 @@ class energy_producer:
         try:
             huidig_afname      = int(data['1-0:1.7.0'])
             huidige_teruglever = int(data['1-0:2.7.0'])
-            self.data_model.surplus = huidig_afname + huidige_teruglever
+            self.data_model.surplus = huidige_teruglever - huidig_afname
         except:
             self.data_model.surplus = 0
 

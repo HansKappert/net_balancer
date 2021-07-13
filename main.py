@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     # loging level can be parameterized if needed. Fixed seting to DEBUG for now
-    logging.basicConfig(level=logging.DEBUG, format=default_format)
+    logging.basicConfig(level=logging.INFO, format=default_format)
     
     if (args.user_email == "" or args.password == ""):
         print("Please specify your Tesla account credentials")

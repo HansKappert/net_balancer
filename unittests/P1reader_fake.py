@@ -1,6 +1,9 @@
 class P1reader:
-    def __init__(self, port) -> None:
+    def __init__(self, port, huidig_afname = 0, huidige_teruglever = 1200) -> None:
+        self.huidig_afname = huidig_afname
+        self.huidige_teruglever = huidige_teruglever
         return
+
 
     def read_data(self):
         p1_line = \
@@ -12,8 +15,8 @@ class P1reader:
         '1-0:2.8.1(001798.980*kWh)\r' + \
         '1-0:2.8.2(004382.306*kWh)\r' + \
         '0-0:96.14.0(0001)\r' + \
-        '1-0:1.7.0(00.000*kW)\r' + \
-        '1-0:2.7.0(01.200*kW)\r' + \
+        f'1-0:1.7.0({self.huidig_afname/1000:.3f}*kW)\r' + \
+        f'1-0:2.7.0({self.huidige_teruglever/1000:.3f}*kW)\r' + \
         '0-0:96.7.21(00000)\r' + \
         '0-0:96.7.9(00000)\r' + \
         '1-0:99.97.0(1)(0-0:96.7.19)(000101000017W)(2147483647*s)\r' + \

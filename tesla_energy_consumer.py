@@ -15,11 +15,22 @@ class tesla_energy_consumer(energy_consumer):
             self.vehicle.sync_wake_up()
         self.vehicle.get_vehicle_data()
         if self.vehicle['charge_state']['charging_state'].lower() == 'charging':
+            logging.info("Giving stop_charging command")    
             self.vehicle.command('STOP_CHARGE')
+        else:
+            logging.info("Stop charging command is not needed. Vehicle wasn't chargin")   
+            
 
 
     def start_charging(self):
         try:
-            self.vehicle.command('START_CHARGE')
+            logging.debug("Fetching vehicle data")
+            self.vehicle.get_vehicle_data()     
+            if self.vehicle['charge_state']['charging_state'].lower() != 'charging':
+                logging.debug("Charging state is", self.vehicle['charge_state']['charging_state'])   
+                logging.info("Giving start_charging command")
+                self.vehicle.command('START_CHARGE')
+            else:
+                logging.info("Charging command is not needed. Vehicle already charging")
         except Exception as e:
             print(e)
