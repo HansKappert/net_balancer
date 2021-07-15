@@ -5,10 +5,16 @@ from teslapy import Tesla
 class tesla_energy_consumer(energy_consumer):
     def __init__(self, email,password) -> None:
         self.tesla = Tesla(email, password)
+        self.tesla.captcha_solver = self.solve_captcha
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
         self.vehicle = vehicles[0]
 
+
+    def solve_captcha(self, svg):
+        with open('captcha.svg', 'wb') as f:
+            f.write(svg)
+        return input('Captcha: ')
 
     def stop_charging(self):
         if self.vehicle['state'] == 'asleep':
