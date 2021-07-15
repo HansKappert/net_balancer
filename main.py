@@ -21,8 +21,12 @@ if __name__ == "__main__":
     # loging level can be parameterized if needed. Fixed seting to DEBUG for now
     logging.basicConfig(level=logging.INFO, format=default_format)
     
-    if (args.user_email == "" or args.password == ""):
+    if (args.user_email == None or args.password == None):
         print("Please specify your Tesla account credentials")
+        quit()
+
+    if (args.device_name == None):
+        print("Please specify the Smart Meter device name")
         quit()
 
     data_model = model()
