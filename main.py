@@ -33,4 +33,5 @@ if __name__ == "__main__":
     current_data_supplier = P1reader(port=args.device_name)
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model)
     consumer = tesla_energy_consumer(args.user_email, args.password)
-    mediator.mediate(consumer, producer, data_model)
+    energy_mediator = mediator()
+    energy_mediator.mediate(consumer=consumer, producer=producer, data_model=data_model)

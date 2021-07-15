@@ -10,7 +10,7 @@ class mediator:
     def __init__(self) -> None:
         pass
 
-    def mediate_once(consumer : energy_consumer, data_model : model):
+    def mediate_once(self, consumer : energy_consumer, data_model : model):
         command = ''
         if data_model.surplus >= 1000:
             try:
