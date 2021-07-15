@@ -29,9 +29,9 @@ if __name__ == "__main__":
         print("Please specify the Smart Meter device name")
         quit()
 
-    logging.debug ("User name    : ", args.user_email)
-    logging.debug ("User password: ", args.password)
-    logging.debug ("Device name  : ", args.device_name)
+    logging.debug ("User name    : " + args.user_email)
+    logging.debug ("User password: " + args.password)
+    logging.debug ("Device name  : " + args.device_name)
     data_model = model()
     logging.debug ("Data model created")
     current_data_supplier = P1reader(port=args.device_name)
