@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 
 class energy_consumer(ABC):
     @abstractmethod
+    def  is_consuming(self):
+        pass
+    
+    @abstractmethod
     def stop_charging(self):
         pass
 

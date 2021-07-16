@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 from abc_energy_consumer import energy_consumer
 from teslapy import Tesla
 
@@ -9,6 +10,7 @@ class tesla_energy_consumer(energy_consumer):
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
         self.vehicle = vehicles[0]
+        self.is_consuming = False
 
 
     def solve_captcha(self, svg):
@@ -16,14 +18,23 @@ class tesla_energy_consumer(energy_consumer):
             f.write(svg)
         return input('Captcha: ')
 
-    def stop_charging(self):
+    def __update_charging_state(self):
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
         self.vehicle.get_vehicle_data()
-        if self.vehicle['charge_state']['charging_state'].lower() == 'charging':
+        self.is_consuming = self.vehicle['charge_state']['charging_state'].lower() == 'charging'
+        
+    def is_consuming(self):
+        return self.is_consuming
+        
+    def stop_charging(self):
+        self.__update_charging_state()
+        if self.is_consuming:
             logging.info("Giving stop_charging command")    
             res = self.vehicle.command('STOP_CHARGE')
             logging.info(res)
+            self.__update_charging_state()
+            return self.is_consuming
         else:
             logging.info("Stop charging command is not needed. Vehicle wasn't chargin")   
             
@@ -32,13 +43,15 @@ class tesla_energy_consumer(energy_consumer):
     def start_charging(self):
         try:
             logging.debug("Fetching vehicle data")
-            self.vehicle.get_vehicle_data()     
-            if self.vehicle['charge_state']['charging_state'].lower() != 'charging':
+            self.__update_charging_state()
+            if  self.is_consuming:
+                logging.info("Charging command is not needed. Vehicle already charging")
+            else:
                 logging.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
                 logging.info("Giving start_charging command")
                 res = self.vehicle.command('START_CHARGE')
                 logging.info(res)
-            else:
-                logging.info("Charging command is not needed. Vehicle already charging")
+                self.__update_charging_state()
+                return self.is_consuming
         except Exception as e:
             logging.error(e)

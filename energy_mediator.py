@@ -12,16 +12,16 @@ class mediator:
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
         command = ''
-        if data_model.surplus >= 1000:
+        if data_model.surplus >= 1500:
             data_model.surplus_delay_count += 1
             data_model.deficient_delay_count = 0
             logging.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
-        if data_model.surplus <= 500:
+        if consumer.is_consuming() and data_model.surplus <= -1500:
             data_model.deficient_delay_count += 1
             data_model.surplus_delay_count = 0
             logging.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
 
-        if data_model.surplus_delay_count > data_model.surplus_delay_theshold:
+        if data_model.surplus_delay_count >= data_model.surplus_delay_theshold:
             logging.debug("data_model.surplus_delay_theshold of {} exceeded".format(data_model.surplus_delay_theshold))
             data_model.surplus_delay_count = 0
             try:
@@ -30,7 +30,7 @@ class mediator:
             except Exception as e:
                 logging.error(e)
 
-        if data_model.deficient_delay_count > data_model.deficient_delay_theshold:
+        if data_model.deficient_delay_count >= data_model.deficient_delay_theshold:
             logging.debug("data_model.deficient_delay_theshold of {} exceeded".format(data_model.deficient_delay_theshold))
             data_model.deficient_delay_count = 0
             try:
