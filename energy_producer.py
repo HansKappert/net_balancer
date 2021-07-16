@@ -20,8 +20,8 @@ class energy_producer:
             current_production = int(data['1-0:2.7.0'])
             self.data_model.surplus = current_production - current_consumption
             logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(current_consumption,current_production,self.data_model.surplus))
-        except:
-            self.data_model.surplus = 0
+        except Exception as e:
+            logging.error("Exception during reading: {}".format(e))
 
 
     def start_reading(self):
