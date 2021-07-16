@@ -33,7 +33,7 @@ class tesla_energy_consumer(energy_consumer):
             logging.debug("Fetching vehicle data")
             self.vehicle.get_vehicle_data()     
             if self.vehicle['charge_state']['charging_state'].lower() != 'charging':
-                logging.debug("Charging state is", self.vehicle['charge_state']['charging_state'])   
+                logging.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
                 logging.info("Giving start_charging command")
                 self.vehicle.command('START_CHARGE')
             else:
