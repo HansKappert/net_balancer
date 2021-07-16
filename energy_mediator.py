@@ -14,9 +14,11 @@ class mediator:
         command = ''
         if data_model.surplus >= 1000:
             data_model.surplus_delay_count += 1
+            data_model.deficient_delay_count = 0
             logging.debug("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         if data_model.surplus <= -1000:
             data_model.deficient_delay_count += 1
+            data_model.surplus_delay_count = 0
             logging.debug("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
 
         if data_model.surplus_delay_count > data_model.surplus_delay_theshold:

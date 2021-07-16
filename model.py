@@ -8,8 +8,8 @@ class model:
     # set the counter to 0. Similar rules apply to the deficient_delay.
     # These rules will prevent the consumers from switching on and off too often  
     surplus_delay_count = 0
-    surplus_delay_theshold = 20
+    surplus_delay_theshold = 0
 
     deficient_delay_count = 0
-    deficient_delay_theshold = 20
+    deficient_delay_theshold = 0
 
