@@ -42,8 +42,8 @@ if __name__ == "__main__":
     logging.debug ("User password is secret, remember")
     logging.debug ("Device name  : " + args.device_name)
     data_model = model()
-    data_model.surplus_delay_theshold = 10
-    data_model.deficient_delay_theshold = 10
+    data_model.surplus_delay_theshold = 4
+    data_model.deficient_delay_theshold = 4
     logging.debug ("Data model created")
     current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
