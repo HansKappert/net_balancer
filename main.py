@@ -1,6 +1,7 @@
 import argparse
 import logging
-from unittests.P1reader_fake import P1reader
+# from unittests.P1reader_fake import P1reader
+from P1reader import P1reader
 from energy_producer import energy_producer
 from tesla_energy_consumer import tesla_energy_consumer
 from energy_mediator import mediator
@@ -41,5 +42,5 @@ if __name__ == "__main__":
     consumer = tesla_energy_consumer(args.user_email, args.password)
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
-    logging.debug ("Mediator is created. Startig mediation")
+    logging.debug ("Mediator is created. Starting mediation")
     energy_mediator.mediate(consumer=consumer, producer=producer, data_model=data_model)
