@@ -4,7 +4,9 @@
 
 versie = "1.0"
 import sys
+from webbrowser import Error
 import serial
+import logging
 
 
 class P1reader:
@@ -24,11 +26,14 @@ class P1reader:
         data = []
         p1_teller=0
         data_frame=[]
+        err = ""
         #Open COM port
         try:
             self.ser.open()
-        except:
-            return data, "Fout bij het openen van %s. We gaan verder obv hard coded string."  % self.ser.name
+        except Exception as e:
+            err = "Error while opening serial device {}: {}".format(self.ser.name, e)
+            logging.error(err)
+            return data, err
 
 
         while p1_teller < 20:
@@ -36,8 +41,11 @@ class P1reader:
         #Read 1 line
             try:
                 p1_raw = self.ser.readline()
+                logging.debug(p1_raw)
             except:
-                sys.exit ("Seriele poort %s kan niet gelezen worden. Programma afgebroken." % self.ser.name ) 
+                err = ("Cannot read serial port %s. Incomplete data frame returned." % self.ser.name)
+                logging.error(err) 
+                return data_frame, err
             #p1_str=str(p1_raw)
             p1_str=str(p1_raw, "utf-8")
             p1_line=p1_str.strip()
@@ -50,7 +58,8 @@ class P1reader:
         try:
             self.ser.close()
         except:
-            sys.exit ("Oops %s. Programma afgebroken." % self.ser.name )    
+            err = ("Cannot close serial port %s." % self.ser.name)
+            logging.error(err)    
 
-        return data_frame, ""
+        return data_frame, err
     
