@@ -31,9 +31,11 @@ if __name__ == "__main__":
         quit()
 
     logging.debug ("User name    : " + args.user_email)
-    logging.debug ("User password: " + args.password)
+    logging.debug ("User password is secret, remember")
     logging.debug ("Device name  : " + args.device_name)
     data_model = model()
+    data_model.surplus_delay_count = 20
+    data_model.deficient_delay_count = 20
     logging.debug ("Data model created")
     current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
