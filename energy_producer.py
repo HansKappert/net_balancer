@@ -16,9 +16,10 @@ class energy_producer:
 
         meter=0
         try:
-            huidig_afname      = int(data['1-0:1.7.0'])
-            huidige_teruglever = int(data['1-0:2.7.0'])
-            self.data_model.surplus = huidige_teruglever - huidig_afname
+            current_consumption      = int(data['1-0:1.7.0'])
+            current_production = int(data['1-0:2.7.0'])
+            self.data_model.surplus = current_production - current_consumption
+            logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(current_consumption,current_production,self.data_model.surplus))
         except:
             self.data_model.surplus = 0
 
@@ -27,6 +28,7 @@ class energy_producer:
         self.state = "running"
         while self.state == "running":
             self.read_once(self.data_model)
+            logging.debug("Next reading is in {} seconds".format(self.sleep_time))
             time.sleep(self.sleep_time)
 
     def stop_reading(self):

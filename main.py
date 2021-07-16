@@ -37,7 +37,7 @@ if __name__ == "__main__":
     logging.debug ("Data model created")
     current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
-    producer = energy_producer(current_reader=current_data_supplier, data_model = data_model)
+    producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logging.debug ("Energy producer is setup")
     consumer = tesla_energy_consumer(args.user_email, args.password)
     logging.debug ("Energy consumer is setup")
