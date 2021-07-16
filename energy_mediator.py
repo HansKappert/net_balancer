@@ -14,10 +14,13 @@ class mediator:
         command = ''
         if data_model.surplus >= 1000:
             data_model.surplus_delay_count += 1
+            logging.debug("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         if data_model.surplus <= -1000:
             data_model.deficient_delay_count += 1
+            logging.debug("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
 
         if data_model.surplus_delay_count > data_model.surplus_delay_theshold:
+            logging.debug("data_model.surplus_delay_theshold of {} exceeded".format(data_model.surplus_delay_theshold))
             data_model.surplus_delay_count = 0
             try:
                 consumer.start_charging()
@@ -26,6 +29,7 @@ class mediator:
                 logging.error(e)
 
         if data_model.deficient_delay_count > data_model.deficient_delay_theshold:
+            logging.debug("data_model.deficient_delay_theshold of {} exceeded".format(data_model.deficient_delay_theshold))
             data_model.deficient_delay_count = 0
             try:
                 consumer.stop_charging()
