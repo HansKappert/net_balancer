@@ -15,12 +15,13 @@ class mediator:
         
         if data_model.surplus >= 1500:
             data_model.surplus_delay_count += 1
-            data_model.deficient_delay_count = 0
             logging.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
-        if consumer.consumer_is_consuming() and data_model.surplus <= -1500:
+        elif consumer.consumer_is_consuming() and data_model.surplus <= -1500:
             data_model.deficient_delay_count += 1
-            data_model.surplus_delay_count = 0
             logging.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
+        else:
+            data_model.deficient_delay_count = 0
+            data_model.surplus_delay_count = 0
 
         if data_model.surplus_delay_count >= data_model.surplus_delay_theshold:
             logging.debug("data_model.surplus_delay_theshold of {} exceeded".format(data_model.surplus_delay_theshold))
