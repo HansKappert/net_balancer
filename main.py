@@ -16,12 +16,20 @@ if __name__ == "__main__":
                     help="Password of the Tesla account")
     ap.add_argument("-d", "--device_name", type=str,
                     help="tty device name as listed by ls /dev/tt*")
+    ap.add_argument("-l", "--loglevel", type=str,
+                    help="logging level: d=debug, i=info, w=warning, e=error")
     args = ap.parse_args()
 
     default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    # loging level can be parameterized if needed. Fixed seting to DEBUG for now
-    logging.basicConfig(level=logging.DEBUG, format=default_format)
-    
+    if args.loglevel == None or args.loglevel == 'i':
+        logging.basicConfig(level=logging.INFO, format=default_format)
+    elif args.loglevel == 'd':
+        logging.basicConfig(level=logging.DEBUG, format=default_format)
+    elif args.loglevel == 'w':
+        logging.basicConfig(level=logging.WARN, format=default_format)
+    elif args.loglevel == 'e':
+        logging.basicConfig(level=logging.ERROR, format=default_format)
+        
     if (args.user_email == None or args.password == None):
         print("Please specify your Tesla account credentials")
         quit()
