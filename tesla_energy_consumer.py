@@ -24,7 +24,7 @@ class tesla_energy_consumer(energy_consumer):
         self.vehicle.get_vehicle_data()
         self.is_consuming = self.vehicle['charge_state']['charging_state'].lower() == 'charging'
         
-    def is_consuming(self):
+    def consumer_is_consuming(self):
         return self.is_consuming
         
     def stop_charging(self):
