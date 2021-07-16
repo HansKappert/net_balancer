@@ -1,5 +1,9 @@
 
 class model:
+    # last readings
+    current_consumption = 0
+    current_production = 0
+
     # the last calculated value.
     surplus = 0
 

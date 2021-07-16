@@ -15,13 +15,19 @@ class energy_producer:
         data = P1data_interpreter.raw_to_dictionary(raw_data_array)
 
         meter=0
+        # Often the data list does not contain then needed entries, so put it in a try/except block
         try:
-            current_consumption      = int(data['1-0:1.7.0'])
-            current_production = int(data['1-0:2.7.0'])
-            self.data_model.surplus = current_production - current_consumption
-            logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(current_consumption,current_production,self.data_model.surplus))
-        except Exception as e:
-            logging.error("Exception during reading: {}".format(e))
+            data_model.current_consumption = int(data['1-0:1.7.0'])
+        except: 
+            pass
+        try:   
+            data_model.current_production  = int(data['1-0:2.7.0'])
+        except:
+            pass
+
+        data_model.surplus = data_model.current_production - data_model.current_consumption
+        logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
+
 
 
     def start_reading(self):
