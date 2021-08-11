@@ -6,9 +6,11 @@ from energy_producer import energy_producer
 from tesla_energy_consumer import tesla_energy_consumer
 from energy_mediator import mediator
 from model import model
+from persistence import persistence
 
 if __name__ == "__main__":
         
+    
     ap = argparse.ArgumentParser()
     ap.add_argument("-u", "--user_email", type=str,
                     help="Tesla account user name (e-mail address)")
@@ -41,9 +43,8 @@ if __name__ == "__main__":
     logging.debug ("User name    : " + args.user_email)
     logging.debug ("User password is secret, remember")
     logging.debug ("Device name  : " + args.device_name)
-    data_model = model()
-    data_model.surplus_delay_theshold = 4
-    data_model.deficient_delay_theshold = 4
+    db = persistence()
+    data_model = model(db)
     logging.debug ("Data model created")
     current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
@@ -53,4 +54,4 @@ if __name__ == "__main__":
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
     logging.debug ("Mediator is created. Starting mediation")
-    energy_mediator.mediate(consumer=consumer, producer=producer, data_model=data_model)
+    energy_mediator.mediate(consumer=consumer, producer=producer)

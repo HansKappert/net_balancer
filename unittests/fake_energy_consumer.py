@@ -5,6 +5,9 @@ class fake_energy_consumer(energy_consumer):
     def __init__(self) -> None:
         pass
 
+    def consumer_is_consuming(self):
+        pass
+    
     def stop_charging(self):
         pass
 

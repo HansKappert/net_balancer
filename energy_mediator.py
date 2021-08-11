@@ -5,6 +5,7 @@ import energy_producer
 import logging
 from abc_energy_consumer import energy_consumer
 from model import model
+from persistence import persistence
 
 class mediator:
     def __init__(self) -> None:
@@ -24,7 +25,7 @@ class mediator:
             data_model.deficient_delay_count = 0
             data_model.surplus_delay_count = 0
 
-        if data_model.surplus_delay_count >= data_model.surplus_delay_theshold:
+        if data_model.surplus_delay_count > data_model.surplus_delay_theshold:
             logging.debug("data_model.surplus_delay_theshold of {} exceeded".format(data_model.surplus_delay_theshold))
             data_model.surplus_delay_count = 0
             try:
@@ -33,7 +34,7 @@ class mediator:
             except Exception as e:
                 logging.error(e)
 
-        if data_model.deficient_delay_count >= data_model.deficient_delay_theshold:
+        if data_model.deficient_delay_count > data_model.deficient_delay_theshold:
             logging.debug("data_model.deficient_delay_theshold of {} exceeded".format(data_model.deficient_delay_theshold))
             data_model.deficient_delay_count = 0
             try:
@@ -43,7 +44,13 @@ class mediator:
                 logging.error(e)
         return command
 
-    def mediate(self, consumer : energy_consumer, producer : energy_producer, data_model : model):
+    def mediate(self, consumer : energy_consumer, producer : energy_producer):
+        db = persistence()
+        data_model = model(db)
+        data_model.surplus_delay_theshold = 4
+        data_model.deficient_delay_theshold = 4
+        logging.debug ("Data model created")
+
         th = threading.Thread(target=producer.start_reading, daemon=True)
         th.start()
 

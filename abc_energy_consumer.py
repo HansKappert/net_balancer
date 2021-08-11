@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class energy_consumer(ABC):
     @abstractmethod
-    def  consumer_is_consuming(self):
+    def consumer_is_consuming(self):
         pass
     
     @abstractmethod
