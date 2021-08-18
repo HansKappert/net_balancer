@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<br>
+<table><tr>
+    <td>Huidig energie overschot</td>   <td>: {{ model.surplus }}                    </td><td>Watt     </td></tr>
+    <td>Overschot gezien gedurende</td> <td>: {{ model.surplus_delay_count }}        </td><td>seconden</td></tr>
+    <td>Tekort gezien gedurende </td>   <td>: {{ model.deficient_delay_count }}      </td><td>seconden</td></tr>
+    <td>Vertraging starten laden</td>   <td>: {{ surplus_delay_theshold }}           </td><td>seconden</td></tr>
+    <td>Vertraging stoppen laden</td>   <td>: {{ model.deficient_delay_theshold*10 }}</td><td>seconden</td></tr>
+</table>
+<br>
+<div>Geforceerd laden <label class="switch">
+    <input id="override" type="checkbox" checked="{{ override_checked }}" onchange="override_changed()">
+    <span class="slider round"></span>
+</label></div>
+{% endblock %}
