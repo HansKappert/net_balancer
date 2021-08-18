@@ -4,3 +4,4 @@ cache.json
 .vscode
 .DS_Store
 __pycache__
+energy_mediator.db
