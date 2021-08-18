@@ -18,8 +18,8 @@ class persistence:
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus,current_consumption,current_production,surplus_delay_count,deficient_delay_count)")
-            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
+            cur.execute("CREATE TABLE readings(surplus,current_consumption,current_production,surplus_delay_count,deficient_delay_count,override)")
+            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0)")
             con.commit()
             con.close()
 
@@ -28,6 +28,7 @@ class persistence:
         cur = sqlite3.connect(persistence.DBNAME).cursor() ## TODO: is dit veilig genoeg (geen conflict met update cursor, oude data etc.?)
         result = cur.execute("SELECT " + column_name + " FROM readings").fetchone()
         return result[0]
+    
     def __set_reading_column_value(self, column_name, value):
         con = sqlite3.connect(persistence.DBNAME)
         cur = con.cursor()
@@ -39,6 +40,11 @@ class persistence:
         return self.__get_reading_column_value("surplus")
     def set_surplus(self,value):
         self.__set_reading_column_value("surplus", value)
+
+    def get_override(self):
+        return self.__get_reading_column_value("override")
+    def set_override(self,value):
+        self.__set_reading_column_value("override", value)
 
 
     def get_current_production(self):

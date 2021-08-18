@@ -3,3 +3,4 @@ requests
 requests_oauthlib
 websocket-client
 pyserial
+flask

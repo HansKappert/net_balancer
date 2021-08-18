@@ -3,6 +3,7 @@ class model:
     def __init__(self, db:persistence) -> None:
         self.persistence = db
         self._surplus = 0 # the last calculated value.
+        self._override = 0
         # last readings
         self._current_consumption = 0
         self._current_production = 0
@@ -25,6 +26,15 @@ class model:
     def surplus(self,value):
         self._surplus = value
         self.persistence.set_surplus(value)
+
+    @property
+    def override(self):
+        self._override = self.persistence.get_override()
+        return self._override
+    @override.setter
+    def override(self,value):
+        self._override = value
+        self.persistence.set_override(value)
 
     @property
     def current_consumption(self):
@@ -57,7 +67,7 @@ class model:
     @property
     def surplus_delay_theshold(self):
         self._surplus_delay_threshold = self.persistence.get_surplus_delay_theshold()
-        return self._surplus_delay_theshold
+        return self._surplus_delay_threshold
     @surplus_delay_theshold.setter
     def surplus_delay_theshold(self,value):
         self._surplus_delay_theshold = value

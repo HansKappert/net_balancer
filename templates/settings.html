@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <div class="form-group">
+        <label for="title">Vertraging starten laden (in seconden)</label>
+        <input type="number" name="surplus_delay_theshold"  MIN="0" MAX="1000" STEP="10" 
+               placeholder="Post surplus_delay_theshold" class="form-control"
+               value="{{ request.form['surplus_delay_theshold'] or surplus_delay_theshold }}"></input>
+        <label for="title">Vertraging stoppen laden (in seconden)</label>
+        <input type="number" name="deficient_delay_theshold"  MIN="0" MAX="1000" STEP="10" 
+                placeholder="Post deficient_delay_theshold" class="form-control"
+                value="{{ request.form['deficient_delay_theshold'] or deficient_delay_theshold }}"></input>
+           </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="cancel" class="btn btn-primary"  onClick="window.location.href='{{url_for('index')}}';">Cancel</button>
+
+    </div>
+</form>
+<hr>
+
+{% endblock %}
