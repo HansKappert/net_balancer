@@ -5,3 +5,6 @@ cache.json
 .DS_Store
 __pycache__
 energy_mediator.db
+captcha.svg
+main.sh
+web.sh
