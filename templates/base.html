@@ -19,6 +19,27 @@
           par=0;
         fetch( '/override/set/' + par );
     }
+    function refresh() {
+        fetch('/data/get')
+          .then(response => response.json())
+          .then(data => updatePageData(data))
+          .catch(function (err) {
+                alert('error: ' + err);
+            });
+    }
+    function updatePageData(data) 
+    {
+      for (i=0;i<data.length;i++){
+        jQuery.each(data[i], 
+          function(data_element, data_value) {
+            field = document.getElementById(data_element)
+            if (field != undefined) {
+              field.innerText = data_value;
+            }
+        });    
+      }
+    }
+    setInterval(refresh(), 1000);   
 </script>
 
   <body>
