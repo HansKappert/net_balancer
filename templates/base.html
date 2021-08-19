@@ -38,6 +38,12 @@
             }
         });    
       }
+      field = document.getElementById("lastUpdate");
+      if (field != undefined) {
+        var now = new Date();
+        //var utcDate = tDate.toUTCString();
+        field.innerText = now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+      }
       setInterval(refresh(), 1000);   
     }
     setInterval(refresh(), 1000);   
