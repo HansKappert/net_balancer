@@ -41,12 +41,13 @@
       field = document.getElementById("lastUpdate");
       if (field != undefined) {
         var now = new Date();
-        //var utcDate = tDate.toUTCString();
-        field.innerText = now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+        h = now.getHours();
+        m = now.getMinutes();
+        s = now.getSeconds();
+        field.innerText = h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
       }
-      setInterval(refresh(), 1000);   
     }
-    setInterval(refresh(), 1000);   
+    setInterval(refresh, 1000);   
 </script>
 
   <body>
