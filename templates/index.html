@@ -2,13 +2,11 @@
 {% block content %}
 <br>
 Last update : <span id="lastUpdate"></span><br/><br/><br/>
-<table><tr>
-    <td>Huidig energie overschot</td>   <td>: <span id="surplus"              >{{ model.surplus }}</span>                    </td><td>Watt     </td></tr>
-    <td>Overschot gezien gedurende</td> <td>: <span id="surplus_delay_count"  >{{ model.surplus_delay_count }}</span>        </td><td>seconden</td></tr>
-    <td>Tekort gezien gedurende </td>   <td>: <span id="deficient_delay_count">{{ model.deficient_delay_count }}</span>      </td><td>seconden</td></tr>
-    <td>Vertraging starten laden</td>   <td>: {{ surplus_delay_theshold }}                                                   </td><td>seconden</td></tr>
-    <td>Vertraging stoppen laden</td>   <td>: {{ model.deficient_delay_theshold }}                                           </td><td>seconden</td></tr>
-</table>
+<div class="label">Huidig energie overschot</div>  <span id="surplus"              >{{ model.surplus }}</span> Watt
+<div class="label">Overschot gezien gedurende</div><span id="surplus_delay_count"  >{{ model.surplus_delay_count }}</span> seconden
+<div class="label">Tekort gezien gedurende</div>   <span id="deficient_delay_count">{{ model.deficient_delay_count }}</span> seconden
+<div class="label">Vertraging starten laden</div>{{ surplus_delay_theshold }} seconden
+<div class="label">Vertraging stoppen laden</div>{{ model.deficient_delay_theshold }} seconden
         
 <br>
 <div>Geforceerd laden <label class="switch">

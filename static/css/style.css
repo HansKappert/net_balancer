@@ -1,6 +1,9 @@
 body {
   font-size:large;
 }
+.label {
+  font-weight: bold;
+}
 /* The switch - the box around the slider */
 .switch {
     position: relative;
