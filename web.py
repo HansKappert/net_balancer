@@ -21,21 +21,21 @@ def index():
     return render_template('index.html', 
         model=data_model, 
         override_checked=_override_checked,
-        surplus_delay_theshold=10*int(data_model.surplus_delay_theshold),
-        deficient_delay_theshold=10*int(data_model.deficient_delay_theshold)
+        surplus_delay_theshold=data_model.surplus_delay_theshold,
+        deficient_delay_theshold=data_model.deficient_delay_theshold
     )    
 
 
 @app.route('/settings', methods=['GET','POST'])
 def settings():
     if request.method == 'POST':
-        data_model.surplus_delay_theshold = int(int(request.form['surplus_delay_theshold'])/10)
-        data_model.deficient_delay_theshold = int(int(request.form['deficient_delay_theshold'])/10)
+        data_model.surplus_delay_theshold = int(request.form['surplus_delay_theshold'])
+        data_model.deficient_delay_theshold = int(request.form['deficient_delay_theshold'])
         return redirect(url_for('index'))
     else:
         return render_template('settings.html', 
-        surplus_delay_theshold   =10*int(data_model.surplus_delay_theshold),
-        deficient_delay_theshold =10*int(data_model.deficient_delay_theshold)
+        surplus_delay_theshold   =data_model.surplus_delay_theshold,
+        deficient_delay_theshold =data_model.deficient_delay_theshold
         )
 @app.route('/data/get', methods=['GET'])
 def get_data():

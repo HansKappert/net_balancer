@@ -9,17 +9,18 @@ from persistence import persistence
 
 class mediator:
     def __init__(self) -> None:
+        self.mediation_delay = 10
         pass
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
         command = ''
         
         if data_model.surplus >= 1500:
-            data_model.surplus_delay_count += 1
+            data_model.surplus_delay_count += self.mediation_delay
             logging.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         #elif consumer.consumer_is_consuming() and data_model.surplus <= -1500:
         elif data_model.surplus <= -1500:
-            data_model.deficient_delay_count += 1
+            data_model.deficient_delay_count += self.mediation_delay
             logging.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
         elif data_model.surplus <= 800:
             data_model.deficient_delay_count = 0
@@ -47,8 +48,8 @@ class mediator:
     def mediate(self, consumer : energy_consumer, producer : energy_producer):
         db = persistence()
         data_model = model(db)
-        data_model.surplus_delay_theshold = 4
-        data_model.deficient_delay_theshold = 4
+        data_model.surplus_delay_theshold = 40
+        data_model.deficient_delay_theshold = 40
         logging.debug ("Data model created")
 
         th = threading.Thread(target=producer.start_reading, daemon=True)
@@ -56,4 +57,4 @@ class mediator:
 
         while True:
             self.mediate_once(consumer, data_model)
-            time.sleep(10)
+            time.sleep(self.mediation_delay)
