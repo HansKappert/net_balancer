@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <table>
+    {% for line in lines %}
+        <tr>
+            <td>{{ line['log_date'] }}</td>
+            <td>{{ line['source'] }}</td>
+            <td>{{ line['message'] }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</form>
+<hr>
+
+{% endblock %}

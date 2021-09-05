@@ -1,4 +1,5 @@
 from persistence import persistence
+import abc_energy_consumer
 class model:
     def __init__(self, db:persistence) -> None:
         self.persistence = db
@@ -17,6 +18,7 @@ class model:
 
         self._deficient_delay_count = 0
         self._deficient_delay_theshold = 0
+        self._consumers = []
         
     @property
     def surplus(self):
@@ -91,4 +93,6 @@ class model:
         self._deficient_delay_theshold = value
         self.persistence.set_deficient_delay_theshold(value)
 
+    def add_consumer(self, consumer : abc_energy_consumer):
+        self._consumers.append(consumer)
     

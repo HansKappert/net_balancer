@@ -1,4 +1,4 @@
-import P1data_interpreter
+import service.P1data_interpreter
 import time
 import logging
 from model import model
@@ -12,7 +12,7 @@ class energy_producer:
 
     def read_once(self, data_model : model):
         raw_data_array, errortxt = self.current_reader.read_data()
-        data = P1data_interpreter.raw_to_dictionary(raw_data_array)
+        data = service.P1data_interpreter.raw_to_dictionary(raw_data_array)
 
         meter=0
         # Often the data list does not contain then needed entries, so put it in a try/except block

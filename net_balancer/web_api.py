@@ -1,42 +1,6 @@
-#!/usr/bin/env python
-# encoding: utf-8
-import json
-from typing import overload
-from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
-from model import model
-from persistence import persistence
+from net_balancer import app, db, data_model , consumer, request
+from flask import Flask, jsonify
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
-
-db = persistence()
-data_model = model(db)
-
-@app.route('/', methods=['GET'])
-def index():
-    if (data_model.override == 1):
-        _override_checked = "checked"
-    else:
-        _override_checked = ""
-    return render_template('index.html', 
-        model=data_model, 
-        override_checked=_override_checked,
-        surplus_delay_theshold=data_model.surplus_delay_theshold,
-        deficient_delay_theshold=data_model.deficient_delay_theshold
-    )    
-
-
-@app.route('/settings', methods=['GET','POST'])
-def settings():
-    if request.method == 'POST':
-        data_model.surplus_delay_theshold = int(request.form['surplus_delay_theshold'])
-        data_model.deficient_delay_theshold = int(request.form['deficient_delay_theshold'])
-        return redirect(url_for('index'))
-    else:
-        return render_template('settings.html', 
-        surplus_delay_theshold   =data_model.surplus_delay_theshold,
-        deficient_delay_theshold =data_model.deficient_delay_theshold
-        )
 @app.route('/data/get', methods=['GET'])
 def get_data():
     return jsonify(
@@ -104,5 +68,3 @@ def put_override(value):
         return jsonify({'result': 'Ok'})
     except:
         return jsonify({'result': 'Error'})
-
-app.run(host='0.0.0.0',port=8081,debug=True)

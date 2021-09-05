@@ -7,17 +7,8 @@ http://gejanssen.com/howto/rpi-rrd-power/index.html
 
 ## Installeer software
 
-```
-./packages.sh
-```
+pip install -r requirements.txt
 
-Installeren van
-* cu
-* Python-serial
 
-Zet de rechten van de seriele poort open. (pi is de user die toegevoegd wordt aan de dialout group)
-
-```
-gej@rpi-backup:~/slimmemeter-rpi $ sudo usermod -a -G dialout www-data pi
-```
-
+Gebruikte informatie van:
+https://flask.palletsprojects.com/en/2.0.x/patterns/packages/

@@ -6,17 +6,12 @@ from persistence import persistence
 from database_Logging_handler import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
-    def __init__(self, email,password, db:persistence) -> None:
+    def __init__(self, db:persistence) -> None:
         self.persistence = db
-        self.tesla = Tesla(email, password)
-        self.tesla.captcha_solver = self.solve_captcha
-        self.tesla.fetch_token()
-        vehicles = self.tesla.vehicle_list()
-        self.vehicle = vehicles[0]
         self.is_consuming = False
         self._consumption = 0
         self._name = "Tesla"
-
+        
         self.logger = logging.getLogger(__name__)
         
         log_handler = logging.StreamHandler()
@@ -27,7 +22,12 @@ class tesla_energy_consumer(energy_consumer):
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 
-
+    def initialize(self, **kwargs):
+        self.tesla = Tesla(kwargs['email'], kwargs['password'])
+        self.tesla.captcha_solver = self.solve_captcha
+        self.tesla.fetch_token()
+        vehicles = self.tesla.vehicle_list()
+        self.vehicle = vehicles[0]
 
     def solve_captcha(self, svg):
         with open('captcha.svg', 'wb') as f:

@@ -1,6 +1,15 @@
 from abc import ABC, abstractmethod
+from persistence import persistence
 
 class energy_consumer(ABC):
+    @abstractmethod
+    def __init__(self, db:persistence):
+        pass
+
+    @abstractmethod
+    def initialize(self, **kwargs):
+        pass
+
     @abstractmethod
     def consumer_is_consuming(self):
         pass

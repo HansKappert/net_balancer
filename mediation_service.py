@@ -1,10 +1,10 @@
 import argparse
 import logging
 # from unittests.P1reader_fake import P1reader
-from P1reader import P1reader
-from energy_producer import energy_producer
-from tesla_energy_consumer import tesla_energy_consumer
-from energy_mediator import mediator
+from service.P1reader import P1reader
+from service.energy_producer import energy_producer
+from service.tesla_energy_consumer import tesla_energy_consumer
+from service.energy_mediator import mediator
 from model import model
 from persistence import persistence
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.WARN, format=default_format)
     elif args.loglevel == 'e':
         logging.basicConfig(level=logging.ERROR, format=default_format)
-        
+    
     if (args.user_email == None or args.password == None):
         print("Please specify your Tesla account credentials")
         quit()
@@ -45,12 +45,17 @@ if __name__ == "__main__":
     logging.debug ("Device name  : " + args.device_name)
     db = persistence()
     data_model = model(db)
-    logging.debug ("Data model created")
+
     current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logging.debug ("Energy producer is setup")
-    consumer = tesla_energy_consumer(args.user_email, args.password)
+
+    consumer = tesla_energy_consumer(db)
+    consumer.initialize(email=args.user_email, password=args.password)
+    data_model.add_consumer(consumer)
+    logging.debug ("Data model created")
+
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
     logging.debug ("Mediator is created. Starting mediation")

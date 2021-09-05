@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+import datetime
 
 class persistence:
     DBNAME = 'energy_mediator.db'
@@ -12,7 +13,7 @@ class persistence:
         if (result == None):
             logging.debug ("Creating table settings")
             cur.execute("CREATE TABLE settings(surplus_delay_theshold,deficient_delay_theshold)")
-            cur.execute("INSERT INTO  settings VALUES (0,0)")
+            cur.execute("INSERT INTO  settings VALUES (40,40)")
             con.commit()
     
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
@@ -23,16 +24,41 @@ class persistence:
             con.commit()
             con.close()
 
+        result = cur.execute("PRAGMA table_info(consumer)").fetchone()
+        if (result == None):
+            logging.debug ("Creating table consumer")
+            cur.execute("CREATE TABLE consumer(name, consumption)")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680)")
+            con.commit()
+            con.close()
+
+        result = cur.execute("PRAGMA table_info(event)").fetchone()
+        if (result == None):
+            logging.debug ("Creating table event")
+            cur.execute("CREATE TABLE event(log_date, source, message)")
+            con.commit()
+            con.close()
+
+    def get_db_connection(self):
+        conn = sqlite3.connect(persistence.DBNAME)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def log_event(self, source:str, message:str):
+        con = self.get_db_connection()
+        log_date = datetime.datetime.now()
+        result = con.execute("INSERT INTO event VALUES (:log_date, :source, :message)",{"log_date": log_date, "source":source, "message":message})
+        con.commit()
+        con.close()
 
     def __get_reading_column_value(self, column_name):
-        cur = sqlite3.connect(persistence.DBNAME).cursor() ## TODO: is dit veilig genoeg (geen conflict met update cursor, oude data etc.?)
-        result = cur.execute("SELECT " + column_name + " FROM readings").fetchone()
+        con = self.get_db_connection()
+        result = con.execute("SELECT " + column_name + " FROM readings").fetchone()
         return result[0]
     
     def __set_reading_column_value(self, column_name, value):
-        con = sqlite3.connect(persistence.DBNAME)
-        cur = con.cursor()
-        result = cur.execute("UPDATE readings SET " + column_name + " = :value",{"value":value})
+        con = self.get_db_connection()
+        result = con.execute("UPDATE readings SET " + column_name + " = :value",{"value":value})
         con.commit()
         con.close()
     
@@ -70,24 +96,36 @@ class persistence:
 
 
     def get_surplus_delay_theshold(self):
-        cur = sqlite3.connect(persistence.DBNAME).cursor()
-        result = cur.execute("SELECT surplus_delay_theshold FROM settings").fetchone()
+        con = self.get_db_connection()
+        result = con.execute("SELECT surplus_delay_theshold FROM settings").fetchone()
         return result[0]
     def set_surplus_delay_theshold(self, value):
-        con = sqlite3.connect(persistence.DBNAME)
-        cur = con.cursor()
-        result = cur.execute("UPDATE settings SET surplus_delay_theshold = :value",{"value":value})
+        con = self.get_db_connection()
+        result = con.execute("UPDATE settings SET surplus_delay_theshold = :value",{"value":value})
         con.commit()
         con.close()
     
     def get_deficient_delay_theshold(self):
-        cur = sqlite3.connect(persistence.DBNAME).cursor()
-        result = cur.execute("SELECT deficient_delay_theshold FROM settings").fetchone()
+        con = self.get_db_connection()
+        result = con.execute("SELECT deficient_delay_theshold FROM settings").fetchone()
         return result[0]
     def set_deficient_delay_theshold(self, value):
-        con = sqlite3.connect(persistence.DBNAME)
-        cur = con.cursor()
-        result = cur.execute("UPDATE settings SET deficient_delay_theshold = :value",{"value":value})
+        con = self.get_db_connection()
+        result = con.execute("UPDATE settings SET deficient_delay_theshold = :value",{"value":value})
         con.commit()
         con.close()
 
+    def get_consumer_consumption(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT consumption FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        return result[0]
+    def set_consumer_consumption(self, consumer_name, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE consumer SET consumption = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    def get_log_lines(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
+        return result
