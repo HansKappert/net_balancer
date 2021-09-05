@@ -8,3 +8,4 @@ energy_mediator.db
 captcha.svg
 main.sh
 web.sh
+net_balancer.egg-info
