@@ -2,15 +2,31 @@ import logging
 from typing import Tuple
 from abc_energy_consumer import energy_consumer
 from teslapy import Tesla
+from persistence import persistence
+from database_Logging_handler import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
-    def __init__(self, email,password) -> None:
+    def __init__(self, email,password, db:persistence) -> None:
+        self.persistence = db
         self.tesla = Tesla(email, password)
         self.tesla.captcha_solver = self.solve_captcha
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
         self.vehicle = vehicles[0]
         self.is_consuming = False
+        self._consumption = 0
+        self._name = "Tesla"
+
+        self.logger = logging.getLogger(__name__)
+        
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+        
+        log_handler = database_logging_handler(self.persistence)
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
+
 
 
     def solve_captcha(self, svg):
@@ -27,7 +43,7 @@ class tesla_energy_consumer(energy_consumer):
     def consumer_is_consuming(self):
         return self.is_consuming
         
-    def stop_charging(self):
+    def stop_consuming(self):
         self.__update_charging_state()
         if self.is_consuming:
             logging.info("Giving stop_charging command")    
@@ -38,20 +54,32 @@ class tesla_energy_consumer(energy_consumer):
         else:
             logging.info("Stop charging command is not needed. Vehicle wasn't chargin")   
             
-
-
-    def start_charging(self):
+    def start_consuming(self):
         try:
-            logging.debug("Fetching vehicle data")
+            self.logger.debug("Fetching vehicle data")
             self.__update_charging_state()
             if  self.is_consuming:
-                logging.info("Charging command is not needed. Vehicle already charging")
+                self.logger.info("Charging command is not needed. Vehicle already charging")
             else:
-                logging.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
-                logging.info("Giving start_charging command")
+                self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
+                self.logger.info("Giving start_charging command")
                 res = self.vehicle.command('START_CHARGE')
-                logging.info(res)
+                self.logger.info(res)
                 self.__update_charging_state()
                 return self.is_consuming
         except Exception as e:
-            logging.error(e)
+            self.logger.error(e)
+
+    @property
+    def consumption(self):
+        self._consumption = self.persistence.get_consumer_consumption(self._name)
+        return self._consumption
+    @consumption.setter
+    def consumption(self,value):
+        self._consumption = value
+        self.persistence.set_consumer_consumption(self._name, value)
+
+    @property
+    def isConsuming(self):
+        return self.is_consuming
+    
