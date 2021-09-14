@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, render_template, url_for, flash, redi
 from model import model
 from persistence import persistence
 from service.tesla_energy_consumer import tesla_energy_consumer
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
@@ -21,9 +22,10 @@ data_model.add_consumer(consumer)
 def log_get_all():
     log_lines = db.get_log_lines()
     return render_template('logging.html', 
-        lines=log_lines
+        lines=log_lines, nice_date=nice_date
     )    
-
+def nice_date(d):
+    return d[:19]
 
 @app.route('/', methods=['GET'])
 def index():
