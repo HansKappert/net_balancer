@@ -20,7 +20,6 @@
         fetch( '/override/set/' + par );
     }
     function refresh() {
-        return;
         fetch('/data/get')
           .then(response => response.json())
           .then(data => updatePageData(data))
