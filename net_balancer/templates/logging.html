@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 
+{% macro format_datetime(mytime) %}
+    <strong>{{ nice_date(mytime) }}</strong>
+{% endmacro %}
+
 {% block content %}
 <form method="post">
     <table>
+        <hr>
+            <td><strong>Log date/time</strong>&nbsp;</td>
+            <td><strong>Module</strong>&nbsp;</td>
+            <td><strong>Message</strong></td>
+        </hr>
     {% for line in lines %}
         <tr>
-            <td>{{ line['log_date'] }}</td>
-            <td>{{ line['source'] }}</td>
-            <td>{{ line['message'] }}</td>
+            <td>{{ nice_date(line['log_date']) }}&nbsp;</td>
+            <td>{{ line['source']   }}&nbsp;</td>
+            <td>{{ line['message']  }}</td>
         </tr>
     {% endfor %}
     </table>
