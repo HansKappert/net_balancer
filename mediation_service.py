@@ -52,7 +52,10 @@ if __name__ == "__main__":
     logging.debug ("Energy producer is setup")
 
     consumer = tesla_energy_consumer(db)
-    consumer.initialize(email=args.user_email, password=args.password)
+    try:
+        consumer.initialize(email=args.user_email, password=args.password)
+    except Exception as e:
+        logging.exception(e)
     data_model.add_consumer(consumer)
     logging.debug ("Data model created")
 
