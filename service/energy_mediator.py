@@ -22,22 +22,21 @@ class mediator:
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 
-        self.logger.info("Test")
         pass
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
         command = ''
         
         if data_model.surplus >= 0.6 * consumer.consumption:
-            data_model.surplus_delay_count += self.mediation_delay
             self.logger.info("current surplus exceeds 0.6*power consumption (0.6*{}={})".format(consumer.consumption,0.6 * consumer.consumption))
+            data_model.surplus_delay_count += self.mediation_delay
             self.logger.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         #elif consumer.consumer_is_consuming() and data_model.surplus <= -1500:
         elif data_model.surplus <= -0.6*consumer.consumption:
             self.logger.info("current deficient exceeds -0.6*power consumption (-0.6*{}={})".format(consumer.consumption,-0.6 * consumer.consumption))
             data_model.deficient_delay_count += self.mediation_delay
             self.logger.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
-        elif data_model.surplus <= 800:
+        else:
             data_model.deficient_delay_count = 0
             data_model.surplus_delay_count = 0
 
@@ -61,6 +60,7 @@ class mediator:
         
         if consumer.isConsuming == False and data_model.override == True:
             consumer.start_consuming()
+            self.logger.info("Override activated: Start consuming")
             command = 'start_consuming'
 
         return command
