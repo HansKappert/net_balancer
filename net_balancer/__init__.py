@@ -63,6 +63,17 @@ def consumer():
         consumption   =data_model._consumers[0].consumption
         )
 
+@app.route('/data/get', methods=['GET'])
+def get_data():
+    return jsonify(
+        {'surplus': data_model.surplus},
+        {'surplus_delay_count':data_model.surplus_delay_count},
+        {'current_consumption':data_model.current_consumption},
+        {'current_production': data_model.current_production},
+        {'deficient_delay_theshold':data_model.deficient_delay_theshold},
+        {'surplus_delay_theshold':data_model.surplus_delay_theshold},
+        {'override':data_model.override}
+        )
 
 import net_balancer.web_api
 
