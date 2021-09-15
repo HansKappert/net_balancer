@@ -28,11 +28,13 @@ class mediator:
     def mediate_once(self, consumer : energy_consumer, data_model : model):
         command = ''
         
-        if data_model.surplus >= consumer.consumption:
+        if data_model.surplus >= 0.6 * consumer.consumption:
             data_model.surplus_delay_count += self.mediation_delay
+            self.logger.info("current surplus exceeds 0.6*power consumption (0.6*{}={})".format(consumer.consumption,0.6 * consumer.consumption))
             self.logger.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         #elif consumer.consumer_is_consuming() and data_model.surplus <= -1500:
-        elif data_model.surplus <= -1*consumer.consumption:
+        elif data_model.surplus <= -0.6*consumer.consumption:
+            self.logger.info("current deficient exceeds -0.6*power consumption (-0.6*{}={})".format(consumer.consumption,-0.6 * consumer.consumption))
             data_model.deficient_delay_count += self.mediation_delay
             self.logger.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
         elif data_model.surplus <= 800:
