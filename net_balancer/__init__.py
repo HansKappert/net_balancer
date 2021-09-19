@@ -57,10 +57,14 @@ def settings():
 def consumer():
     if request.method == 'POST':
         data_model._consumers[0].consumption = int(request.form['consumption'])
+        data_model._consumers[0].start_above = int(request.form['start_above'])
+        data_model._consumers[0].stop_under  = int(request.form['stop_under'])
         return redirect(url_for('index'))
     else:
         return render_template('consumer.html', 
-        consumption   =data_model._consumers[0].consumption
+        consumption   = data_model._consumers[0].consumption,
+        start_above   = data_model._consumers[0].start_above,
+        stop_under    = data_model._consumers[0].stop_under
         )
 
 @app.route('/data/get', methods=['GET'])

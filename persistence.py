@@ -27,8 +27,8 @@ class persistence:
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name, consumption)")
-            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680)")
+            cur.execute("CREATE TABLE consumer(name, consumption, start_above, stop_under)")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 2000, -2000)")
             con.commit()
             con.close()
 
@@ -118,10 +118,30 @@ class persistence:
     def get_consumer_consumption(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT consumption FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        return result[0]
+        return int(result[0])
     def set_consumer_consumption(self, consumer_name, value):
         con = self.get_db_connection()
         result = con.execute("UPDATE consumer SET consumption = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    def get_consumer_start_above(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT start_above FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        return int(result[0])
+    def set_consumer_start_above(self, consumer_name, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE consumer SET start_above = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    def get_consumer_stop_under(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT stop_under FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        return int(result[0])
+    def set_consumer_stop_under(self, consumer_name, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE consumer SET stop_under = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
 
