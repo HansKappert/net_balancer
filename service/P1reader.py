@@ -7,9 +7,9 @@ import sys
 from webbrowser import Error
 import serial
 import logging
+from service.abc_P1data_reader import P1data_reader
 
-
-class P1reader:
+class P1reader(P1data_reader):
     def __init__(self, port="/dev/ttyUSB0") -> None:
         #Set COM port config
         self.ser = serial.Serial()

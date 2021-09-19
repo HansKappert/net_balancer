@@ -25,7 +25,6 @@ class energy_producer:
         except:
             pass
 
-        data_model.surplus = data_model.current_production - data_model.current_consumption
         logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
 
 

@@ -1,6 +1,7 @@
 import argparse
 import logging
 # from unittests.P1reader_fake import P1reader
+from service.P1reader_stub import P1reader_stub
 from service.P1reader import P1reader
 from service.energy_producer import energy_producer
 from service.tesla_energy_consumer import tesla_energy_consumer
@@ -46,7 +47,10 @@ if __name__ == "__main__":
     db = persistence()
     data_model = model(db)
 
-    current_data_supplier = P1reader(port=args.device_name)
+    if args.device_name == "stub":
+        current_data_supplier = P1reader_stub("none")
+    else:
+        current_data_supplier = P1reader(port=args.device_name)
     logging.debug ("Data supplier reader is setup")
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logging.debug ("Energy producer is setup")
