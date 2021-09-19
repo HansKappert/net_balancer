@@ -9,14 +9,16 @@
     <table>
         <hr>
             <td><strong>Log date/time</strong>&nbsp;</td>
+            <td><strong>Type</strong>&nbsp;</td>
             <td><strong>Module</strong>&nbsp;</td>
             <td><strong>Message</strong></td>
         </hr>
     {% for line in lines %}
         <tr>
             <td>{{ nice_date(line['log_date']) }}&nbsp;</td>
-            <td>{{ line['source']   }}&nbsp;</td>
-            <td>{{ line['message']  }}</td>
+            <td>{{ line['levelname']           }}&nbsp;</td>
+            <td>{{ line['source']              }}&nbsp;</td>
+            <td>{{ line['message']             }}</td>
         </tr>
     {% endfor %}
     </table>

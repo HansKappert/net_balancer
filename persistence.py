@@ -35,7 +35,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             logging.debug ("Creating table event")
-            cur.execute("CREATE TABLE event(log_date, source, message)")
+            cur.execute("CREATE TABLE event(log_date, levelname, source, message)")
             con.commit()
             con.close()
 
@@ -44,10 +44,10 @@ class persistence:
         conn.row_factory = sqlite3.Row
         return conn
 
-    def log_event(self, source:str, message:str):
+    def log_event(self, levelname:str, source:str, message:str):
         con = self.get_db_connection()
         log_date = datetime.datetime.now()
-        result = con.execute("INSERT INTO event VALUES (:log_date, :source, :message)",{"log_date": log_date, "source":source, "message":message})
+        result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
         con.commit()
         con.close()
 

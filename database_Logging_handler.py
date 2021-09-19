@@ -10,4 +10,4 @@ class database_logging_handler(StreamHandler):
 
     def emit(self, record):
         msg = self.format(record)
-        self._db.log_event(record.module, msg)
+        self._db.log_event(record.levelname, record.module, msg)
