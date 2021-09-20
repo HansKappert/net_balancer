@@ -79,44 +79,66 @@ def get_data():
         {'override':data_model.override}
         )
 
+
+@app.route('/surplus/get', methods=['GET'])
+def get_surplus():
+    return jsonify({'value': data_model.surplus})
+
+@app.route('/surplus_delay_count/get', methods=['GET'])
+def get_surplus_delay_count():
+    return jsonify({'value': data_model.surplus_delay_count})
+
+@app.route('/deficient_delay_count/get', methods=['GET'])
+def get_deficient_delay_count():
+    return jsonify({'value': data_model.deficient_delay_count})
+
+@app.route('/current_consumption/get', methods=['GET'])
+def get_current_consumption():
+    return jsonify({'value': data_model.current_consumption})
+
+@app.route('/current_production/get', methods=['GET'])
+def get_current_production():
+    return jsonify({'value': data_model.current_production})
+
+@app.route('/deficient_delay_theshold/get', methods=['GET'])
+def get_deficient_delay_theshold():
+    return jsonify({'value': data_model.deficient_delay_theshold})
+
+@app.route('/surplus_delay_theshold/set', methods=['GET'])
+def put_surplus_delay_theshold():
+    value = request.args.get('value')
+    try:
+        value = int(value)
+        data_model.surplus_delay_theshold = request.data
+        return jsonify({'result': 'Ok'})
+    except:
+        return jsonify({'result': 'Error'})
+
+@app.route('/deficient_delay_theshold/set/<int:value>', methods=['GET'])
+def put_deficient_delay_theshold(value):
+    try:
+        data_model.deficient_delay_theshold = value
+        return jsonify({'result': 'Ok'})
+    except:
+        return jsonify({'result': 'Error'})
+
+
+@app.route('/override/get', methods=['GET'])
+def get_override():
+    return jsonify({'value': data_model.override})
+
+
+@app.route('/override/set/<int:value>', methods=['GET'])
+def put_override(value):
+    try:
+        data_model.override = value
+        return jsonify({'result': 'Ok'})
+    except:
+        return jsonify({'result': 'Error'})
+
 import net_balancer.web_api
 
 
 if __name__ == "__main__":
-
-    """ 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-u", "--user_email", type=str,
-                    help="Tesla account user name (e-mail address)")
-    ap.add_argument("-p", "--password", type=str,
-                    help="Password of the Tesla account")
-    ap.add_argument("-l", "--loglevel", type=str,
-                    help="logging level: d=debug, i=info, w=warning, e=error")
-    ap.add_argument("-d", "--device_name", type=str,
-                        help="tty device name as listed by ls /dev/tt*")
-    args = ap.parse_args()
-
-    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    if args.loglevel == None or args.loglevel == 'i':
-        logging.basicConfig(level=logging.INFO, format=default_format)
-    elif args.loglevel == 'd':
-        logging.basicConfig(level=logging.DEBUG, format=default_format)
-    elif args.loglevel == 'w':
-        logging.basicConfig(level=logging.WARN, format=default_format)
-    elif args.loglevel == 'e':
-        logging.basicConfig(level=logging.ERROR, format=default_format)
-        
-    if (args.user_email == None or args.password == None):
-        print("Please specify your Tesla account credentials")
-        quit()
-
-    if (args.device_name == None):
-        print("Please specify the Smart Meter device name")
-        quit()
-
-    logging.debug ("User name    : " + args.user_email)
-    logging.debug ("User password is secret, remember")
-    """
-
     app.run(host='0.0.0.0',port=8081,debug=True)
     # app.run(host='0.0.0.0',port=8081,debug=True, use_debugger=False, use_reloader=False, passthrough_errors=True)
