@@ -9,3 +9,4 @@ captcha.svg
 main.sh
 web.sh
 net_balancer.egg-info
+start_service.sh
