@@ -14,7 +14,7 @@
                 value="{{ request.form['start_above'] or start_above }}"></input>
                 
         <label for="title">Stop consuming when power shortage is under</label>
-        <input type="number" name="stop_under"  MIN="0" MAX="10000" STEP="10" 
+        <input type="number" name="stop_under"  MIN="-10000" MAX="10000" STEP="10" 
             placeholder="Post stop_under" class="form-control"
             value="{{ request.form['stop_under'] or stop_under }}"></input>
     </div>
