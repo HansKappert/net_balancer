@@ -12,4 +12,14 @@ Last update : <span id="lastUpdate"></span><br/><br/><br/>
     <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed()">
     <span class="slider round"></span>
 </label></div>
+<table>
+    <hr>
+        <td><strong>Stroomverbruiker</strong>&nbsp;</td>
+        <td><strong>Consumeert</strong>&nbsp;</td>
+    </hr>
+    <tr>
+        <td>Tesla</td>
+        <td><span id="charging_tesla"></span></td>
+    </tr>
+</table>
 {% endblock %}

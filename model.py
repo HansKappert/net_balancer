@@ -99,3 +99,6 @@ class model:
     def add_consumer(self, consumer : abc_energy_consumer):
         self._consumers.append(consumer)
     
+    @property
+    def consumers(self):
+        return self._consumers

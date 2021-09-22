@@ -25,7 +25,7 @@ def log_get_all():
         lines=log_lines, nice_date=nice_date
     )    
 def nice_date(d):
-    return d[:19]
+    return d[:19].replace(' ','&nbsp;')
 
 @app.route('/', methods=['GET'])
 def index():
@@ -76,7 +76,8 @@ def get_data():
         {'current_production': data_model.current_production},
         {'deficient_delay_theshold':data_model.deficient_delay_theshold},
         {'surplus_delay_theshold':data_model.surplus_delay_theshold},
-        {'override':data_model.override}
+        {'override':data_model.override},
+        {'charging_tesla':data_model.consumers[0].isConsuming}
         )
 
 
