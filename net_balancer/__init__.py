@@ -25,7 +25,7 @@ def log_get_all():
         lines=log_lines, nice_date=nice_date
     )    
 def nice_date(d):
-    return d[:19].replace(' ','&nbsp;')
+    return d[:19]
 
 @app.route('/', methods=['GET'])
 def index():
