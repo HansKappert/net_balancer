@@ -83,8 +83,8 @@ class tesla_energy_consumer(energy_consumer):
     def start_above(self):
         self._start_above = self.persistence.get_consumer_start_above(self._name)
         return self._start_above
-    @consumption.setter
-    def consumption(self,value):
+    @start_above.setter
+    def start_above(self,value):
         self._start_above = value
         self.persistence.set_consumer_start_above(self._name, value)
 
@@ -92,8 +92,8 @@ class tesla_energy_consumer(energy_consumer):
     def stop_under(self):
         self._stop_under = self.persistence.get_consumer_stop_under(self._name)
         return self._stop_under
-    @consumption.setter
-    def consumption(self,value):
+    @stop_under.setter
+    def stop_under(self,value):
         self._stop_under = value
         self.persistence.set_consumer_stop_under(self._name, value)
 
