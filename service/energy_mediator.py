@@ -52,11 +52,12 @@ class mediator:
         if data_model.deficient_delay_count > data_model.deficient_delay_theshold:
             self.logger.debug("data_model.deficient_delay_theshold of {} exceeded".format(data_model.deficient_delay_theshold))
             data_model.deficient_delay_count = 0
-            try:
-                consumer.stop_consuming()
-                command = 'stop_consuming'
-            except Exception as e:
-                self.logger.error(e)
+            if data_model.consumers[0].isConsuming:
+                try:
+                    consumer.stop_consuming()
+                    command = 'stop_consuming'
+                except Exception as e:
+                    self.logger.error(e)
         
         if consumer.isConsuming == False and data_model.override == True:
             consumer.start_consuming()

@@ -1,6 +1,7 @@
 import sqlite3
 import logging
-import datetime
+from datetime import datetime, timedelta
+
 
 class persistence:
     DBNAME = 'energy_mediator.db'
@@ -12,14 +13,14 @@ class persistence:
         result = cur.execute("PRAGMA table_info(settings)").fetchone()
         if (result == None):
             logging.debug ("Creating table settings")
-            cur.execute("CREATE TABLE settings(surplus_delay_theshold,deficient_delay_theshold)")
-            cur.execute("INSERT INTO  settings VALUES (40,40)")
+            cur.execute("CREATE TABLE settings (surplus_delay_theshold INTEGER, deficient_delay_theshold INTEGER, log_retention_days INTEGER);")
+            cur.execute("INSERT INTO  settings VALUES (40,40,3)")
             con.commit()
     
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus,current_consumption,current_production,surplus_delay_count,deficient_delay_count,override)")
+            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER,override)")
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0)")
             con.commit()
             con.close()
@@ -27,7 +28,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name, consumption, start_above, stop_under)")
+            cur.execute("CREATE TABLE consumer(name TEXT, consumption INTEGER, start_above INTEGER, stop_under INTEGER)")
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 2000, -2000)")
             con.commit()
             con.close()
@@ -46,7 +47,7 @@ class persistence:
 
     def log_event(self, levelname:str, source:str, message:str):
         con = self.get_db_connection()
-        log_date = datetime.datetime.now()
+        log_date = datetime.now()
         result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
         con.commit()
         con.close()
@@ -130,7 +131,7 @@ class persistence:
         result = con.execute("SELECT start_above FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
         return int(result[0])
     def set_consumer_start_above(self, consumer_name, value):
-        con = self.get_db_connection()
+        con = self.get_db_connection()  
         result = con.execute("UPDATE consumer SET start_above = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
@@ -148,4 +149,14 @@ class persistence:
     def get_log_lines(self):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
+        return result
+
+    def remove_old_log_lines(self):
+        con = self.get_db_connection()
+        result = con.execute("select log_retention_days from settings").fetchone()
+        log_retention_days = int(result[0])
+        datetime_val = datetime.today() - timedelta(days=log_retention_days)
+        result = con.execute("DELETE FROM event WHERE log_date < date(:datetime_val)",{"datetime_val":datetime_val}).fetchall()
+        con.commit()
+        con.close()
         return result

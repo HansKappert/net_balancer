@@ -1,5 +1,6 @@
 import argparse
 import logging
+import threading
 # from unittests.P1reader_fake import P1reader
 from service.P1reader_stub import P1reader_stub
 from service.P1reader import P1reader
@@ -8,6 +9,7 @@ from service.tesla_energy_consumer import tesla_energy_consumer
 from service.energy_mediator import mediator
 from model import model
 from persistence import persistence
+from service.eventlog_cleaner import eventlog_cleaner
 
 if __name__ == "__main__":
         
@@ -66,4 +68,9 @@ if __name__ == "__main__":
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
     logging.debug ("Mediator is created. Starting mediation")
+
+    cleaner = eventlog_cleaner()
+    th = threading.Thread(target=cleaner.start, daemon=True)
+    th.start()
     energy_mediator.mediate(consumer=consumer, producer=producer)
+
