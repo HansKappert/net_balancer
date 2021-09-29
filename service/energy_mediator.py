@@ -30,11 +30,13 @@ class mediator:
         if data_model.surplus >= consumer.start_above:
             self.logger.info("current surplus ({}) exceeds start criterion ({})".format(data_model.surplus, consumer.start_above))
             data_model.surplus_delay_count += self.mediation_delay
+            data_model.deficient_delay_count = 0
             self.logger.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         
         elif data_model.surplus <= consumer.stop_under:
             self.logger.info("current deficient ({}) exceeds stop criterion ({})".format(data_model.surplus, consumer.stop_under))
             data_model.deficient_delay_count += self.mediation_delay
+            data_model.surplus_delay_count = 0
             self.logger.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
         else:
             data_model.deficient_delay_count = 0
