@@ -156,7 +156,7 @@ class persistence:
         result = con.execute("select log_retention_days from settings").fetchone()
         log_retention_days = int(result[0])
         datetime_val = datetime.today() - timedelta(days=log_retention_days)
-        result = con.execute("DELETE FROM event WHERE log_date < date(:datetime_val)",{"datetime_val":datetime_val}).fetchall()
+        result = con.execute("DELETE FROM event WHERE log_date < date('now', '-:log_retention_days day')",{"log_retention_days":log_retention_days})
         con.commit()
         con.close()
         return result
