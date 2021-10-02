@@ -12,7 +12,8 @@ Last update : <span id="lastUpdate"></span><br/><br/><br/>
     <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed()">
     <span class="slider round"></span>
 </label></div>
-<table>
+
+<table> 
     <hr>
         <td><strong>Stroomverbruiker</strong>&nbsp;</td>
         <td><strong>Consumeert</strong>&nbsp;</td>
@@ -22,4 +23,45 @@ Last update : <span id="lastUpdate"></span><br/><br/><br/>
         <td><span id="charging_tesla"></span></td>
     </tr>
 </table>
+<script type="text/javascript">
+    function override_changed() {
+        if(document.getElementById("override").checked)
+          par=1;
+        else
+          par=0;
+        fetch( '/override/set/' + par );
+    }
+    function refresh() {
+        fetch('/data/get')
+          .then(response => response.json())
+          .then(data => updatePageData(data))
+          .catch(function (err) {
+                alert('error: ' + err);
+            });
+    }
+    function updatePageData(data) 
+    {
+      for (i=0;i<data.length;i++){
+        if (jQuery) {
+          jQuery.each(data[i], 
+            function(data_element, data_value) {
+              field = document.getElementById(data_element)
+              if (field != undefined) {
+                field.innerText = data_value;
+              }
+          });    
+        }
+      }
+      field = document.getElementById("lastUpdate");
+      if (field != undefined) {
+        var now = new Date();
+        h = now.getHours();
+        m = now.getMinutes();
+        s = now.getSeconds();
+        field.innerText = h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }
+    }
+    setInterval(refresh, 1000);   
+</script>
 {% endblock %}
+
