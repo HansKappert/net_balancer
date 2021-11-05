@@ -22,6 +22,9 @@ class energy_consumer(ABC):
     def start_consuming(self):
         pass
 
+    def set_home_location(self):
+        pass
+    
     @property
     def consumption(self):
         pass
@@ -47,3 +50,6 @@ class energy_consumer(ABC):
     def isConsuming(self):
         pass
     
+    @property
+    def can_start_consuming(self):
+        pass

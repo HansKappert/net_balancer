@@ -53,18 +53,25 @@ def settings():
         deficient_delay_theshold =data_model.deficient_delay_theshold
         )
 
-@app.route('/consumer', methods=['GET','POST'])
-def consumer():
+@app.route('/consumer_tesla', methods=['GET','POST'])
+def consumer_tesla():
     if request.method == 'POST':
         data_model._consumers[0].consumption = int(request.form['consumption'])
         data_model._consumers[0].start_above = int(request.form['start_above'])
         data_model._consumers[0].stop_under  = int(request.form['stop_under'])
+        # if 'set_home_location' in request.form:
+        #    set_home_location = request.form['set_home_location']
+        #    data_model._consumers[0].set_home_location()
+        db.set_tesla_home_coords(float(request.form['latitude']),float(request.form['longitude']))
         return redirect(url_for('index'))
     else:
-        return render_template('consumer.html', 
+        coords = db.get_tesla_home_coords()
+        return render_template('consumer_tesla.html', 
         consumption   = data_model._consumers[0].consumption,
         start_above   = data_model._consumers[0].start_above,
-        stop_under    = data_model._consumers[0].stop_under
+        stop_under    = data_model._consumers[0].stop_under,
+        latitude      = coords[0],
+        longitude = coords[1]     
         )
 
 @app.route('/data/get', methods=['GET'])

@@ -44,7 +44,9 @@ class tesla_energy_consumer(energy_consumer):
         return self.is_consuming
         
     def stop_consuming(self):
-        self.__update_charging_state()
+        if not self.may_stop_consuming():
+            return
+
         if self.is_consuming:
             logging.info("Giving stop_charging command")    
             res = self.vehicle.command('STOP_CHARGE')
@@ -52,23 +54,25 @@ class tesla_energy_consumer(energy_consumer):
             self.__update_charging_state()
             return self.is_consuming
         else:
-            logging.info("Stop charging command is not needed. Vehicle wasn't chargin")   
+            logging.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
     def start_consuming(self):
         try:
-            self.logger.debug("Fetching vehicle data")
+            if not self.can_start_consuming():
+                return
+            self.logger.info("Giving start_charging command")
+            res = self.vehicle.command('START_CHARGE')
+            self.logger.info(res)
             self.__update_charging_state()
-            if  self.is_consuming:
-                self.logger.info("Charging command is not needed. Vehicle already charging")
-            else:
-                self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
-                self.logger.info("Giving start_charging command")
-                res = self.vehicle.command('START_CHARGE')
-                self.logger.info(res)
-                self.__update_charging_state()
-                return self.is_consuming
+            return self.is_consuming
         except Exception as e:
             self.logger.error(e)
+
+    def set_home_location(self):
+        if self.vehicle['state'] == 'asleep':
+            self.vehicle.sync_wake_up()
+        self.vehicle.get_vehicle_data()
+        #self.vehicle['driving_state']
 
     @property
     def consumption(self):
@@ -101,3 +105,45 @@ class tesla_energy_consumer(energy_consumer):
     def isConsuming(self):
         return self.is_consuming
     
+    @property
+    def can_start_consuming(self):
+        if self.vehicle['state'] == 'asleep':
+            self.vehicle.sync_wake_up()
+        self.vehicle.get_vehicle_data()
+        
+        if not self.is_at_home:
+            self.logger.info("Cannot start because car is not at home")
+            return False 
+
+        if  self.is_disconnected:
+            self.logger.info("Cannot start because car is not connected")
+            return False
+
+        if  self.is_consuming:
+            self.logger.info("Cannot start because the vehicle is already charging")
+            return False
+            
+        return True, ""
+
+    @property
+    def is_disconnected(self):
+        if self.vehicle['charge_state']['charging_state'] == "Disconnected":
+            self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
+            return True
+        return False
+
+    @property
+    def is_at_home(self):
+        if abs(float(self.vehicle['driving_state']['longitude']) -  4.232935) < 0.000100 and abs(float(self.vehicle['driving_state']['latitude'])  - 51.936002) < 0.000100: 
+            return True
+
+    @property
+    def may_stop_consuming(self):
+        if self.vehicle['state'] == 'asleep':
+            self.vehicle.sync_wake_up()
+        self.vehicle.get_vehicle_data()
+
+        if self.is_at_home:
+            self.logger.info("Will not stop because car is not at home")
+            return True
+        return False

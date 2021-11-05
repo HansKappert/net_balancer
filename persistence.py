@@ -33,6 +33,14 @@ class persistence:
             con.commit()
             con.close()
 
+        result = cur.execute("PRAGMA table_info(tesla)").fetchone()
+        if (result == None):
+            logging.debug ("Creating table tesla")
+            cur.execute("CREATE TABLE tesla(home_latitude REAL, home_longitude REAL)")
+            cur.execute("INSERT INTO  tesla VALUES (0.0, 0.0)")
+            con.commit()
+            con.close()
+
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             logging.debug ("Creating table event")
@@ -160,3 +168,15 @@ class persistence:
         con.commit()
         con.close()
         return result
+
+        home_latitude, home_longitude
+    def get_tesla_home_coords(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
+        return (result[0],result[1])
+    def set_tesla_home_coords(self, home_latitude, home_longitude):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE tesla SET home_latitude = :home_latitude, home_longitude = :home_longitude",{"home_latitude":home_latitude,"home_longitude":home_longitude})
+        con.commit()
+        con.close()
+
