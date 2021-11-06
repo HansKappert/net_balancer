@@ -25,48 +25,11 @@ class mediator:
         pass
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
-        command = ''
+        # only one consumer now. Direct all surplus energy to that consumer
+        if consumer.can_consume_this_surplus(data_model.surplus) or data_model.override == True:
+            consumer.start_consuming(data_model.surplus)
         
-        if data_model.surplus >= consumer.start_above:
-            self.logger.info("current surplus ({}) exceeds start criterion ({})".format(data_model.surplus, consumer.start_above))
-            data_model.surplus_delay_count += self.mediation_delay
-            data_model.deficient_delay_count = 0
-            self.logger.info("data_model.surplus_delay_count is now {}".format(data_model.surplus_delay_count))
         
-        elif data_model.surplus <= consumer.stop_under:
-            self.logger.info("current deficient ({}) exceeds stop criterion ({})".format(data_model.surplus, consumer.stop_under))
-            data_model.deficient_delay_count += self.mediation_delay
-            data_model.surplus_delay_count = 0
-            self.logger.info("data_model.deficient_delay_count is now {}".format(data_model.deficient_delay_count))
-        else:
-            data_model.deficient_delay_count = 0
-            data_model.surplus_delay_count = 0
-
-        if data_model.surplus_delay_count > data_model.surplus_delay_theshold:
-            self.logger.debug("data_model.surplus_delay_theshold of {} exceeded".format(data_model.surplus_delay_theshold))
-            data_model.surplus_delay_count = 0
-            try:
-                consumer.start_consuming()
-                command = 'start_consuming'
-            except Exception as e:
-                self.logger.error(e)
-
-        if data_model.deficient_delay_count > data_model.deficient_delay_theshold:
-            self.logger.debug("data_model.deficient_delay_theshold of {} exceeded".format(data_model.deficient_delay_theshold))
-            data_model.deficient_delay_count = 0
-            if data_model.consumers[0].isConsuming:
-                try:
-                    consumer.stop_consuming()
-                    command = 'stop_consuming'
-                except Exception as e:
-                    self.logger.error(e)
-        
-        if consumer.isConsuming == False and data_model.override == True:
-            consumer.start_consuming()
-            self.logger.info("Override activated: Start consuming")
-            command = 'start_consuming'
-
-        return command
 
     def mediate(self, consumer : energy_consumer, producer : service.energy_producer):
         data_model = model(self.persistence)

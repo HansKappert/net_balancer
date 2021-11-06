@@ -11,6 +11,9 @@ class tesla_energy_consumer(energy_consumer):
         self.is_consuming = False
         self._consumption = 0
         self._name = "Tesla"
+        self.voltage = 230
+        self.charge_state = {}
+        self.drive_state = {}
         
         self.logger = logging.getLogger(__name__)
         
@@ -23,7 +26,7 @@ class tesla_energy_consumer(energy_consumer):
         self.logger.addHandler(log_handler)
 
     def initialize(self, **kwargs):
-        self.tesla = Tesla(kwargs['email'], kwargs['password'])
+        self.tesla = Tesla(kwargs['email'])
         self.tesla.captcha_solver = self.solve_captcha
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
@@ -34,11 +37,13 @@ class tesla_energy_consumer(energy_consumer):
             f.write(svg)
         return input('Captcha: ')
 
-    def __update_charging_state(self):
+    def __update_vehicle_data(self):
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
         self.vehicle.get_vehicle_data()
-        self.is_consuming = self.vehicle['charge_state']['charging_state'].lower() == 'charging'
+        self.charge_state = self.vehicle['charge_state']
+        self.drive_state = self.vehicle['drive_state']
+        self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
         
     def consumer_is_consuming(self):
         return self.is_consuming
@@ -51,28 +56,56 @@ class tesla_energy_consumer(energy_consumer):
             logging.info("Giving stop_charging command")    
             res = self.vehicle.command('STOP_CHARGE')
             logging.info(res)
-            self.__update_charging_state()
+            self.__update_vehicle_data()
             return self.is_consuming
         else:
             logging.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
-    def start_consuming(self):
+    def start_consuming(self, surplus_power):
+
         try:
-            if not self.can_start_consuming():
+            self.__update_vehicle_data()
+
+            if not self.can_start_consuming:
                 return
-            self.logger.info("Giving start_charging command")
+            
+            old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
+            # calculate what the new charging current needs to be. 
+            power_max = self.persistence.get_consumer_consumption(self._name)
+            
+            new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
+            self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
+            self.__set_charge_current(new_charging_current)
+            
             res = self.vehicle.command('START_CHARGE')
             self.logger.info(res)
-            self.__update_charging_state()
+            self.__update_vehicle_data()
             return self.is_consuming
         except Exception as e:
             self.logger.error(e)
 
     def set_home_location(self):
-        if self.vehicle['state'] == 'asleep':
-            self.vehicle.sync_wake_up()
-        self.vehicle.get_vehicle_data()
-        #self.vehicle['driving_state']
+        self.__update_vehicle_data()
+
+        
+
+    def can_consume_this_surplus(self, surplus_power):
+        self.__update_vehicle_data()
+        old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
+
+        max_power_consumption = self.persistence.get_consumer_consumption(self._name)
+        if surplus_power < max_power_consumption:
+            return True
+    
+    def calc_new_charge_current(self, charger_actual_current, power_max, surplus_power):
+            surplus_amp = int(surplus_power / self.voltage)
+            amps_new = charger_actual_current + surplus_amp
+            if amps_new * self.voltage > power_max:
+                amps_new = int(power_max / self.voltage)
+            return amps_new
+
+    def __set_charge_current(self, amps):
+        self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
 
     @property
     def consumption(self):
@@ -107,9 +140,7 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def can_start_consuming(self):
-        if self.vehicle['state'] == 'asleep':
-            self.vehicle.sync_wake_up()
-        self.vehicle.get_vehicle_data()
+        self.__update_vehicle_data()
         
         if not self.is_at_home:
             self.logger.info("Cannot start because car is not at home")
@@ -125,24 +156,26 @@ class tesla_energy_consumer(energy_consumer):
             
         return True, ""
 
+    # make sure you've done self.__update_vehicle_data() before using this property
     @property
     def is_disconnected(self):
-        if self.vehicle['charge_state']['charging_state'] == "Disconnected":
+        if self.charge_state['charging_state'] == "Disconnected":
             self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
             return True
         return False
 
+    # make sure you've done self.__update_vehicle_data() before using this property
     @property
     def is_at_home(self):
-        if abs(float(self.vehicle['driving_state']['longitude']) -  4.232935) < 0.000100 and abs(float(self.vehicle['driving_state']['latitude'])  - 51.936002) < 0.000100: 
+        (lat,lon) = self.persistence.get_tesla_home_coords()
+        if abs(float(self.drive_state['longitude']) - lon) < 0.000100 and abs(float(self.drive_state['latitude'])  - lat) < 0.000100: 
             return True
+        return False
 
     @property
     def may_stop_consuming(self):
-        if self.vehicle['state'] == 'asleep':
-            self.vehicle.sync_wake_up()
-        self.vehicle.get_vehicle_data()
-
+        self.__update_vehicle_data()
+        
         if self.is_at_home:
             self.logger.info("Will not stop because car is not at home")
             return True

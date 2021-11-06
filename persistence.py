@@ -127,6 +127,8 @@ class persistence:
     def get_consumer_consumption(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT consumption FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        if result == None:
+            return 0
         return int(result[0])
     def set_consumer_consumption(self, consumer_name, value):
         con = self.get_db_connection()

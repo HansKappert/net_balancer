@@ -13,7 +13,7 @@ class energy_consumer(ABC):
     @abstractmethod
     def consumer_is_consuming(self):
         pass
-    
+        
     @abstractmethod
     def stop_consuming(self):
         pass
@@ -50,6 +50,10 @@ class energy_consumer(ABC):
     def isConsuming(self):
         pass
     
+    @property
+    def can_consume_this_surplus(self):
+        pass
+
     @property
     def can_start_consuming(self):
         pass

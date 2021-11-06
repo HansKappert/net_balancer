@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     consumer = tesla_energy_consumer(db)
     try:
-        consumer.initialize(email=args.user_email, password=args.password)
+        consumer.initialize(email=args.user_email)
     except Exception as e:
         logging.exception(e)
     data_model.add_consumer(consumer)
