@@ -9,40 +9,46 @@
                 value="{{ request.form['consumption'] or consumption }}">
             </input>
 
+            <br>
             <label for="title">Grenswaarde om te starten met laden</label>
             <input type="number" name="start_above"  MIN="0" MAX="10000" STEP="10" 
                     placeholder="Post start_above" class="form-control"
                     value="{{ request.form['start_above'] or start_above }}">
             </input>
-                
+            <!--     
             <label for="title">Grenswaarde om te stoppen met ladenr</label>
             <input type="number" name="stop_under"  MIN="-10000" MAX="10000" STEP="10" 
                 placeholder="Post stop_under" class="form-control"
                 value="{{ request.form['stop_under'] or stop_under }}">
             </input>
-
+            -->
+            <br>
             <label for="title">Grenswaarde om te stoppen met laden</label>
             <input type="number" name="stop_under"  MIN="-10000" MAX="10000" STEP="10" 
                 placeholder="Post stop_under" class="form-control"
                 value="{{ request.form['stop_under'] or stop_under }}">
             </input>
     
-            <label for="title">Longitude laadpaal</label>
-            <input type="number" name="longitude" step="any" 
-                placeholder="Post longitude" class="form-control"
-                value="{{ request.form['longitude'] or longitude }}">
-            </input>
+            <br>
+            <div>
+                <label for="title">Thuis adres</label><br>
+                <input type="text" value="{{request.form['location_home'] or location_home }}"  class="form-control" readonly/>
+            </div>
+            
+            <br>
+            <div>
+                <label for="title">Huidige locatie:</label><br>
+                <input type="text" value="{{ request.form['location_now'] or location_now }}" class="form-control" readonly/>
+            </div>
     
-            <label for="title">Latitude laadpaal</label>
-            <input type="number" name="latitude" step="any"  
-                placeholder="Post latitude" class="form-control"
-                value="{{ request.form['latitude'] or latitude }}">
-            </input>
-    
-            <label for="title">Stel huidige lokatie in als thuislokatie</label>
-            <input type="checkbox" name="set_home_location"  
-                placeholder="Post set_home_location" class="form-control">
-            </input>
+            <div>
+                <br>
+                <label for="title">Stel huidige lokatie in als thuislokatie</label>&nbsp;
+                <input  type="checkbox" 
+                        name="set_home_location"  
+                        label="Stel huidige lokatie in als thuislokatie"
+                        placeholder="Post set_home_location" />
+            </div>
     
         </div>
 

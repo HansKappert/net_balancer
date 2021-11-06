@@ -44,6 +44,9 @@ class tesla_energy_consumer(energy_consumer):
         self.charge_state = self.vehicle['charge_state']
         self.drive_state = self.vehicle['drive_state']
         self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
+        self.latitude_current = float(self.drive_state['latitude'])
+        self.longitude_current = float(self.drive_state['longitude'])
+        self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
         
     def consumer_is_consuming(self):
         return self.is_consuming
@@ -64,9 +67,7 @@ class tesla_energy_consumer(energy_consumer):
     def start_consuming(self, surplus_power):
 
         try:
-            self.__update_vehicle_data()
-
-            if not self.can_start_consuming:
+            if not self.can_start_consuming: # property will call self.__update_vehicle_data()
                 return
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']

@@ -8,6 +8,7 @@ from model import model
 from persistence import persistence
 from service.tesla_energy_consumer import tesla_energy_consumer
 from datetime import datetime
+from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
@@ -58,20 +59,37 @@ def consumer_tesla():
     if request.method == 'POST':
         data_model._consumers[0].consumption = int(request.form['consumption'])
         data_model._consumers[0].start_above = int(request.form['start_above'])
-        data_model._consumers[0].stop_under  = int(request.form['stop_under'])
-        # if 'set_home_location' in request.form:
-        #    set_home_location = request.form['set_home_location']
-        #    data_model._consumers[0].set_home_location()
-        db.set_tesla_home_coords(float(request.form['latitude']),float(request.form['longitude']))
+        # data_model._consumers[0].stop_under  = int(request.form['stop_under'])
+        if 'set_home_location' in request.form:
+            set_home_location = request.form['set_home_location']
+            if set_home_location=='on':
+                coords_current = db.get_tesla_current_coords()
+                db.set_tesla_home_coords(coords_current[0],coords_current[1])
         return redirect(url_for('index'))
     else:
-        coords = db.get_tesla_home_coords()
+        coords_home = db.get_tesla_home_coords()
+        coords_current = db.get_tesla_current_coords()
+        osm = Nominatim(user_agent='TeslaPy')
+        
+        if coords_home[0] == 0 and coords_home[1] == 0:
+            location_home = "Nog niet ingesteld"
+        else:
+            coords_as_string = '%s, %s' % (coords_home[0],coords_home[1])
+            location_home = osm.reverse(coords_as_string).address
+        
+        coords_as_string = '%s, %s' % (coords_current[0],coords_current[1])
+        location_now = osm.reverse(coords_as_string).address
+
         return render_template('consumer_tesla.html', 
-        consumption   = data_model._consumers[0].consumption,
-        start_above   = data_model._consumers[0].start_above,
-        stop_under    = data_model._consumers[0].stop_under,
-        latitude      = coords[0],
-        longitude = coords[1]     
+        consumption     = data_model._consumers[0].consumption,
+        start_above     = data_model._consumers[0].start_above,
+        #stop_under     = data_model._consumers[0].stop_under,
+        latitude_home   = coords_home[0],
+        longitude_home  = coords_home[1],   
+        latitude_curr   = coords_home[0],
+        longitude_curr  = coords_home[1],
+        location_now    = location_now,
+        location_home   = location_home
         )
 
 @app.route('/data/get', methods=['GET'])
