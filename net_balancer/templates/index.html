@@ -3,10 +3,12 @@
 <br>
 Last update : <span id="lastUpdate"></span><br/><br/><br/>
 <div class="label">Huidig energie overschot</div>  <span id="surplus"              >{{ model.surplus }}</span> Watt
+<!-- 
 <div class="label">Overschot gezien gedurende</div><span id="surplus_delay_count"  >{{ model.surplus_delay_count }}</span> seconden
 <div class="label">Tekort gezien gedurende</div>   <span id="deficient_delay_count">{{ model.deficient_delay_count }}</span> seconden
 <div class="label">Vertraging starten laden</div>{{ surplus_delay_theshold }} seconden
 <div class="label">Vertraging stoppen laden</div>{{ model.deficient_delay_theshold }} seconden      
+-->
 <br><br>
 <div>Geforceerd laden <label class="switch">
     <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed()">
