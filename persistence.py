@@ -17,13 +17,13 @@ class persistence:
             cur.execute("INSERT INTO  settings VALUES (40,40,3)")
             con.commit()
     
+        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
             cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER,override)")
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0)")
             con.commit()
-            con.close()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
@@ -31,22 +31,23 @@ class persistence:
             cur.execute("CREATE TABLE consumer(name TEXT, consumption INTEGER, start_above INTEGER, stop_under INTEGER)")
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 2000, -2000)")
             con.commit()
-            con.close()
 
+        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
             logging.debug ("Creating table tesla")
-            cur.execute("CREATE TABLE tesla(home_latitude REAL, home_longitude REAL)")
-            cur.execute("INSERT INTO  tesla VALUES (0.0, 0.0)")
+            cur.execute("CREATE TABLE tesla(home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
+            cur.execute("INSERT INTO  tesla VALUES (0.0, 0.0, 0.0, 0.0)")
             con.commit()
-            con.close()
 
+
+        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             logging.debug ("Creating table event")
             cur.execute("CREATE TABLE event(log_date, levelname, source, message)")
             con.commit()
-            con.close()
+        con.close()
 
     def get_db_connection(self):
         conn = sqlite3.connect(persistence.DBNAME)
@@ -171,7 +172,7 @@ class persistence:
         con.close()
         return result
 
-        home_latitude, home_longitude
+
     def get_tesla_home_coords(self):
         con = self.get_db_connection()
         result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
@@ -182,3 +183,12 @@ class persistence:
         con.commit()
         con.close()
 
+    def get_tesla_current_coords(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()
+        return (result[0],result[1])
+    def set_tesla_current_coords(self, current_latitude, current_longitude):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
+        con.commit()
+        con.close()
