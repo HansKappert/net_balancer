@@ -17,8 +17,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-u", "--user_email", type=str,
                     help="Tesla account user name (e-mail address)")
-    ap.add_argument("-p", "--password", type=str,
-                    help="Password of the Tesla account")
     ap.add_argument("-d", "--device_name", type=str,
                     help="tty device name as listed by ls /dev/tt*")
     ap.add_argument("-l", "--loglevel", type=str,
@@ -35,7 +33,7 @@ if __name__ == "__main__":
     elif args.loglevel == 'e':
         logging.basicConfig(level=logging.ERROR, format=default_format)
     
-    if (args.user_email == None or args.password == None):
+    if (args.user_email == None):
         print("Please specify your Tesla account credentials")
         quit()
 
@@ -44,7 +42,6 @@ if __name__ == "__main__":
         quit()
 
     logging.debug ("User name    : " + args.user_email)
-    logging.debug ("User password is secret, remember")
     logging.debug ("Device name  : " + args.device_name)
     db = persistence()
     data_model = model(db)
