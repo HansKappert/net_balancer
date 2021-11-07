@@ -79,7 +79,7 @@ class tesla_energy_consumer(energy_consumer):
             self.__set_charge_current(new_charging_current)
             
             res = self.vehicle.command('START_CHARGE')
-            self.logger.info(res)
+            self.logger.info("is dit 'm?" + res)
             self.__update_vehicle_data()
             return self.is_consuming
         except Exception as e:
