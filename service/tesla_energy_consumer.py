@@ -75,7 +75,7 @@ class tesla_energy_consumer(energy_consumer):
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
             # calculate what the new charging current needs to be. 
-            power_max = self.persistence.get_consumer_consumption_max_max(self._name)
+            power_max = self.persistence.get_consumer_consumption_max(self._name)
             
             if at_maximum:
                 new_charging_current = 16
@@ -116,7 +116,7 @@ class tesla_energy_consumer(energy_consumer):
 
     @property
     def consumption(self):
-        self._consumption = self.persistence.get_consumer_consumption_max_max(self._name)
+        self._consumption = self.persistence.get_consumer_consumption_max(self._name)
         return self._consumption
     @consumption.setter
     def consumption(self,value):
