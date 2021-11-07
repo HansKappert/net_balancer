@@ -82,7 +82,10 @@ class tesla_energy_consumer(energy_consumer):
             else:
                 new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
             self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
-            self.__set_charge_current(new_charging_current)
+            try:
+                self.__set_charge_current(new_charging_current)
+            except Exception as e:
+                self.logger.exception("Exception during setting of the current:" + e)
             
             res = self.vehicle.command('START_CHARGE')
             self.logger.info(res)
