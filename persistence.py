@@ -14,22 +14,22 @@ class persistence:
         if (result == None):
             logging.debug ("Creating table settings")
             cur.execute("CREATE TABLE settings (surplus_delay_theshold INTEGER, deficient_delay_theshold INTEGER, log_retention_days INTEGER);")
-            cur.execute("INSERT INTO  settings VALUES (40,40,3)")
+            cur.execute("INSERT INTO  settings VALUES (40,40,1)")
             con.commit()
     
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER,override)")
-            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0)")
+            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER)")
+            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name TEXT, consumption INTEGER, start_above INTEGER, stop_under INTEGER)")
-            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 2000, -2000)")
+            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, start_above INTEGER, stop_under INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)))")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 2000, -2000, 0)")
             con.commit()
 
         cur = con.cursor()
@@ -77,11 +77,6 @@ class persistence:
     def set_surplus(self,value):
         self.__set_reading_column_value("surplus", value)
 
-    def get_override(self):
-        return self.__get_reading_column_value("override")
-    def set_override(self,value):
-        self.__set_reading_column_value("override", value)
-
 
     def get_current_production(self):
         return self.__get_reading_column_value("current_production")
@@ -125,18 +120,33 @@ class persistence:
         con.commit()
         con.close()
 
-    def get_consumer_consumption(self, consumer_name):
+    #  consumer consumption_max
+    def get_consumer_consumption_max(self, consumer_name):
         con = self.get_db_connection()
-        result = con.execute("SELECT consumption FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        result = con.execute("SELECT consumption_max FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
         if result == None:
             return 0
         return int(result[0])
-    def set_consumer_consumption(self, consumer_name, value):
+    def set_consumer_consumption_max(self, consumer_name, value):
         con = self.get_db_connection()
-        result = con.execute("UPDATE consumer SET consumption = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        result = con.execute("UPDATE consumer SET consumption_max = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
 
+    # consumer consumption_now
+    def get_consumer_consumption_now(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT consumption_now FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        if result == None:
+            return 0
+        return int(result[0])
+    def set_consumer_consumption_now(self, consumer_name, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE consumer SET consumption_now = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    #  consumer start_above
     def get_consumer_start_above(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT start_above FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
@@ -147,6 +157,7 @@ class persistence:
         con.commit()
         con.close()
 
+    # consumer stop_under
     def get_consumer_stop_under(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT stop_under FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
@@ -156,6 +167,18 @@ class persistence:
         result = con.execute("UPDATE consumer SET stop_under = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
+
+    #  consumer override
+    def get_consumer_override(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT override FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        return int(result[0])
+    def set_consumer_override(self, consumer_name, value):
+        con = self.get_db_connection()  
+        result = con.execute("UPDATE consumer SET override = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
 
     def get_log_lines(self):
         con = self.get_db_connection()
@@ -172,7 +195,7 @@ class persistence:
         con.close()
         return result
 
-
+    # tesla home_coords
     def get_tesla_home_coords(self):
         con = self.get_db_connection()
         result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
@@ -183,6 +206,7 @@ class persistence:
         con.commit()
         con.close()
 
+    # tesla current_coords
     def get_tesla_current_coords(self):
         con = self.get_db_connection()
         result = con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()

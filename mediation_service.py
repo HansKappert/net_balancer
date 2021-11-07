@@ -54,12 +54,12 @@ if __name__ == "__main__":
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logging.debug ("Energy producer is setup")
 
-    consumer = tesla_energy_consumer(db)
+    tesla = tesla_energy_consumer(db)
     try:
-        consumer.initialize(email=args.user_email)
+        tesla.initialize(email=args.user_email)
     except Exception as e:
         logging.exception(e)
-    data_model.add_consumer(consumer)
+    data_model.add_consumer(tesla)
     logging.debug ("Data model created")
 
     logging.debug ("Energy consumer is setup")
@@ -69,5 +69,5 @@ if __name__ == "__main__":
     cleaner = eventlog_cleaner()
     th = threading.Thread(target=cleaner.start, daemon=True)
     th.start()
-    energy_mediator.mediate(consumer=consumer, producer=producer)
+    energy_mediator.mediate(consumer=tesla, producer=producer)
 

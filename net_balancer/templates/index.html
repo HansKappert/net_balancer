@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <br>
-Last update : <span id="lastUpdate"></span><br/><br/><br/>
+Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
 <div class="label">Huidig energie overschot</div>  <span id="surplus"              >{{ model.surplus }}</span> Watt
 <!-- 
 <div class="label">Overschot gezien gedurende</div><span id="surplus_delay_count"  >{{ model.surplus_delay_count }}</span> seconden
@@ -10,28 +10,30 @@ Last update : <span id="lastUpdate"></span><br/><br/><br/>
 <div class="label">Vertraging stoppen laden</div>{{ model.deficient_delay_theshold }} seconden      
 -->
 <br><br>
-<div>Geforceerd laden <label class="switch">
-    <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed()">
-    <span class="slider round"></span>
-</label></div>
 
 <table> 
     <hr>
         <td><strong>Stroomverbruiker</strong>&nbsp;</td>
         <td><strong>Consumeert</strong>&nbsp;</td>
+        <td>Geforceerd consumeren</td>
     </hr>
     <tr>
         <td>Tesla</td>
         <td><span id="charging_tesla"></span></td>
+        <td><label class="switch">
+            <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed('tesla')">
+            <span class="slider round"></span>
+        </label></td>
+        
     </tr>
 </table>
 <script type="text/javascript">
-    function override_changed() {
+    function override_changed(consumer_name) {
         if(document.getElementById("override").checked)
           par=1;
         else
           par=0;
-        fetch( '/override/set/' + par );
+        fetch( '/override/set/' + par + "/" + consumer_name );
     }
     function refresh() {
         fetch('/data/get')

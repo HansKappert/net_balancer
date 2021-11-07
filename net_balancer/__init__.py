@@ -15,8 +15,8 @@ app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
 
 db = persistence()
 data_model = model(db)
-consumer = tesla_energy_consumer(db) 
-data_model.add_consumer(consumer)
+tesla = tesla_energy_consumer(db) 
+data_model.add_consumer(tesla)
 
 
 @app.route('/log/get_all', methods=['GET'])
@@ -30,13 +30,13 @@ def nice_date(d):
 
 @app.route('/', methods=['GET'])
 def index():
-    if (data_model.override == 1):
+    if (db.get_consumer_override('Tesla') == 1):
         _override_checked = "checked"
     else:
         _override_checked = ""
     return render_template('index.html', 
         model=data_model, 
-        override_checked=_override_checked,
+        # override_checked=_override_checked,
         surplus_delay_theshold=data_model.surplus_delay_theshold,
         deficient_delay_theshold=data_model.deficient_delay_theshold
     )    
@@ -101,8 +101,8 @@ def get_data():
         {'current_production': data_model.current_production},
         {'deficient_delay_theshold':data_model.deficient_delay_theshold},
         {'surplus_delay_theshold':data_model.surplus_delay_theshold},
-        {'override':data_model.override},
-        {'charging_tesla':data_model.consumers[0].isConsuming}
+        {'override':db.get_consumer_override("Tesla")},
+        {'charging_tesla':db.get_consumer_consumption_now("Tesla")}
         )
 
 
@@ -154,10 +154,11 @@ def get_override():
     return jsonify({'value': data_model.override})
 
 
-@app.route('/override/set/<int:value>', methods=['GET'])
-def put_override(value):
+@app.route('/override/set/<int:value>/<string:consumer_name>', methods=['GET'])
+def put_override(value, consumer_name):
     try:
-        data_model.override = value
+        if consumer_name == "tesla":
+            db.set_consumer_override(value)
         return jsonify({'result': 'Ok'})
     except:
         return jsonify({'result': 'Error'})

@@ -12,6 +12,7 @@ class tesla_energy_consumer(energy_consumer):
         self._consumption = 0
         self._name = "Tesla"
         self.voltage = 230
+        self._consumption_amps_now = 0
         self.charge_state = {}
         self.drive_state = {}
         
@@ -44,10 +45,12 @@ class tesla_energy_consumer(energy_consumer):
         self.charge_state = self.vehicle['charge_state']
         self.drive_state = self.vehicle['drive_state']
         self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
+        self._consumption_amps_now = self.charge_state['charger_actual_current']
         self.latitude_current = float(self.drive_state['latitude'])
         self.longitude_current = float(self.drive_state['longitude'])
         self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
-        
+        self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
+
     def consumer_is_consuming(self):
         return self.is_consuming
         
@@ -64,7 +67,7 @@ class tesla_energy_consumer(energy_consumer):
         else:
             logging.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
-    def start_consuming(self, surplus_power):
+    def start_consuming(self, surplus_power, at_maximum=False):
 
         try:
             if not self.can_start_consuming: # property will call self.__update_vehicle_data()
@@ -72,9 +75,12 @@ class tesla_energy_consumer(energy_consumer):
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
             # calculate what the new charging current needs to be. 
-            power_max = self.persistence.get_consumer_consumption(self._name)
+            power_max = self.persistence.get_consumer_consumption_max_max(self._name)
             
-            new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
+            if at_maximum:
+                new_charging_current = 16
+            else:
+                new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
             self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
             self.__set_charge_current(new_charging_current)
             
@@ -89,12 +95,11 @@ class tesla_energy_consumer(energy_consumer):
         self.__update_vehicle_data()
 
         
-
     def can_consume_this_surplus(self, surplus_power):
         self.__update_vehicle_data()
         old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
-        max_power_consumption = self.persistence.get_consumer_consumption(self._name)
+        max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
         if surplus_power < max_power_consumption:
             return True
     
@@ -107,15 +112,16 @@ class tesla_energy_consumer(energy_consumer):
 
     def __set_charge_current(self, amps):
         self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
+        self.__update_vehicle_data()
 
     @property
     def consumption(self):
-        self._consumption = self.persistence.get_consumer_consumption(self._name)
+        self._consumption = self.persistence.get_consumer_consumption_max_max(self._name)
         return self._consumption
     @consumption.setter
     def consumption(self,value):
         self._consumption = value
-        self.persistence.set_consumer_consumption(self._name, value)
+        self.persistence.set_consumer_consumption_max(self._name, value)
 
     @property
     def start_above(self):
@@ -139,6 +145,18 @@ class tesla_energy_consumer(energy_consumer):
     def isConsuming(self):
         return self.is_consuming
     
+    @property
+    def consumption_amps_now(self):
+        return self._consumption_amps_now
+    
+    @property
+    def consumption_power_now(self):
+        return self.consumption_amps_now * self.voltage
+    
+    @property
+    def override_activated(self):
+        return self.persistence.get_consumer_override(self._name)
+
     @property
     def can_start_consuming(self):
         self.__update_vehicle_data()

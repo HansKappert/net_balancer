@@ -57,3 +57,7 @@ class energy_consumer(ABC):
     @property
     def can_start_consuming(self):
         pass
+
+    @property
+    def override_activated(self):
+        pass
