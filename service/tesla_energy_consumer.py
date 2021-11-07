@@ -116,6 +116,8 @@ class tesla_energy_consumer(energy_consumer):
             amps_new = charger_actual_current + surplus_amp
             if amps_new * self.voltage > power_max:
                 amps_new = int(power_max / self.voltage)
+            if amps_new < 0:
+                amps_new = 0
             return amps_new
 
     def __set_charge_current(self, amps):
