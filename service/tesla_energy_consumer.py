@@ -151,9 +151,9 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Cannot start because car is not connected")
             return False
 
-        if  self.is_consuming:
-            self.logger.info("Cannot start because the vehicle is already charging")
-            return False
+        #if  self.is_consuming:
+        #    self.logger.info("Cannot start because the vehicle is already charging")
+        #    return False
             
         return True, ""
 
