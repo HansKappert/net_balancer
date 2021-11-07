@@ -180,6 +180,18 @@ class persistence:
         con.close()
 
 
+    #  log retention
+    def get_log_retention(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT log_retention_days FROM settings").fetchone()
+        return int(result[0])
+    def set_log_retention(self, value):
+        con = self.get_db_connection()  
+        result = con.execute("UPDATE settings SET log_retention_days = :value ",{"value":value})
+        con.commit()
+        con.close()
+
+
     def get_log_lines(self):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
@@ -188,9 +200,8 @@ class persistence:
     def remove_old_log_lines(self):
         con = self.get_db_connection()
         result = con.execute("select log_retention_days from settings").fetchone()
-        log_retention_days = int(result[0])
-        datetime_val = datetime.today() - timedelta(days=log_retention_days)
-        result = con.execute("DELETE FROM event WHERE log_date < date('now', '-:log_retention_days day')",{"log_retention_days":log_retention_days})
+        log_retention_hours = int(result[0])
+        result = con.execute("DELETE FROM event WHERE log_date < datetime('now', '-{} hours')".format(log_retention_hours))
         con.commit()
         con.close()
         return result

@@ -37,7 +37,7 @@ def index():
     return render_template('index.html', 
         model=data_model, 
         # override_checked=_override_checked,
-        surplus_delay_theshold=data_model.surplus_delay_theshold,
+        surplus_delay_theshold=data_model.log_retention,
         deficient_delay_theshold=data_model.deficient_delay_theshold
     )    
 
@@ -45,13 +45,11 @@ def index():
 @app.route('/settings', methods=['GET','POST'])
 def settings():
     if request.method == 'POST':
-        data_model.surplus_delay_theshold = int(request.form['surplus_delay_theshold'])
-        data_model.deficient_delay_theshold = int(request.form['deficient_delay_theshold'])
+        data_model.log_retention = int(request.form['log_retention'])
         return redirect(url_for('index'))
     else:
         return render_template('settings.html', 
-        surplus_delay_theshold   =data_model.surplus_delay_theshold,
-        deficient_delay_theshold =data_model.deficient_delay_theshold
+        log_retention   = data_model.log_retention
         )
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
@@ -100,7 +98,6 @@ def get_data():
         {'current_consumption':data_model.current_consumption},
         {'current_production': data_model.current_production},
         {'deficient_delay_theshold':data_model.deficient_delay_theshold},
-        {'surplus_delay_theshold':data_model.surplus_delay_theshold},
         {'override':db.get_consumer_override("Tesla")},
         {'charging_tesla':db.get_consumer_consumption_now("Tesla")}
         )
@@ -135,7 +132,7 @@ def put_surplus_delay_theshold():
     value = request.args.get('value')
     try:
         value = int(value)
-        data_model.surplus_delay_theshold = request.data
+        data_model.log_retention = request.data
         return jsonify({'result': 'Ok'})
     except:
         return jsonify({'result': 'Error'})

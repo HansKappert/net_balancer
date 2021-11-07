@@ -5,6 +5,7 @@ class model:
         self.persistence = db
         self._surplus = 0 # the last calculated value.
         self._override = 0
+        self._log_retention = 0
         # last readings
         self._current_consumption = 0
         self._current_production = 0
@@ -70,13 +71,13 @@ class model:
         self.persistence.set_surplus_delay_count(value)
 
     @property
-    def surplus_delay_theshold(self):
-        self._surplus_delay_threshold = self.persistence.get_surplus_delay_theshold()
-        return self._surplus_delay_threshold
-    @surplus_delay_theshold.setter
-    def surplus_delay_theshold(self,value):
-        self._surplus_delay_theshold = value
-        self.persistence.set_surplus_delay_theshold(value)
+    def log_retention(self):
+        self._log_retention = self.persistence.get_log_retention()
+        return self._log_retention
+    @log_retention.setter
+    def log_retention(self,value):
+        self._log_retention = value
+        self.persistence.set_log_retention(value)
 
     @property
     def deficient_delay_count(self):

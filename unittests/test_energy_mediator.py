@@ -15,7 +15,7 @@ class test_energy_producer(unittest.TestCase):
         db = persistence()
         data_model = model(db)     
         data_model.surplus = 600
-        data_model.surplus_delay_theshold = 0
+        data_model.log_retention = 0
         data_model.surplus_delay_count = 0
         consumer = fake_energy_consumer(db)
         consumer.consumption = 1000
@@ -28,7 +28,7 @@ class test_energy_producer(unittest.TestCase):
         db = persistence()
         data_model = model(db)     
         data_model.surplus = 599
-        data_model.surplus_delay_theshold = 0
+        data_model.log_retention = 0
         data_model.surplus_delay_count = 0
         consumer = fake_energy_consumer(db)
         consumer.consumption = 1000
@@ -41,7 +41,7 @@ class test_energy_producer(unittest.TestCase):
         db = persistence()
         data_model = model(db)     
         data_model.surplus = 2000
-        data_model.surplus_delay_theshold = 10
+        data_model.log_retention = 10
         data_model.surplus_delay_count = 0
         consumer = fake_energy_consumer(db)
         consumer.consumption = 2000
