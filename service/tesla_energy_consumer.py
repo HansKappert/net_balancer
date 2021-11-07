@@ -87,8 +87,12 @@ class tesla_energy_consumer(energy_consumer):
             except Exception as e:
                 self.logger.exception("Exception during setting of the current:" + e)
             
-            res = self.vehicle.command('START_CHARGE')
-            self.logger.info(res)
+            try:
+                res = self.vehicle.command('START_CHARGE')
+                self.logger.info(res)
+            except Exception as e:
+                self.logger.exception("Exception when giving the START_CHARGE command:" + e)
+            
             self.__update_vehicle_data()
             return self.is_consuming
         except Exception as e:
