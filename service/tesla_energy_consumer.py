@@ -85,7 +85,7 @@ class tesla_energy_consumer(energy_consumer):
             self.__set_charge_current(new_charging_current)
             
             res = self.vehicle.command('START_CHARGE')
-            self.logger.info("is dit 'm?" + res)
+            self.logger.info(res)
             self.__update_vehicle_data()
             return self.is_consuming
         except Exception as e:
@@ -111,8 +111,9 @@ class tesla_energy_consumer(energy_consumer):
             return amps_new
 
     def __set_charge_current(self, amps):
-        self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
-        self.__update_vehicle_data()
+        if amps >= 0:
+            self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
+            self.__update_vehicle_data()
 
     @property
     def consumption(self):
