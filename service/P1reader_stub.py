@@ -12,7 +12,7 @@ from service.abc_P1data_reader import P1data_reader
 
 class P1reader_stub(P1data_reader):
     def __init__(self, port) -> None:
-        self.leveringen = [2500,2500,2500,2500,2500,1000,1000,1000,1000,1000]
+        self.leveringen = [1000,-100,-200,300,0,-1000]
         self.index = 0
         pass
 

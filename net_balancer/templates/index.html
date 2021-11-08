@@ -15,13 +15,13 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
     <hr>
         <td><strong>Stroomverbruiker</strong>&nbsp;</td>
         <td><strong>Consumeert</strong>&nbsp;</td>
-        <td>Geforceerd consumeren</td>
+        <td><strong>Geforceerd consumeren</strong></td>
     </hr>
     <tr>
         <td>Tesla</td>
-        <td><span id="charging_tesla"></span></td>
+        <td><span id="charging_tesla"></span>A</td>
         <td><label class="switch">
-            <input id="override" type="checkbox" {{ override_checked }} onchange="override_changed('tesla')">
+            <input id="override_tesla" type="checkbox" onchange="override_changed('tesla')">
             <span class="slider round"></span>
         </label></td>
         
@@ -51,7 +51,11 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
             function(data_element, data_value) {
               field = document.getElementById(data_element)
               if (field != undefined) {
-                field.innerText = data_value;
+                if (field.type == 'checkbox') {
+                  field.checked = data_value == 1;
+                }
+                else
+                  field.innerText = data_value;
               }
           });    
         }

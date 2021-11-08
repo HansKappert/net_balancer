@@ -6,6 +6,8 @@ from typing import overload
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
 from model import model
 from persistence import persistence
+from database_Logging_handler import database_logging_handler
+
 from service.tesla_energy_consumer import tesla_energy_consumer
 from datetime import datetime
 from geopy.geocoders import Nominatim
@@ -17,6 +19,16 @@ db = persistence()
 data_model = model(db)
 tesla = tesla_energy_consumer(db) 
 data_model.add_consumer(tesla)
+
+logger = logging.getLogger(__name__)
+
+log_handler = logging.StreamHandler()
+log_handler.setLevel(logging.DEBUG)
+logger.addHandler(log_handler)
+
+log_handler = database_logging_handler(db)
+log_handler.setLevel(logging.INFO)
+logger.addHandler(log_handler)
 
 
 @app.route('/log/get_all', methods=['GET'])
@@ -92,16 +104,15 @@ def consumer_tesla():
 
 @app.route('/data/get', methods=['GET'])
 def get_data():
-    return jsonify(
+    json_text = jsonify(
         {'surplus': data_model.surplus},
         {'surplus_delay_count':data_model.surplus_delay_count},
         {'current_consumption':data_model.current_consumption},
         {'current_production': data_model.current_production},
         {'deficient_delay_theshold':data_model.deficient_delay_theshold},
-        {'override':db.get_consumer_override("Tesla")},
         {'charging_tesla':db.get_consumer_consumption_now("Tesla")}
         )
-
+    return json_text
 
 @app.route('/surplus/get', methods=['GET'])
 def get_surplus():
@@ -146,18 +157,18 @@ def put_deficient_delay_theshold(value):
         return jsonify({'result': 'Error'})
 
 
-@app.route('/override/get', methods=['GET'])
-def get_override():
-    return jsonify({'value': data_model.override})
+#@app.route('/override/get', methods=['GET'])
+#def get_override():    
+#    return jsonify({'value': data_model.override})
 
 
 @app.route('/override/set/<int:value>/<string:consumer_name>', methods=['GET'])
 def put_override(value, consumer_name):
     try:
-        if consumer_name == "tesla":
-            db.set_consumer_override(value)
+        db.set_consumer_override(consumer_name, value)
         return jsonify({'result': 'Ok'})
-    except:
+    except Exception as e:
+        logger.exception(e)
         return jsonify({'result': 'Error'})
 
 import net_balancer.web_api
