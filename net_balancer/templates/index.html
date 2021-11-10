@@ -21,7 +21,7 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
         <td>Tesla</td>
         <td><span id="charging_tesla"></span>A</td>
         <td><label class="switch">
-            <input id="override_tesla" type="checkbox" onchange="override_changed('tesla')">
+            <input id="override_tesla" type="checkbox" {{override_checked}} onchange="override_changed('Tesla')">
             <span class="slider round"></span>
         </label></td>
         
@@ -29,11 +29,12 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
 </table>
 <script type="text/javascript">
     function override_changed(consumer_name) {
-        if(document.getElementById("override").checked)
+        if(document.getElementById("override_tesla").checked)
           par=1;
         else
           par=0;
-        fetch( '/override/set/' + par + "/" + consumer_name );
+        url = '/override/set/' + par + "/" + consumer_name;
+        fetch( url );
     }
     function refresh() {
         fetch('/data/get')

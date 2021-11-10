@@ -48,7 +48,7 @@ def index():
         _override_checked = ""
     return render_template('index.html', 
         model=data_model, 
-        # override_checked=_override_checked,
+        override_checked=_override_checked,
         surplus_delay_theshold=data_model.log_retention,
         deficient_delay_theshold=data_model.deficient_delay_theshold
     )    
@@ -165,6 +165,7 @@ def put_deficient_delay_theshold(value):
 @app.route('/override/set/<int:value>/<string:consumer_name>', methods=['GET'])
 def put_override(value, consumer_name):
     try:
+        logger.info("Setting override to " + str(value))
         db.set_consumer_override(consumer_name, value)
         return jsonify({'result': 'Ok'})
     except Exception as e:

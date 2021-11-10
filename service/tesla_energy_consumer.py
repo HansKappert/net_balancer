@@ -51,6 +51,7 @@ class tesla_energy_consumer(energy_consumer):
         self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
         self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
 
+
     def consumer_is_consuming(self):
         return self.is_consuming
         
@@ -59,13 +60,13 @@ class tesla_energy_consumer(energy_consumer):
             return
 
         if self.is_consuming:
-            logging.info("Giving stop_charging command")    
+            self.logger.info("Giving stop_charging command")    
             res = self.vehicle.command('STOP_CHARGE')
-            logging.info(res)
+            self.logger.debug("Stop command result: " + str(res))
             self.__update_vehicle_data()
             return self.is_consuming
         else:
-            logging.info("Stop charging command is not needed. Vehicle wasn't charging")   
+            self.logger.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
     def start_consuming(self, surplus_power, at_maximum=False):
 
@@ -90,7 +91,7 @@ class tesla_energy_consumer(energy_consumer):
             if  not self.is_consuming:
                 try:
                     res = self.vehicle.command('START_CHARGE')
-                    self.logger.info(res)
+                    self.logger.debug("Start command result: " + str(res))
                 except Exception as e:
                     self.logger.exception("Exception when giving the START_CHARGE command:{}".format(e))
             
@@ -105,6 +106,8 @@ class tesla_energy_consumer(energy_consumer):
         
     def can_consume_this_surplus(self, surplus_power):
         self.__update_vehicle_data()
+
+        # todo: test if battery is sufficiently loaded
         old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
         max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
@@ -206,7 +209,7 @@ class tesla_energy_consumer(energy_consumer):
     def may_stop_consuming(self):
         self.__update_vehicle_data()
         
-        if self.is_at_home:
+        if not self.is_at_home:
             self.logger.info("Will not stop because car is not at home")
             return True
         return False
