@@ -68,18 +68,15 @@ class tesla_energy_consumer(energy_consumer):
         else:
             self.logger.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
-    def start_consuming(self, surplus_power, at_maximum=False):
+    def start_consuming(self, surplus_power, at_maximum):
 
         try:
-            if not self.can_start_consuming: # property will call self.__update_vehicle_data()
-                return
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
             # calculate what the new charging current needs to be. 
-            power_max = self.persistence.get_consumer_consumption_max(self._name)
-            
-            if at_maximum:
-                new_charging_current = 16
+            power_max = self.persistence.get_consumer_consumption_max(self._name) 
+            if at_maximum:                
+                new_charging_current = self.calc_new_charge_current(0, power_max, power_max)
             else:
                 new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
             self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
@@ -104,16 +101,21 @@ class tesla_energy_consumer(energy_consumer):
         self.__update_vehicle_data()
 
         
-    def can_consume_this_surplus(self, surplus_power):
+    def can_consume_this_surplus(self, surplus_power, at_maximum):
         self.__update_vehicle_data()
+        if not self.can_start_consuming: # property will call self.__update_vehicle_data()
+            return False
 
-        # todo: test if battery is sufficiently loaded
+        if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
+            return False
+
         old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
         max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
-        if surplus_power < max_power_consumption:
+        if surplus_power < max_power_consumption or at_maximum == True:
             return True
-    
+        return False
+
     def calc_new_charge_current(self, charger_actual_current, power_max, surplus_power):
             surplus_amp = int(surplus_power / self.voltage)
             amps_new = charger_actual_current + surplus_amp

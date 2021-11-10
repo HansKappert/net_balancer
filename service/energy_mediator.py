@@ -25,12 +25,9 @@ class mediator:
         pass
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
-        if consumer.override_activated:
-                consumer.start_consuming(data_model.surplus, True)    
-        else:
-            # only one consumer now. Direct all surplus energy to that consumer
-            if consumer.can_consume_this_surplus(data_model.surplus):
-                consumer.start_consuming(data_model.surplus, False)
+        # only one consumer now. Direct all surplus energy to that consumer
+        if consumer.can_consume_this_surplus(data_model.surplus, consumer.override_activated):
+            consumer.start_consuming(data_model.surplus, consumer.override_activated)
         
         
 
