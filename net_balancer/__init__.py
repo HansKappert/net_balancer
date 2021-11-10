@@ -110,7 +110,8 @@ def get_data():
         {'current_consumption':data_model.current_consumption},
         {'current_production': data_model.current_production},
         {'deficient_delay_theshold':data_model.deficient_delay_theshold},
-        {'charging_tesla':db.get_consumer_consumption_now("Tesla")}
+        {'charging_tesla_amp':db.get_consumer_consumption_now("Tesla")},
+        {'charging_tesla_watt':230*db.get_consumer_consumption_now("Tesla")}
         )
     return json_text
 
