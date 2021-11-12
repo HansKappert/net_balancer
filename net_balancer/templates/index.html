@@ -16,24 +16,41 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
         <td><strong>Stroomverbruiker</strong>&nbsp;</td>
         <td><strong>Consumeert</strong>&nbsp;</td>
         <td><strong>Geforceerd consumeren</strong></td>
+        <td><strong>Uitgeschakeld</strong></td>
     </hr>
     <tr>
         <td>Tesla</td>
         <td><span id="charging_tesla_amp"></span>A <span id="charging_tesla_watt"></span>W</td>
-        <td><label class="switch">
-            <input id="override_tesla" type="checkbox" {{override_checked}} onchange="override_changed('Tesla')">
+        <td>
+          <label class="switch">
+            <input id="override_Tesla" type="checkbox" {{override_tesla}} onchange="override_changed('Tesla')" />
             <span class="slider round"></span>
-        </label></td>
-        
+          </label>
+        </td>
+        <td>
+          <label class="switch">
+            <input id="disabled_Tesla" type="checkbox" {{disabled_tesla}} onchange="disabled_changed('Tesla')" />
+            <span class="slider round"></span>
+          </label>
+        </td>
+      
     </tr>
 </table>
 <script type="text/javascript">
     function override_changed(consumer_name) {
-        if(document.getElementById("override_tesla").checked)
+        if(document.getElementById("override_" + consumer_name).checked)
           par=1;
         else
           par=0;
         url = '/override/set/' + par + "/" + consumer_name;
+        fetch( url );
+    }
+    function disabled_changed(consumer_name) {
+        if(document.getElementById("disabled_" + consumer_name).checked)
+          par=1;
+        else
+          par=0;
+        url = '/disabled/set/' + par + "/" + consumer_name;
         fetch( url );
     }
     function refresh() {

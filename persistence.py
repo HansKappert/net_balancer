@@ -28,8 +28,8 @@ class persistence:
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, start_above INTEGER, stop_under INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)))")
-            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 2000, -2000, 0)")
+            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, start_above INTEGER, stop_under INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 2000, -2000, 0, 0)")
             con.commit()
 
         cur = con.cursor()
@@ -176,6 +176,17 @@ class persistence:
     def set_consumer_override(self, consumer_name, value):
         con = self.get_db_connection()  
         result = con.execute("UPDATE consumer SET override = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    #  consumer disabled
+    def get_consumer_disabled(self, consumer_name):
+        con = self.get_db_connection()
+        result = con.execute("SELECT disabled FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        return int(result[0])
+    def set_consumer_disabled(self, consumer_name, value):
+        con = self.get_db_connection()  
+        result = con.execute("UPDATE consumer SET disabled = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
 

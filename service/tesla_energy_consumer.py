@@ -102,6 +102,9 @@ class tesla_energy_consumer(energy_consumer):
 
         
     def can_consume_this_surplus(self, surplus_power, at_maximum):
+        if (self.persistence.get_consumer_disabled('Tesla') == 1):
+            return False
+
         self.__update_vehicle_data()
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
             return False

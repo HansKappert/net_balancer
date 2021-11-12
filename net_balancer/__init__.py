@@ -43,12 +43,19 @@ def nice_date(d):
 @app.route('/', methods=['GET'])
 def index():
     if (db.get_consumer_override('Tesla') == 1):
-        _override_checked = "checked"
+        _override_tesla = "checked"
     else:
-        _override_checked = ""
+        _override_tesla = ""
+
+    if (db.get_consumer_disabled('Tesla') == 1):
+        _disabled_tesla = "checked"
+    else:
+        _disabled_tesla = ""
+
     return render_template('index.html', 
         model=data_model, 
-        override_checked=_override_checked,
+        override_tesla=_override_tesla,
+        disabled_tesla=_disabled_tesla,
         surplus_delay_theshold=data_model.log_retention,
         deficient_delay_theshold=data_model.deficient_delay_theshold
     )    
@@ -168,6 +175,19 @@ def put_override(value, consumer_name):
     try:
         logger.info("Setting override to " + str(value))
         db.set_consumer_override(consumer_name, value)
+        return jsonify({'result': 'Ok'})
+    except Exception as e:
+        logger.exception(e)
+        return jsonify({'result': 'Error'})
+
+@app.route('/disabled/set/<int:value>/<string:consumer_name>', methods=['GET'])
+def put_disabled(value, consumer_name):
+    try: 
+        if value == 1:
+            logger.info("Disabling energy mediation for  " + consumer_name)
+        else:
+            logger.info("Enabling energy mediation for  "  + consumer_name)
+        db.set_consumer_disabled(consumer_name, value)
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)
