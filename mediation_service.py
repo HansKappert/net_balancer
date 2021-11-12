@@ -13,7 +13,7 @@ from service.eventlog_cleaner import eventlog_cleaner
 
 if __name__ == "__main__":
         
-    
+
     ap = argparse.ArgumentParser()
     ap.add_argument("-u", "--user_email", type=str,
                     help="Tesla account user name (e-mail address)")

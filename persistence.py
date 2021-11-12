@@ -28,16 +28,16 @@ class persistence:
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, start_above INTEGER, stop_under INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
-            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 2000, -2000, 0, 0)")
+            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 0, 0)")
             con.commit()
 
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
             logging.debug ("Creating table tesla")
-            cur.execute("CREATE TABLE tesla(home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
-            cur.execute("INSERT INTO  tesla VALUES (0.0, 0.0, 0.0, 0.0)")
+            cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
+            cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
             con.commit()
 
 
@@ -146,25 +146,14 @@ class persistence:
         con.commit()
         con.close()
 
-    #  consumer start_above
-    def get_consumer_start_above(self, consumer_name):
+    # consumer charge_until
+    def get_tesla_charge_until(self):
         con = self.get_db_connection()
-        result = con.execute("SELECT start_above FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        result = con.execute("SELECT charge_until FROM tesla").fetchone()
         return int(result[0])
-    def set_consumer_start_above(self, consumer_name, value):
-        con = self.get_db_connection()  
-        result = con.execute("UPDATE consumer SET start_above = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
-        con.commit()
-        con.close()
-
-    # consumer stop_under
-    def get_consumer_stop_under(self, consumer_name):
+    def set_tesla_charge_until(self, value):
         con = self.get_db_connection()
-        result = con.execute("SELECT stop_under FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        return int(result[0])
-    def set_consumer_stop_under(self, consumer_name, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE consumer SET stop_under = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        result = con.execute("UPDATE tesla SET charge_until = :value",{"value":value})
         con.commit()
         con.close()
 

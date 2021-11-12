@@ -142,23 +142,16 @@ class tesla_energy_consumer(energy_consumer):
         self._consumption = value
         self.persistence.set_consumer_consumption_max(self._name, value)
 
-    @property
-    def start_above(self):
-        self._start_above = self.persistence.get_consumer_start_above(self._name)
-        return self._start_above
-    @start_above.setter
-    def start_above(self,value):
-        self._start_above = value
-        self.persistence.set_consumer_start_above(self._name, value)
 
     @property
-    def stop_under(self):
-        self._stop_under = self.persistence.get_consumer_stop_under(self._name)
-        return self._stop_under
-    @stop_under.setter
-    def stop_under(self,value):
-        self._stop_under = value
-        self.persistence.set_consumer_stop_under(self._name, value)
+    def charge_until(self):
+        self._charge_until = self.persistence.get_tesla_charge_until()
+        return self._charge_until
+    @charge_until.setter
+    def charge_until(self,value):
+        self._charge_until = value
+        self.persistence.set_tesla_charge_until(value)
+        self.vehicle.command('CHANGE_CHARGE_LIMIT', percent=value)
 
     @property
     def isConsuming(self):

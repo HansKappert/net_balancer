@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
-# import argparse
 import logging
+import os
 from typing import overload
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
+from flask.templating import Environment
 from model import model
 from persistence import persistence
 from database_Logging_handler import database_logging_handler
@@ -15,9 +16,16 @@ from geopy.geocoders import Nominatim
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
 
+
 db = persistence()
 data_model = model(db)
-tesla = tesla_energy_consumer(db) 
+tesla = tesla_energy_consumer(db)
+
+tesla_user = os.environ["TESLA_USER"]
+try:
+    tesla.initialize(email=tesla_user)
+except Exception as e:
+    logging.exception(e)
 data_model.add_consumer(tesla)
 
 logger = logging.getLogger(__name__)
@@ -75,8 +83,7 @@ def settings():
 def consumer_tesla():
     if request.method == 'POST':
         data_model._consumers[0].consumption = int(request.form['consumption'])
-        data_model._consumers[0].start_above = int(request.form['start_above'])
-        # data_model._consumers[0].stop_under  = int(request.form['stop_under'])
+        tesla.charge_until = int(request.form['charge_until'])
         if 'set_home_location' in request.form:
             set_home_location = request.form['set_home_location']
             if set_home_location=='on':
@@ -99,8 +106,7 @@ def consumer_tesla():
 
         return render_template('consumer_tesla.html', 
         consumption     = data_model._consumers[0].consumption,
-        start_above     = data_model._consumers[0].start_above,
-        #stop_under     = data_model._consumers[0].stop_under,
+        charge_until    = tesla.charge_until,
         latitude_home   = coords_home[0],
         longitude_home  = coords_home[1],   
         latitude_curr   = coords_home[0],

@@ -40,7 +40,7 @@ class energy_consumer(ABC):
         pass
 
     @property
-    def stop_under(self):
+    def charge_until(self):
         pass
     @consumption.setter
     def consumption(self,value):

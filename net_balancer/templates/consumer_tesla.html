@@ -9,24 +9,12 @@
                 value="{{ request.form['consumption'] or consumption }}">
             </input>
 
+            
             <br>
-            <label for="title">Grenswaarde om te starten met laden</label>
-            <input type="number" name="start_above"  MIN="0" MAX="10000" STEP="10" 
-                    placeholder="Post start_above" class="form-control"
-                    value="{{ request.form['start_above'] or start_above }}">
-            </input>
-            <!--     
-            <label for="title">Grenswaarde om te stoppen met ladenr</label>
-            <input type="number" name="stop_under"  MIN="-10000" MAX="10000" STEP="10" 
-                placeholder="Post stop_under" class="form-control"
-                value="{{ request.form['stop_under'] or stop_under }}">
-            </input>
-            -->
-            <br>
-            <label for="title">Grenswaarde om te stoppen met laden</label>
-            <input type="number" name="stop_under"  MIN="-10000" MAX="10000" STEP="10" 
-                placeholder="Post stop_under" class="form-control"
-                value="{{ request.form['stop_under'] or stop_under }}">
+            <label for="title">Opladen tot (%)</label>
+            <input type="number" name="charge_until"  MIN="5" MAX="100" STEP="1" 
+                placeholder="Post charge_until" class="form-control"
+                value="{{ request.form['charge_until'] or charge_until }}">
             </input>
     
             <br>
