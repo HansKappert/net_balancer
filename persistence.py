@@ -65,9 +65,9 @@ class persistence:
 
     def log_event(self, levelname:str, source:str, message:str):
         con = self.get_db_connection()
-        result = con.execute("SELECT log_date, message FROM event").fetchone()
-        if  (not result == None) and result[1] == message:
-            result = con.execute("UPDATE event SET occurrences = occurrences + 1 WHERE log_date = :log_date",{"log_date": result[0]})
+        result = con.execute("SELECT log_date, message FROM event ORDER BY log_date DESC").fetchone()
+        if not result == None and result[1] == message:
+                result = con.execute("UPDATE event SET occurrences = occurrences + 1 WHERE log_date = :log_date",{"log_date": result[0]})
         else:
             log_date = datetime.now()
             result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
