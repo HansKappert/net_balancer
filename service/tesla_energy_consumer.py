@@ -2,6 +2,8 @@ import logging
 from typing import Tuple
 from abc_energy_consumer import energy_consumer
 from teslapy import Tesla
+from teslapy import VehicleError
+from teslapy import RequestException
 from persistence import persistence
 from database_Logging_handler import database_logging_handler
 
@@ -151,7 +153,13 @@ class tesla_energy_consumer(energy_consumer):
     def charge_until(self,value):
         self._charge_until = value
         self.persistence.set_tesla_charge_until(value)
-        self.vehicle.command('CHANGE_CHARGE_LIMIT', percent=value)
+        try:
+            self.vehicle.command('CHANGE_CHARGE_LIMIT', percent=value)
+        except (VehicleError) as e:
+            self.logger.debug(e)
+        except (RequestException) as e:
+            self.logger.exception(e)
+
 
     @property
     def isConsuming(self):

@@ -45,9 +45,18 @@ class persistence:
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             logging.debug ("Creating table event")
-            cur.execute("CREATE TABLE event(log_date, levelname, source, message)")
+            cur.execute("CREATE TABLE event(log_date, levelname, source, message, occurrences)")
+            con.commit()
+
+
+        cur = con.cursor()
+        result = cur.execute("PRAGMA index_info(last_event)").fetchone()
+        if (result == None):
+            logging.debug ("Creating index last_event")
+            cur.execute("create index last_event on event (log_date);")
             con.commit()
         con.close()
+
 
     def get_db_connection(self):
         conn = sqlite3.connect(persistence.DBNAME)
@@ -56,8 +65,12 @@ class persistence:
 
     def log_event(self, levelname:str, source:str, message:str):
         con = self.get_db_connection()
-        log_date = datetime.now()
-        result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
+        result = con.execute("SELECT log_date, message FROM event").fetchone()
+        if  (not result == None) and result[1] == message:
+            result = con.execute("UPDATE event SET occurrences = occurrences + 1 WHERE log_date = :log_date",{"log_date": result[0]})
+        else:
+            log_date = datetime.now()
+            result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
         con.commit()
         con.close()
 
