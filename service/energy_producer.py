@@ -1,7 +1,7 @@
-import service.P1data_interpreter
 import time
 import logging
 from model import model
+from service.P1datagram import P1datagram
 
 class energy_producer:
     def __init__(self,current_reader, data_model : model, sleep_time=1) -> None:
@@ -12,18 +12,13 @@ class energy_producer:
 
     def read_once(self, data_model : model):
         raw_data_array, errortxt = self.current_reader.read_data()
-        data = service.P1data_interpreter.raw_to_dictionary(raw_data_array)
-
-        meter=0
-        # Often the data list does not contain then needed entries, so put it in a try/except block
-        try:
-            data_model.current_consumption = int(data['1-0:1.7.0'])
-        except: 
-            pass
-        try:   
-            data_model.current_production  = int(data['1-0:2.7.0'])
-        except:
-            pass
+        
+        datagram = P1datagram()
+        datagram.fill(raw_data_array)
+        if datagram.actual_electricity_power_delivered is not None:
+            data_model.current_production = datagram.actual_electricity_power_delivered
+        if datagram.actual_electricity_power_received is not None:
+            data_model.current_consumption = datagram.actual_electricity_power_received
 
         logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
 
