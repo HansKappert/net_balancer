@@ -24,10 +24,10 @@ class energy_producer:
         
         datagram = P1datagram()
         datagram.fill(raw_data_array)
-        if datagram.actual_electricity_power_delivered is not None:
-            data_model.current_production = datagram.actual_electricity_power_delivered
         if datagram.actual_electricity_power_received is not None:
-            data_model.current_consumption = datagram.actual_electricity_power_received
+            data_model.current_production = datagram.actual_electricity_power_received
+        if datagram.actual_electricity_power_delivered is not None:
+            data_model.current_consumption =  datagram.actual_electricity_power_delivered
 
         logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
         self.write_datagram_to_file(datagram, False)
