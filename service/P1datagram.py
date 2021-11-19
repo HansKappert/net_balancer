@@ -38,7 +38,7 @@ class P1datagram:
 
     def _strip_to_string(self, string_value):
         string_value = string_value[:-1]
-        return int(string_value)
+        return string_value
 
     def _strip_to_number(self, string_value):
         string_value = string_value.strip(')').strip('*kWh').strip('*kW').strip('*A').replace(".","")
