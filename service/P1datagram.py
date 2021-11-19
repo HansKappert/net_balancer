@@ -10,8 +10,8 @@ class P1datagram:
         self.meter_reading_delivered_by_client_low = 0           # 1-0:2.8.1(001798.980*kWh)
         self.meter_reading_delivered_by_client_normal = 0        # 1-0:2.8.2(004382.306*kWh)
         self.tarif_indicator_electricity = 0                     # 0-0:96.14.0(0001)  1=low, 2=normal tariff 
-        self.actual_electricity_power_received = None            # 1-0:2.7.0(1.234*kW)
-        self.actual_electricity_power_delivered = None           # 1-0:1.7.0(0.215*kW)
+        self.actual_electricity_power_received = None            # 1-0:2.7.0(1.234*kW)  received from customer
+        self.actual_electricity_power_delivered = None           # 1-0:1.7.0(0.215*kW)  devlived to customer
         self.nr_of_power_failures_any_phase = 0                  # 0-0:96.7.21(00000)
         self.nr_of_long_power_failures_any_phase = 0             # 0-0:96.7.9(00000)
         self.power_failure_event_log = ""                        # 1-0:99.97.0(1)(0-0:96.7.19)(000101000017W)(2147483647*s)
