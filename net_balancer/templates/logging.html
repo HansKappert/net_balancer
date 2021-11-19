@@ -7,22 +7,22 @@
 {% block content %}
 <form method="post">
     <table>
-        <hr>
-            <td style="width:205px"><strong>Log date/time</strong>&nbsp;</td>
-            <td><strong>Type</strong>&nbsp;</td>
-            <td><strong>Module</strong>&nbsp;</td>
-            <td><strong>Melding</strong></td>
-            <td><strong>Herhaald</strong></td>
-        </hr>
-    {% for line in lines %}
         <tr>
-            <td>{{ nice_date(line['log_date']) }}&nbsp;</td>
+            <th><strong>Log&nbsp;date/time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong></th>
+            <th><strong>Type&nbsp;</strong></th>
+            <th><strong>Module&nbsp;</strong></th>
+            <th><strong>Melding</strong></th>
+            <th><strong>Herhaald</strong></th>
+        </tr>
+        {% for line in lines %}
+        <tr>
+            <td>{{ nice_date(line['log_date']) }}&nbsp;</td> 
             <td>{{ line['levelname']           }}&nbsp;</td>
             <td>{{ line['source']              }}&nbsp;</td>
             <td>{{ line['message']             }}&nbsp;</td>
             <td>{{ line['occurrences']         }}</td>
         </tr>
-    {% endfor %}
+        {% endfor %}
     </table>
 </form>
 <hr>
