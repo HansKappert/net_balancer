@@ -18,6 +18,13 @@
             </input>
     
             <br>
+            <label for="title">Batterijniveau</label>
+            <input type="number" name="battery_level"  MIN="5" MAX="100" STEP="1" 
+                placeholder="Post battery_level" class="form-control"
+                value="{{ request.form['battery_level'] or battery_level }}">
+            </input>
+    
+            <br>
             <div>
                 <label for="title">Thuis adres</label><br>
                 <input type="text" value="{{request.form['location_home'] or location_home }}"  class="form-control" readonly/>

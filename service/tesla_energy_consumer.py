@@ -219,3 +219,8 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Will not stop because car is not at home")
             return True
         return False
+
+    @property
+    def battery_level(self):
+        self.__update_vehicle_data()
+        return int(self.charge_state['battery_level'])

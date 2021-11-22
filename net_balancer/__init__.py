@@ -94,7 +94,7 @@ def consumer_tesla():
         coords_home = db.get_tesla_home_coords()
         coords_current = db.get_tesla_current_coords()
         osm = Nominatim(user_agent='TeslaPy')
-        
+        battery_level = tesla.battery_level
         if coords_home[0] == 0 and coords_home[1] == 0:
             location_home = "Nog niet ingesteld"
         else:
@@ -112,7 +112,8 @@ def consumer_tesla():
         latitude_curr   = coords_home[0],
         longitude_curr  = coords_home[1],
         location_now    = location_now,
-        location_home   = location_home
+        location_home   = location_home,
+        battery_level   = battery_level
         )
 
 @app.route('/data/get', methods=['GET'])
