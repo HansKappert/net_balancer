@@ -109,8 +109,8 @@ def consumer_tesla():
         charge_until    = tesla.charge_until,
         latitude_home   = coords_home[0],
         longitude_home  = coords_home[1],   
-        latitude_curr   = coords_home[0],
-        longitude_curr  = coords_home[1],
+        latitude_curr   = coords_current[0],
+        longitude_curr  = coords_current[1],
         location_now    = location_now,
         location_home   = location_home,
         battery_level   = battery_level

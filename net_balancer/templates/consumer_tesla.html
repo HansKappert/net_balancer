@@ -18,24 +18,36 @@
             </input>
     
             <br>
-            <label for="title">Batterijniveau</label>
-            <input type="number" name="battery_level"  MIN="5" MAX="100" STEP="1" 
-                placeholder="Post battery_level" class="form-control"
-                value="{{ request.form['battery_level'] or battery_level }}">
-            </input>
-    
-            <br>
-            <div>
-                <label for="title">Thuis adres</label><br>
-                <input type="text" value="{{request.form['location_home'] or location_home }}"  class="form-control" readonly/>
-            </div>
+            <table>
+                <tr valign="top">
+                    <td>
+                        <label for="title">Batterijniveau&nbsp;</label> 
+                    </td>
+                    <td>
+                        {{battery_level}}%
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <td>
+                        <label for="title">Thuis adres</label>
+                    </td>
+                    <td>
+                        {{location_home }}
+                    </td>
+                </tr>
+            </table>
             
             <br>
             <div>
                 <label for="title">Huidige locatie:</label><br>
                 <input type="text" value="{{ request.form['location_now'] or location_now }}" class="form-control" readonly/>
             </div>
-    
+            <iframe
+                width="450"
+                height="250"
+                frameborder="0" style="border:0"
+                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA-p5-EtPVCTKSJyz4dSOG8hsueR1Ei43k&q={{latitude_curr}},{{longitude_curr}}&center={{latitude_curr}},{{longitude_curr}}&maptype=satellite" allowfullscreen>
+            </iframe>
             <div>
                 <br>
                 <label for="title">Stel huidige lokatie in als thuislokatie</label>&nbsp;
@@ -54,5 +66,4 @@
     </div>
 </form>
 <hr>
-
 {% endblock %}
