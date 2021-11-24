@@ -1,8 +1,8 @@
 # slimmemeter-rpi
-zie ook
+see also
 
 http://gejanssen.com/howto/Slimme-meter-uitlezen/index.html
-en
+and
 http://gejanssen.com/howto/rpi-rrd-power/index.html
 
 ## Installeer software
