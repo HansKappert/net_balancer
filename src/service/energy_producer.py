@@ -49,7 +49,18 @@ class energy_producer:
             self.write_datagram_field(dg, "nr_of_voltage_sags_in_phase_L3"          , header) + ";" + \
             self.write_datagram_field(dg, "nr_of_voltage_swells_in_phase_L1"        , header) + ";" + \
             self.write_datagram_field(dg, "nr_of_voltage_swells_in_phase_L2"        , header) + ";" + \
-            self.write_datagram_field(dg, "nr_of_voltage_swells_in_phase_L3"        , header)
+            self.write_datagram_field(dg, "nr_of_voltage_swells_in_phase_L3"        , header) + ";" + \
+            self.write_datagram_field(dg, "text_message_max"                        , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_current_L1"                , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_current_L2"                , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_current_L3"                , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L1_PlusP"     , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L2_PlusP"     , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L3_PlusP"     , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L1_MinusP"    , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L2_MinusP"    , header) + ";" + \
+            self.write_datagram_field(dg, "instantaneous_active_power_L3_MinusP"    , header) 
+            
         with open(self.DATA_DUMP_FILE_NAME, 'a') as f:
             f.write(line + "\n")
             f.close()
