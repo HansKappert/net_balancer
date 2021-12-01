@@ -36,7 +36,7 @@ class P1reader(P1data_reader):
             return data, err
 
 
-        while p1_teller < 20:
+        while p1_teller < 36:
             p1_line=''
         #Read 1 line
             try:
