@@ -1,12 +1,13 @@
 import argparse
 import logging
 import threading
-# from unittests.P1reader_fake import P1reader
-from service.P1reader_stub import P1reader_stub
-from service.P1reader import P1reader
-from service.energy_producer import energy_producer
-from service.tesla_energy_consumer import tesla_energy_consumer
-from service.energy_mediator import mediator
+
+from service import P1reader_stub
+from service import P1reader
+from service import energy_producer
+from service import tesla_energy_consumer
+from service import mediator
+
 from model import model
 from persistence import persistence
 from service.eventlog_cleaner import eventlog_cleaner
