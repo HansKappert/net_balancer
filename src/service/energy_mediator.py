@@ -6,7 +6,7 @@ import logging
 from abc_energy_consumer import energy_consumer
 from model import model
 from persistence import persistence
-from database_Logging_handler import database_logging_handler
+from database_logging_handler import database_logging_handler
 
 class mediator:
     def __init__(self) -> None:

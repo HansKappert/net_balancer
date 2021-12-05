@@ -5,7 +5,7 @@ from teslapy import Tesla
 from teslapy import VehicleError
 from teslapy import RequestException
 from persistence import persistence
-from database_Logging_handler import database_logging_handler
+from database_logging_handler import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
     def __init__(self, db:persistence) -> None:
