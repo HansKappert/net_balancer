@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import logging
-import os
+import os 
 from typing import overload
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
 from flask.templating import Environment
@@ -200,7 +200,7 @@ def put_disabled(value, consumer_name):
         logger.exception(e)
         return jsonify({'result': 'Error'})
 
-import net_balancer.web_api
+import website.web_api
 
 
 if __name__ == "__main__":
