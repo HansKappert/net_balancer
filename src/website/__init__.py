@@ -5,8 +5,8 @@ import os
 from typing import overload
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
 from flask.templating import Environment
-from model import model
-from persistence import persistence
+from src.model import model
+from src.persistence import persistence
 from database_logging_handler import database_logging_handler
 
 from service.tesla_energy_consumer import tesla_energy_consumer
