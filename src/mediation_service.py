@@ -1,7 +1,7 @@
 import argparse
 import logging
 import threading
-import sys
+import os
 
 from service.P1reader_stub          import P1reader_stub
 from service.P1reader               import P1reader
@@ -16,8 +16,7 @@ if __name__ == "__main__":
         
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("-u", "--user_email", type=str,
-                    help="Tesla account user name (e-mail address)")
+    
     ap.add_argument("-d", "--device_name", type=str,
                     help="tty device name as listed by ls /dev/tt*")
     ap.add_argument("-l", "--loglevel", type=str,
@@ -34,15 +33,10 @@ if __name__ == "__main__":
     elif args.loglevel == 'e':
         logging.basicConfig(level=logging.ERROR, format=default_format)
     
-    if (args.user_email == None):
-        print("Please specify your Tesla account credentials")
-        quit()
-
     if (args.device_name == None):
         print("Please specify the Smart Meter device name")
         quit()
 
-    logging.debug ("User name    : " + args.user_email)
     logging.debug ("Device name  : " + args.device_name)
     db = persistence()
     data_model = model(db)
@@ -56,8 +50,10 @@ if __name__ == "__main__":
     logging.debug ("Energy producer is setup")
 
     tesla = tesla_energy_consumer(db)
+    tesla_user = os.environ["TESLA_USER"]
+
     try:
-        tesla.initialize(email=args.user_email)
+        tesla.initialize(email=tesla_user)
     except Exception as e:
         logging.exception(e)
     data_model.add_consumer(tesla)
