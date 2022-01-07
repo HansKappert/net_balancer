@@ -1,5 +1,5 @@
 import time
-from persistence import persistence
+from common.persistence import persistence
 
 class eventlog_cleaner:
     def __init__(self) -> None:

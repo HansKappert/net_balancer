@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from persistence import persistence
+from common import persistence
 
 class energy_consumer(ABC):
     @abstractmethod

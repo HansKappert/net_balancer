@@ -1,11 +1,11 @@
 import logging
-from typing import Tuple
-from abc_energy_consumer import energy_consumer
-from teslapy import Tesla
-from teslapy import VehicleError
-from teslapy import RequestException
-from persistence import persistence
-from database_logging_handler import database_logging_handler
+from typing                             import Tuple
+from service.abc_energy_consumer        import energy_consumer
+from teslapy                            import Tesla
+from teslapy                            import VehicleError
+from teslapy                            import RequestException
+from common.persistence                 import persistence
+from common.database_logging_handler    import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
     def __init__(self, db:persistence) -> None:

@@ -1,5 +1,5 @@
 import logging
-from abc_energy_consumer import energy_consumer
+from service.abc_energy_consumer import energy_consumer
 from persistence import persistence
 
 

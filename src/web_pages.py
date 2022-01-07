@@ -2,20 +2,20 @@
 # encoding: utf-8
 import logging
 import os 
+
+from web import app
+
 from typing import overload
 from flask import Flask, request, jsonify, render_template, url_for, flash, redirect
 from flask.templating import Environment
-from src.model import model
-from src.persistence import persistence
-from database_logging_handler import database_logging_handler
+
+from common.model import model
+from common.persistence import persistence
+from common.database_logging_handler import database_logging_handler
 
 from service.tesla_energy_consumer import tesla_energy_consumer
-from datetime import datetime
+
 from geopy.geocoders import Nominatim
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
-
 
 db = persistence()
 data_model = model(db)
@@ -37,7 +37,6 @@ logger.addHandler(log_handler)
 log_handler = database_logging_handler(db)
 log_handler.setLevel(logging.INFO)
 logger.addHandler(log_handler)
-
 
 @app.route('/log/get_all', methods=['GET'])
 def log_get_all():
@@ -201,6 +200,7 @@ def put_disabled(value, consumer_name):
         return jsonify({'result': 'Error'})
 
 import website.web_api
+
 
 
 if __name__ == "__main__":

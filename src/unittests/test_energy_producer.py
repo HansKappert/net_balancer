@@ -3,7 +3,7 @@ import threading
 import time
 from service.energy_producer import energy_producer
 from unittests.P1reader_fake import P1reader
-from model import model
+from common.model import model
 from persistence import persistence
 
 class Test_energy_producer(unittest.TestCase):

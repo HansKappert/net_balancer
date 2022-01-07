@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from persistence import persistence
 
 class P1data_reader(ABC):
     @abstractmethod

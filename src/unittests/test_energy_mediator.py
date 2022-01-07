@@ -2,7 +2,7 @@ import unittest   # The test framework
 import time
 from unittests.fake_energy_consumer import fake_energy_consumer
 from unittests.P1reader_fake import P1reader
-from model import model
+from common.model import model
 from persistence import persistence
 from service.energy_mediator import mediator
 

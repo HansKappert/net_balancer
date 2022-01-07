@@ -1,8 +1,9 @@
 import time
 import os
 import logging
-from model import model
-from service.P1datagram import P1datagram
+
+from common.model       import model
+from common.P1datagram  import P1datagram
 
 class energy_producer:
     DATA_DUMP_FOLDER_NAME = "output"

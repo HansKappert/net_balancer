@@ -3,10 +3,10 @@ import threading
 import time
 import service.energy_producer
 import logging
-from abc_energy_consumer import energy_consumer
-from model import model
-from persistence import persistence
-from database_logging_handler import database_logging_handler
+from service.abc_energy_consumer import energy_consumer
+from common.model import model
+from common.persistence import persistence
+from common.database_logging_handler import database_logging_handler
 
 class mediator:
     def __init__(self) -> None:

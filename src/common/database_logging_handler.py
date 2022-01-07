@@ -1,5 +1,5 @@
 from logging import StreamHandler
-from persistence import persistence
+from common import persistence
 
 class database_logging_handler(StreamHandler):
 
