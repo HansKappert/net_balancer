@@ -199,7 +199,7 @@ def put_disabled(value, consumer_name):
         logger.exception(e)
         return jsonify({'result': 'Error'})
 
-import website.web_api
+import web_api
 
 
 

@@ -1,3 +1,3 @@
-from website import app, db, data_model , tesla, request
+from web import app
 from flask import Flask, jsonify
 
