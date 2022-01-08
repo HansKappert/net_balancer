@@ -5,7 +5,6 @@ from flask                           import Flask
 from flask                           import request, render_template, url_for, redirect, jsonify
 from geopy.geocoders                 import Nominatim
 
-from web                             import app, db, data_model, logger
 from flask                           import Flask, request, jsonify
 from common.model                    import model
 from common.persistence              import persistence
