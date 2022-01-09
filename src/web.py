@@ -104,17 +104,17 @@ def consumer_tesla():
         
         coords_as_string = '%s, %s' % (coords_current[0],coords_current[1])
         location_now = osm.reverse(coords_as_string).address
-
         return render_template('consumer_tesla.html', 
-        consumption     = data_model._consumers[0].consumption,
-        charge_until    = tesla.charge_until,
-        latitude_home   = coords_home[0],
-        longitude_home  = coords_home[1],   
-        latitude_curr   = coords_current[0],
-        longitude_curr  = coords_current[1],
-        location_now    = location_now,
-        location_home   = location_home,
-        battery_level   = battery_level
+            consumption       = data_model._consumers[0].consumption,
+            charge_until      = tesla.charge_until,
+            latitude_home     = coords_home[0],
+            longitude_home    = coords_home[1],   
+            latitude_curr     = coords_current[0],
+            longitude_curr    = coords_current[1],
+            location_now      = location_now,
+            location_home     = location_home,
+            battery_level     = battery_level,
+            est_battery_range = tesla.est_battery_range
         )
 
 

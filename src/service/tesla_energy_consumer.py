@@ -17,6 +17,7 @@ class tesla_energy_consumer(energy_consumer):
         self._consumption_amps_now = 0
         self.charge_state = {}
         self.drive_state = {}
+        self._est_battery_range = 0
         
         self.logger = logging.getLogger(__name__)
         
@@ -48,6 +49,7 @@ class tesla_energy_consumer(energy_consumer):
         self.drive_state = self.vehicle['drive_state']
         self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
         self._consumption_amps_now = self.charge_state['charger_actual_current']
+        self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
         self.latitude_current = float(self.drive_state['latitude'])
         self.longitude_current = float(self.drive_state['longitude'])
         self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
@@ -135,6 +137,16 @@ class tesla_energy_consumer(energy_consumer):
             self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
             self.__update_vehicle_data()
 
+    def dist_units(self, miles, speed=False):
+            """ Format and convert distance or speed to GUI setting units """
+            if miles is None:
+                return None
+            if 'gui_settings' not in self.vehicle:
+                self.__update_vehicle_data()
+            # Lookup GUI settings of the vehicle
+            if 'km' in self.vehicle['gui_settings']['gui_distance_units']:
+                return '%.1f %s' % (miles * 1.609344, 'km/h' if speed else 'km')
+            return '%.1f %s' % (miles, 'mph' if speed else 'mi')
     @property
     def consumption(self):
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)
@@ -224,3 +236,10 @@ class tesla_energy_consumer(energy_consumer):
     def battery_level(self):
         self.__update_vehicle_data()
         return int(self.charge_state['battery_level'])
+
+    @property
+    def est_battery_range(self):
+        self.__update_vehicle_data()
+        return self._est_battery_range
+
+        
