@@ -147,6 +147,11 @@ class tesla_energy_consumer(energy_consumer):
             if 'km' in self.vehicle['gui_settings']['gui_distance_units']:
                 return '%.1f %s' % (miles * 1.609344, 'km/h' if speed else 'km')
             return '%.1f %s' % (miles, 'mph' if speed else 'mi')
+    
+    @property 
+    def name(self):
+        return self._name
+    
     @property
     def consumption(self):
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)

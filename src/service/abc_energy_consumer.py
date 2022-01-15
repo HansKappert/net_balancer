@@ -24,7 +24,11 @@ class energy_consumer(ABC):
 
     def set_home_location(self):
         pass
-    
+
+    @property 
+    def name(self):
+        pass
+
     @property
     def consumption(self):
         pass

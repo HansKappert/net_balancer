@@ -1,6 +1,6 @@
 import logging
 from service.abc_energy_consumer import energy_consumer
-from persistence import persistence
+from common.persistence import persistence
 
 
 class fake_energy_consumer(energy_consumer):

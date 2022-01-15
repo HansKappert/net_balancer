@@ -64,9 +64,7 @@ def index():
     return render_template('index.html', 
         model=data_model, 
         override_tesla=_override_tesla,
-        disabled_tesla=_disabled_tesla,
-        surplus_delay_theshold=data_model.log_retention,
-        deficient_delay_theshold=data_model.deficient_delay_theshold
+        disabled_tesla=_disabled_tesla
     )    
 
 
@@ -105,7 +103,8 @@ def consumer_tesla():
         coords_as_string = '%s, %s' % (coords_current[0],coords_current[1])
         location_now = osm.reverse(coords_as_string).address
         return render_template('consumer_tesla.html', 
-            consumption       = data_model._consumers[0].consumption,
+            #consumption       = data_model._consumers[0].consumption,
+            consumption       = data_model.get_consumer("Tesla").consumption,
             charge_until      = tesla.charge_until,
             latitude_home     = coords_home[0],
             longitude_home    = coords_home[1],   
@@ -128,10 +127,8 @@ def consumer_tesla():
 def get_data():
     json_text = jsonify(
         {'surplus': data_model.surplus},
-        {'surplus_delay_count':data_model.surplus_delay_count},
         {'current_consumption':data_model.current_consumption},
         {'current_production': data_model.current_production},
-        {'deficient_delay_theshold':data_model.deficient_delay_theshold},
         {'charging_tesla_amp':db.get_consumer_consumption_now("Tesla")},
         {'charging_tesla_watt':230*db.get_consumer_consumption_now("Tesla")}
         )
@@ -141,14 +138,6 @@ def get_data():
 def get_surplus():
     return jsonify({'value': data_model.surplus})
 
-@app.route('/surplus_delay_count/get', methods=['GET'])
-def get_surplus_delay_count():
-    return jsonify({'value': data_model.surplus_delay_count})
-
-@app.route('/deficient_delay_count/get', methods=['GET'])
-def get_deficient_delay_count():
-    return jsonify({'value': data_model.deficient_delay_count})
-
 @app.route('/current_consumption/get', methods=['GET'])
 def get_current_consumption():
     return jsonify({'value': data_model.current_consumption})
@@ -157,34 +146,8 @@ def get_current_consumption():
 def get_current_production():
     return jsonify({'value': data_model.current_production})
 
-@app.route('/deficient_delay_theshold/get', methods=['GET'])
-def get_deficient_delay_theshold():
-    return jsonify({'value': data_model.deficient_delay_theshold})
 
-@app.route('/surplus_delay_theshold/set', methods=['GET'])
-def put_surplus_delay_theshold():
-    value = request.args.get('value')
-    try:
-        value = int(value)
-        data_model.log_retention = request.data
-        return jsonify({'result': 'Ok'})
-    except:
-        return jsonify({'result': 'Error'})
-
-@app.route('/deficient_delay_theshold/set/<int:value>', methods=['GET'])
-def put_deficient_delay_theshold(value):
-    try:
-        data_model.deficient_delay_theshold = value
-        return jsonify({'result': 'Ok'})
-    except:
-        return jsonify({'result': 'Error'})
-
-
-#@app.route('/override/get', methods=['GET'])
-#def get_override():    
-#    return jsonify({'value': data_model.override})
-
-
+# 
 @app.route('/override/set/<int:value>/<string:consumer_name>', methods=['GET'])
 def put_override(value, consumer_name):
     try:

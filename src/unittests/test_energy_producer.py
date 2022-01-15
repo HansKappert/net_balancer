@@ -4,7 +4,7 @@ import time
 from service.energy_producer import energy_producer
 from unittests.P1reader_fake import P1reader
 from common.model import model
-from persistence import persistence
+from common.persistence import persistence
 
 class Test_energy_producer(unittest.TestCase):
     def test_surplus1(self):
