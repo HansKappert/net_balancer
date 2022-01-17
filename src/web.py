@@ -163,9 +163,11 @@ def put_disabled(value, consumer_name):
     try: 
         if value == 1:
             logger.info("Disabling energy mediation for  " + consumer_name)
+            data_model.get_consumer("Tesla").disable()
         else:
             logger.info("Enabling energy mediation for  "  + consumer_name)
-        db.set_consumer_disabled(consumer_name, value)
+            data_model.get_consumer("Tesla").enable()
+        # db.set_consumer_disabled(consumer_name, value)
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)

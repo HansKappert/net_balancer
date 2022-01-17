@@ -56,6 +56,19 @@ class tesla_energy_consumer(energy_consumer):
         self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
 
 
+    def disable(self):
+        power_max = self.persistence.get_consumer_consumption_max(self._name) 
+        new_charging_current = self.calc_new_charge_current(0, power_max, power_max)
+        self.logger.info("Going to DISABLED operation mode for Tesla. Setting MAX charge current to facilitate other apps" )
+        try:
+            self.__set_charge_current(new_charging_current)
+        except Exception as e:
+            self.logger.exception("Exception during setting of the current:".format(e))
+        self.persistence.set_consumer_disabled(self._name, 1)
+
+    def enable(self):
+        self.persistence.set_consumer_disabled(self._name, 0)
+
     def consumer_is_consuming(self):
         return self.is_consuming
         

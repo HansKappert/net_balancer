@@ -10,6 +10,14 @@ class energy_consumer(ABC):
     def initialize(self, **kwargs):
         pass
 
+    @abstractmethod        
+    def disable(self):
+        pass
+
+    @abstractmethod
+    def enable(self):
+        pass
+
     @abstractmethod
     def consumer_is_consuming(self):
         pass
@@ -20,9 +28,6 @@ class energy_consumer(ABC):
 
     @abstractmethod
     def start_consuming(self):
-        pass
-
-    def set_home_location(self):
         pass
 
     @property 
