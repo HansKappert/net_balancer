@@ -68,5 +68,5 @@ class energy_consumer(ABC):
         pass
 
     @property
-    def override_activated(self):
+    def balance_activated(self):
         pass

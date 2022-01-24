@@ -51,10 +51,10 @@ def nice_date(d):
 
 @app.route('/', methods=['GET'])
 def index():
-    if (db.get_consumer_override('Tesla') == 1):
-        _override_tesla = "checked"
+    if (db.get_consumer_balance('Tesla') == 1):
+        _balance_tesla = "checked"
     else:
-        _override_tesla = ""
+        _balance_tesla = ""
 
     if (db.get_consumer_disabled('Tesla') == 1):
         _disabled_tesla = "checked"
@@ -63,7 +63,7 @@ def index():
 
     return render_template('index.html', 
         model=data_model, 
-        override_tesla=_override_tesla,
+        balance_tesla=_balance_tesla,
         disabled_tesla=_disabled_tesla
     )    
 
@@ -148,11 +148,11 @@ def get_current_production():
 
 
 # 
-@app.route('/override/set/<int:value>/<string:consumer_name>', methods=['GET'])
-def put_override(value, consumer_name):
+@app.route('/balance/set/<int:value>/<string:consumer_name>', methods=['GET'])
+def put_balance(value, consumer_name):
     try:
-        logger.info("Setting override to " + str(value))
-        db.set_consumer_override(consumer_name, value)
+        logger.info("Setting balance to " + str(value))
+        db.set_consumer_balance(consumer_name, value)
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)

@@ -25,12 +25,16 @@ class persistence:
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 
-        result = cur.execute("PRAGMA table_info(consumer)").fetchone()
+        result = cur.execute("PRAGMA table_info(consumer)").fetchall()
         if (result == None):
             logging.debug ("Creating table consumer")
-            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, override BOOLEAN NOT NULL CHECK (override IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
-            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 0, 0)")
+            cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, balance BOOLEAN NOT NULL CHECK (balance IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
+            cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 1, 0)")
             con.commit()
+        else:
+            if (result[3][1] == 'override'):
+                cur.execute("ALTER TABLE consumer RENAME COLUMN override TO balance")
+                con.commit()
 
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
@@ -170,14 +174,14 @@ class persistence:
         con.commit()
         con.close()
 
-    #  consumer override
-    def get_consumer_override(self, consumer_name):
+    #  consumer balance
+    def get_consumer_balance(self, consumer_name):
         con = self.get_db_connection()
-        result = con.execute("SELECT override FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        result = con.execute("SELECT balance FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
         return int(result[0])
-    def set_consumer_override(self, consumer_name, value):
+    def set_consumer_balance(self, consumer_name, value):
         con = self.get_db_connection()  
-        result = con.execute("UPDATE consumer SET override = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        result = con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         con.commit()
         con.close()
 

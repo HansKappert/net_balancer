@@ -204,8 +204,8 @@ class tesla_energy_consumer(energy_consumer):
         return self.consumption_amps_now * self.voltage
     
     @property
-    def override_activated(self):
-        return self.persistence.get_consumer_override(self._name)
+    def balance_activated(self):
+        return self.persistence.get_consumer_balance(self._name)
 
     @property
     def can_start_consuming(self):

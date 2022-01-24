@@ -4,7 +4,7 @@ class model:
     def __init__(self, db:persistence) -> None:
         self.persistence = db
         self._surplus = 0 # the last calculated value.
-        self._override = 0
+        self._balance = 0
         self._log_retention = 0
         # last readings
         self._current_consumption = 0
@@ -27,13 +27,13 @@ class model:
         self.persistence.set_surplus(value)
 
     @property
-    def override(self):
-        self._override = self.persistence.get_override()
-        return self._override
-    @override.setter
-    def override(self,value):
-        self._override = value
-        self.persistence.set_override(value)
+    def balance(self):
+        self._balance = self.persistence.get_balance()
+        return self._balance
+    @balance.setter
+    def balance(self,value):
+        self._balance = value
+        self.persistence.set_balance(value)
 
     @property
     def current_consumption(self):
