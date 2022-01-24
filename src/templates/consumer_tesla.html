@@ -18,36 +18,21 @@
             </input>
     
             <br>
-            <table>
-                <tr valign="top">
-                    <td>
-                        <label for="title">Huidig batterijniveau&nbsp;</label> 
-                    </td>
-                    <td>
-                        {{battery_level}}% ({{est_battery_range}})
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <td>
-                        <label for="title">Thuis adres</label>
-                    </td>
-                    <td>
-                        {{location_home }}
-                    </td>
-                </tr>
-            </table>
-            
+            <label for="title">Huidig batterijniveau&nbsp;</label> 
+            <div class="boxed">{{battery_level}}% ({{est_battery_range}})</div>
             <br>
-            <div>
-                <label for="title">Huidige locatie:</label><br>
-                <input type="text" value="{{ request.form['location_now'] or location_now }}" class="form-control" readonly/>
-            </div>
+            <label for="title">Thuis adres</label>
+            <div class="boxed">{{location_home }}</div>
+                
+            <br>
+            <label for="title">Huidige locatie:</label><br>
+            <div class="boxed">{{ request.form['location_now'] or location_now }}"
             <iframe
                 width="450"
                 height="250"
                 frameborder="0" style="border:0"
                 src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA-p5-EtPVCTKSJyz4dSOG8hsueR1Ei43k&q={{latitude_curr}},{{longitude_curr}}&center={{latitude_curr}},{{longitude_curr}}&maptype=satellite" allowfullscreen>
-            </iframe>
+            </iframe></div>
             <div>
                 <br>
                 <label for="title">Stel huidige lokatie in als thuislokatie</label>&nbsp;
