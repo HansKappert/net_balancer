@@ -25,14 +25,15 @@ class persistence:
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 
-        result = cur.execute("PRAGMA table_info(consumer)").fetchall()
+        result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             logging.debug ("Creating table consumer")
             cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, balance BOOLEAN NOT NULL CHECK (balance IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 1, 0)")
             con.commit()
         else:
-            if (len(result) > 2 and result[3][1] == 'override'):
+            result = cur.execute("PRAGMA table_info(consumer)").fetchall()
+            if (result[3][1] == 'override'):
                 cur.execute("ALTER TABLE consumer RENAME COLUMN override TO balance")
                 con.commit()
 
