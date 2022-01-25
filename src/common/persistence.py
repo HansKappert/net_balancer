@@ -32,7 +32,7 @@ class persistence:
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 1, 0)")
             con.commit()
         else:
-            if (result[3][1] == 'override'):
+            if (len(result) > 2 and result[3][1] == 'override'):
                 cur.execute("ALTER TABLE consumer RENAME COLUMN override TO balance")
                 con.commit()
 
