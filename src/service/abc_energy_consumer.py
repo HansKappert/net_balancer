@@ -10,13 +10,14 @@ class energy_consumer(ABC):
     def initialize(self, **kwargs):
         pass
 
-    @abstractmethod        
-    def disable(self):
-        pass
 
-    @abstractmethod
-    def enable(self):
-        pass
+#    @abstractmethod        
+#    def disable(self):
+#        pass
+
+#    @abstractmethod
+#    def enable(self):
+#        pass
 
     @abstractmethod
     def consumer_is_consuming(self):
@@ -44,6 +45,7 @@ class energy_consumer(ABC):
     @property
     def start_above(self):
         pass
+
     @consumption.setter
     def consumption(self,value):
         pass
@@ -69,4 +71,7 @@ class energy_consumer(ABC):
 
     @property
     def balance_activated(self):
+        pass
+    @balance_activated.setter
+    def balance_activated(self,value):
         pass

@@ -3,12 +3,7 @@
 <br>
 Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
 <div class="label">Huidig energie overschot</div>  <span id="surplus"              >{{ model.surplus }}</span> Watt
-<!-- 
-<div class="label">Overschot gezien gedurende</div><span id="surplus_delay_count"  >{{ model.surplus_delay_count }}</span> seconden
-<div class="label">Tekort gezien gedurende</div>   <span id="deficient_delay_count">{{ model.deficient_delay_count }}</span> seconden
-<div class="label">Vertraging starten laden</div>{{ surplus_delay_theshold }} seconden
-<div class="label">Vertraging stoppen laden</div>{{ model.deficient_delay_theshold }} seconden      
--->
+
 <br><br>
 
 <table width="100%"> 
@@ -27,14 +22,6 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
             <span class="slider round"></span>
           </label>
         </td>
-        <!-- 
-        <td>
-          <label class="switch">
-            <input id="disabled_Tesla" type="checkbox" {{disabled_tesla}} onchange="disabled_changed('Tesla')" />
-            <span class="slider round"></span>
-          </label>
-        </td>
-        -->
     </tr>
 </table>
 <script type="text/javascript">
@@ -44,14 +31,6 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
         else
           par=0;
         url = '/balance/set/' + par + "/" + consumer_name;
-        fetch( url );
-    }
-    function disabled_changed(consumer_name) {
-        if(document.getElementById("disabled_" + consumer_name).checked)
-          par=1;
-        else
-          par=0;
-        url = '/disabled/set/' + par + "/" + consumer_name;
         fetch( url );
     }
     function refresh() {

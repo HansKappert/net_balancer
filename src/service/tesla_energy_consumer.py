@@ -56,9 +56,9 @@ class tesla_energy_consumer(energy_consumer):
         self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
 
 
-    def disable(self):
+    def dis__able_KANWEG(self):
         power_max = self.persistence.get_consumer_consumption_max(self._name) 
-        new_charging_current = self.calc_new_charge_current(0, power_max, power_max)
+        new_charging_current = self.calc_new_charge_current(0, power_max)
         self.logger.info("Going to DISABLED operation mode for Tesla. Setting MAX charge current to facilitate other apps" )
         try:
             self.__set_charge_current(new_charging_current)
@@ -66,7 +66,7 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.exception("Exception during setting of the current:".format(e))
         self.persistence.set_consumer_disabled(self._name, 1)
 
-    def enable(self):
+    def ena__ble_KANWEG(self):
         self.persistence.set_consumer_disabled(self._name, 0)
 
     def consumer_is_consuming(self):
@@ -85,17 +85,13 @@ class tesla_energy_consumer(energy_consumer):
         else:
             self.logger.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
-    def start_consuming(self, surplus_power, at_maximum):
+    def start_consuming(self, surplus_power):
 
         try:
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
             # calculate what the new charging current needs to be. 
-            power_max = self.persistence.get_consumer_consumption_max(self._name) 
-            if at_maximum:                
-                new_charging_current = self.calc_new_charge_current(0, power_max, power_max)
-            else:
-                new_charging_current = self.calc_new_charge_current(old_charging_current, power_max, surplus_power)
+            new_charging_current = self.calc_new_charge_current(old_charging_current, surplus_power)
             self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
             try:
                 self.__set_charge_current(new_charging_current)
@@ -116,13 +112,12 @@ class tesla_energy_consumer(energy_consumer):
 
     def set_home_location(self):
         self.__update_vehicle_data()
-
         
-    def can_consume_this_surplus(self, surplus_power, at_maximum):
-        if (self.persistence.get_consumer_disabled('Tesla') == 1):
+    def can_consume_this_surplus(self, surplus_power, is_activated):
+
+        if is_activated == False:
             return False
 
-        self.__update_vehicle_data()
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
             return False
 
@@ -132,15 +127,15 @@ class tesla_energy_consumer(energy_consumer):
         old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
         max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
-        if surplus_power < max_power_consumption or at_maximum == True:
+        
+        if surplus_power < max_power_consumption:
             return True
         return False
 
-    def calc_new_charge_current(self, charger_actual_current, power_max, surplus_power):
+    def calc_new_charge_current(self, charger_actual_current, surplus_power):
             surplus_amp = int(surplus_power / self.voltage)
             amps_new = charger_actual_current + surplus_amp
-            if amps_new * self.voltage > power_max:
-                amps_new = int(power_max / self.voltage)
+            
             if amps_new < 0:
                 amps_new = 0
             return amps_new
@@ -206,6 +201,10 @@ class tesla_energy_consumer(energy_consumer):
     @property
     def balance_activated(self):
         return self.persistence.get_consumer_balance(self._name)
+    @balance_activated.setter
+    def balance_activated(self,value):
+        max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
+        self.__set_charge_current(max_power_consumption)
 
     @property
     def can_start_consuming(self):
