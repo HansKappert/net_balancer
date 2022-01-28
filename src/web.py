@@ -56,15 +56,10 @@ def index():
     else:
         _balance_tesla = ""
 
-    if (db.get_consumer_disabled('Tesla') == 1):
-        _disabled_tesla = "checked"
-    else:
-        _disabled_tesla = ""
 
     return render_template('index.html', 
         model=data_model, 
-        balance_tesla=_balance_tesla,
-        disabled_tesla=_disabled_tesla
+        balance_tesla=_balance_tesla
     )    
 
 
@@ -153,6 +148,8 @@ def put_balance(value, consumer_name):
     try:
         logger.info("Setting balance to " + str(value))
         db.set_consumer_balance(consumer_name, value)
+        if value == 0:
+            data_model.get_consumer(consumer_name).set
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)
@@ -172,9 +169,6 @@ def put_disabled(value, consumer_name):
     except Exception as e:
         logger.exception(e)
         return jsonify({'result': 'Error'})
-
-
-
 
 
 if __name__ == "__main__":
