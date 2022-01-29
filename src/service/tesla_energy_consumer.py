@@ -1,5 +1,5 @@
+from datetime import datetime
 import logging
-from typing                             import Tuple
 from service.abc_energy_consumer        import energy_consumer
 from teslapy                            import Tesla
 from teslapy                            import VehicleError
@@ -9,6 +9,7 @@ from common.database_logging_handler    import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
     def __init__(self, db:persistence) -> None:
+        self._last_vehicle_data_update = datetime.now()
         self.persistence = db
         self.is_consuming = False
         self._consumption = 0
@@ -42,6 +43,9 @@ class tesla_energy_consumer(energy_consumer):
         return input('Captcha: ')
 
     def __update_vehicle_data(self):
+        diff = datetime.now() - self._last_vehicle_data_update
+        if diff.total_seconds() < 5: 
+            return
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
         self.vehicle.get_vehicle_data()
@@ -55,19 +59,6 @@ class tesla_energy_consumer(energy_consumer):
         self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
         self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
 
-
-    def dis__able_KANWEG(self):
-        power_max = self.persistence.get_consumer_consumption_max(self._name) 
-        new_charging_current = self.calc_new_charge_current(0, power_max)
-        self.logger.info("Going to DISABLED operation mode for Tesla. Setting MAX charge current to facilitate other apps" )
-        try:
-            self.__set_charge_current(new_charging_current)
-        except Exception as e:
-            self.logger.exception("Exception during setting of the current:".format(e))
-        self.persistence.set_consumer_disabled(self._name, 1)
-
-    def ena__ble_KANWEG(self):
-        self.persistence.set_consumer_disabled(self._name, 0)
 
     def consumer_is_consuming(self):
         return self.is_consuming
@@ -132,13 +123,14 @@ class tesla_energy_consumer(energy_consumer):
             return True
         return False
 
+    def get_current(self, power):
+        return int(power / self.voltage)
+
+
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
-            surplus_amp = int(surplus_power / self.voltage)
-            amps_new = charger_actual_current + surplus_amp
-            
-            if amps_new < 0:
-                amps_new = 0
-            return amps_new
+        amps_new = charger_actual_current + self.get_current(self, surplus_power)
+        amps_new = max(0, amps_new)
+        return amps_new
 
     def __set_charge_current(self, amps):
         if amps >= 0:
@@ -161,11 +153,11 @@ class tesla_energy_consumer(energy_consumer):
         return self._name
     
     @property
-    def consumption(self):
+    def max_consumption(self):
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)
         return self._consumption
-    @consumption.setter
-    def consumption(self,value):
+    @max_consumption.setter
+    def max_consumption(self,value):
         self._consumption = value
         self.persistence.set_consumer_consumption_max(self._name, value)
 
@@ -192,10 +184,12 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def consumption_amps_now(self):
+        self.__update_vehicle_data()
         return self._consumption_amps_now
     
     @property
     def consumption_power_now(self):
+        self.__update_vehicle_data()
         return self.consumption_amps_now * self.voltage
     
     @property
@@ -204,6 +198,7 @@ class tesla_energy_consumer(energy_consumer):
     @balance_activated.setter
     def balance_activated(self,value):
         max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
+        max_current_consumption = self.get_current(self, max_power_consumption)
         self.__set_charge_current(max_power_consumption)
 
     @property

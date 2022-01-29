@@ -186,16 +186,6 @@ class persistence:
         con.commit()
         con.close()
 
-    #  consumer disabled
-    def get_consumer_disabled(self, consumer_name):
-        con = self.get_db_connection()
-        result = con.execute("SELECT disabled FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        return int(result[0])
-    def set_consumer_disabled(self, consumer_name, value):
-        con = self.get_db_connection()  
-        result = con.execute("UPDATE consumer SET disabled = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
-        con.commit()
-        con.close()
 
 
     #  log retention

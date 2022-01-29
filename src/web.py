@@ -76,7 +76,7 @@ def settings():
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():
     if request.method == 'POST':
-        data_model._consumers[0].consumption = int(request.form['consumption'])
+        data_model._consumers[0].max_consumption = int(request.form['consumption'])
         tesla.charge_until = int(request.form['charge_until'])
         if 'set_home_location' in request.form:
             set_home_location = request.form['set_home_location']
@@ -99,7 +99,7 @@ def consumer_tesla():
         location_now = osm.reverse(coords_as_string).address
         return render_template('consumer_tesla.html', 
             #consumption       = data_model._consumers[0].consumption,
-            consumption       = data_model.get_consumer("Tesla").consumption,
+            consumption       = data_model.get_consumer("Tesla").max_consumption,
             charge_until      = tesla.charge_until,
             latitude_home     = coords_home[0],
             longitude_home    = coords_home[1],   
@@ -124,8 +124,8 @@ def get_data():
         {'surplus': data_model.surplus},
         {'current_consumption':data_model.current_consumption},
         {'current_production': data_model.current_production},
-        {'charging_tesla_amp':db.get_consumer_consumption_now("Tesla")},
-        {'charging_tesla_watt':230*db.get_consumer_consumption_now("Tesla")}
+        {'charging_tesla_amp':data_model.get_consumer("Tesla").consumption_amps_now},
+        {'charging_tesla_watt':data_model.get_consumer("Tesla").consumption_power_now}
         )
     return json_text
 
@@ -149,26 +149,12 @@ def put_balance(value, consumer_name):
         logger.info("Setting balance to " + str(value))
         db.set_consumer_balance(consumer_name, value)
         if value == 0:
-            data_model.get_consumer(consumer_name).set
+            data_model.get_consumer(consumer_name).balance_activated = value == 1
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)
         return jsonify({'result': 'Error'})
 
-@app.route('/disabled/set/<int:value>/<string:consumer_name>', methods=['GET'])
-def put_disabled(value, consumer_name):
-    try: 
-        if value == 1:
-            logger.info("Disabling energy mediation for  " + consumer_name)
-            data_model.get_consumer("Tesla").disable()
-        else:
-            logger.info("Enabling energy mediation for  "  + consumer_name)
-            data_model.get_consumer("Tesla").enable()
-        # db.set_consumer_disabled(consumer_name, value)
-        return jsonify({'result': 'Ok'})
-    except Exception as e:
-        logger.exception(e)
-        return jsonify({'result': 'Error'})
 
 
 if __name__ == "__main__":

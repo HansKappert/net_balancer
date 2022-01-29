@@ -11,14 +11,6 @@ class energy_consumer(ABC):
         pass
 
 
-#    @abstractmethod        
-#    def disable(self):
-#        pass
-
-#    @abstractmethod
-#    def enable(self):
-#        pass
-
     @abstractmethod
     def consumer_is_consuming(self):
         pass
@@ -36,25 +28,25 @@ class energy_consumer(ABC):
         pass
 
     @property
-    def consumption(self):
+    def current_consumption_current(self):
         pass
-    @consumption.setter
-    def consumption(self,value):
+    @property
+    def current_consumption_power(self):
         pass
 
     @property
-    def start_above(self):
+    def max_consumption(self):
+        pass
+    @max_consumption.setter
+    def max_consumption(self,value):
         pass
 
-    @consumption.setter
-    def consumption(self,value):
-        pass
 
     @property
     def charge_until(self):
         pass
-    @consumption.setter
-    def consumption(self,value):
+    @charge_until.setter
+    def charge_until(self,value):
         pass
 
     @property
@@ -67,6 +59,14 @@ class energy_consumer(ABC):
 
     @property
     def can_start_consuming(self):
+        pass
+
+    @property
+    def consumption_amps_now(self):
+        pass
+    
+    @property
+    def consumption_power_now(self):
         pass
 
     @property
