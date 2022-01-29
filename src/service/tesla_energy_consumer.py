@@ -56,8 +56,10 @@ class tesla_energy_consumer(energy_consumer):
         self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
         self.latitude_current = float(self.drive_state['latitude'])
         self.longitude_current = float(self.drive_state['longitude'])
+
         self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
         self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
+        self._last_vehicle_data_update = datetime.now()
 
 
     def consumer_is_consuming(self):
