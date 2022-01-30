@@ -48,18 +48,24 @@ class tesla_energy_consumer(energy_consumer):
             return
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
-        self.vehicle.get_vehicle_data()
-        self.charge_state = self.vehicle['charge_state']
-        self.drive_state = self.vehicle['drive_state']
-        self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
-        self._consumption_amps_now = self.charge_state['charger_actual_current']
-        self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
-        self.latitude_current = float(self.drive_state['latitude'])
-        self.longitude_current = float(self.drive_state['longitude'])
-
-        self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
-        self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
+        
         self._last_vehicle_data_update = datetime.now()
+        
+        try:
+            self.vehicle.get_vehicle_data()
+            self.charge_state = self.vehicle['charge_state']
+            self.drive_state = self.vehicle['drive_state']
+            self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
+            self._consumption_amps_now = self.charge_state['charger_actual_current']
+            self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
+            self.latitude_current = float(self.drive_state['latitude'])
+            self.longitude_current = float(self.drive_state['longitude'])
+
+            self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
+            self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
+        except Exception as e:
+            self.logger.exception("Error during getting vehicle data: " + str(e))
+            return        
 
 
     def consumer_is_consuming(self):
@@ -199,9 +205,10 @@ class tesla_energy_consumer(energy_consumer):
         return self.persistence.get_consumer_balance(self._name)
     @balance_activated.setter
     def balance_activated(self,value):
-        max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
-        max_current_consumption = self.get_current(self, max_power_consumption)
-        self.__set_charge_current(max_power_consumption)
+        if value == 0:
+            max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
+            max_current_consumption = self.get_current(max_power_consumption)
+            self.__set_charge_current(max_current_consumption)
 
     @property
     def can_start_consuming(self):
