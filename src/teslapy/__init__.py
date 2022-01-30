@@ -17,10 +17,7 @@ import hashlib
 import logging
 import pkgutil
 import webbrowser
-try:
-    from urlparse import urljoin
-except ImportError:
-    from urllib.parse import urljoin
+from urllib.parse import urljoin
 import requests
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import *
@@ -40,11 +37,6 @@ STREAMING_BASE_URL = 'wss://streaming.vn.teslamotors.com/'
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-# Py2/3 compatibility
-try:
-    input = raw_input
-except NameError:
-    pass
 
 
 class Tesla(OAuth2Session):
