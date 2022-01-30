@@ -115,12 +115,14 @@ class tesla_energy_consumer(energy_consumer):
     def can_consume_this_surplus(self, surplus_power, is_activated):
 
         if is_activated == False:
+            self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
             return False
 
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
             return False
 
         if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
+            self.logger.info("Tesla is opgeladen tot het opgegeven maximum")
             return False
 
         old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
@@ -215,30 +217,27 @@ class tesla_energy_consumer(energy_consumer):
         self.__update_vehicle_data()
         
         if not self.is_at_home:
-            self.logger.info("Cannot start because car is not at home")
+            self.logger.info("Kan niet laden want de Tesla is niet op de thuislokatie")
             return False 
 
         if  self.is_disconnected:
-            self.logger.info("Cannot start because car is not connected")
+            self.logger.info("Kan niet laden want de Tesla is niet aangesloten")
             return False
 
-        #if  self.is_consuming:
-        #    self.logger.info("Cannot start because the vehicle is already charging")
-        #    return False
-            
         return True, ""
 
-    # make sure you've done self.__update_vehicle_data() before using this property
+    
     @property
     def is_disconnected(self):
+        self.__update_vehicle_data()  
         if self.charge_state['charging_state'] == "Disconnected":
             self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
             return True
         return False
 
-    # make sure you've done self.__update_vehicle_data() before using this property
     @property
     def is_at_home(self):
+        self.__update_vehicle_data()  
         (lat,lon) = self.persistence.get_tesla_home_coords()
         if abs(float(self.drive_state['longitude']) - lon) < 0.000100 and abs(float(self.drive_state['latitude'])  - lat) < 0.000100: 
             return True
