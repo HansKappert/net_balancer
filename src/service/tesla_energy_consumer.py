@@ -44,7 +44,7 @@ class tesla_energy_consumer(energy_consumer):
 
     def __update_vehicle_data(self):
         diff = datetime.now() - self._last_vehicle_data_update
-        if diff.total_seconds() < 5: 
+        if diff.total_seconds() < 5 and len(self.drive_state) > 0: 
             return
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
@@ -64,7 +64,7 @@ class tesla_energy_consumer(energy_consumer):
             self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
             self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
         except Exception as e:
-            self.logger.exception("Error during getting vehicle data: " + str(e))
+            self.logger.debug("Error during getting vehicle data: " + str(e))
             return        
 
 
@@ -138,7 +138,7 @@ class tesla_energy_consumer(energy_consumer):
 
 
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
-        amps_new = charger_actual_current + self.get_current(self, surplus_power)
+        amps_new = charger_actual_current + self.get_current(surplus_power)
         amps_new = max(0, amps_new)
         return amps_new
 
