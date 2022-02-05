@@ -41,6 +41,12 @@ if __name__ == "__main__":
     db = persistence()
     data_model = model(db)
 
+
+    cleaner = eventlog_cleaner()
+    th = threading.Thread(target=cleaner.start, daemon=True)
+    th.start()
+    logging.debug ("Eventlog table cleaner is setup")
+
     if args.device_name == "stub":
         current_data_supplier = P1reader_stub("none")
     else:
@@ -62,9 +68,5 @@ if __name__ == "__main__":
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
     logging.debug ("Mediator is created. Starting mediation")
-
-    cleaner = eventlog_cleaner()
-    th = threading.Thread(target=cleaner.start, daemon=True)
-    th.start()
     energy_mediator.mediate(consumer=tesla, producer=producer)
 
