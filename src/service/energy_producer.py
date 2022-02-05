@@ -14,11 +14,11 @@ class energy_producer:
         self.state = 'stopped'
         self.sleep_time = sleep_time
         self.data_model = data_model
-        if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
-            os.makedirs(self.DATA_DUMP_FOLDER_NAME)
-        if not os.path.exists(self.DATA_DUMP_FILE_NAME):
-            with open(self.DATA_DUMP_FILE_NAME,"w") as f:
-                self.write_datagram_to_file(dg = None,header = True)
+        #if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
+        #    os.makedirs(self.DATA_DUMP_FOLDER_NAME)
+        #if not os.path.exists(self.DATA_DUMP_FILE_NAME):
+        #    with open(self.DATA_DUMP_FILE_NAME,"w") as f:
+        #        self.write_datagram_to_file(dg = None,header = True)
 
     def read_once(self, data_model : model):
         raw_data_array, errortxt = self.current_reader.read_data()
@@ -31,7 +31,7 @@ class energy_producer:
             data_model.current_consumption =  datagram.actual_electricity_power_delivered
 
         logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
-        self.write_datagram_to_file(datagram, False)
+        # self.write_datagram_to_file(datagram, False)
 
     def write_datagram_to_file(self, dg : P1datagram, header : bool):
         line = \
