@@ -73,3 +73,7 @@ body {
     padding-top: 3px;
     padding-bottom: 3px;
   }
+
+  .logline_tr {
+    border-bottom: #ddd 1pt solid ;
+  }
