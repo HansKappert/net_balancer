@@ -35,10 +35,10 @@ class energy_consumer(ABC):
         pass
 
     @property
-    def max_consumption(self):
+    def max_consumption_power(self):
         pass
-    @max_consumption.setter
-    def max_consumption(self,value):
+    @max_consumption_power.setter
+    def max_consumption_power(self,value):
         pass
 
 

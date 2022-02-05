@@ -140,6 +140,7 @@ class tesla_energy_consumer(energy_consumer):
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
         amps_new = charger_actual_current + self.get_current(surplus_power)
         amps_new = max(0, amps_new)
+        amps_new = min(self.get_current(self.max_consumption_power),amps_new)
         return amps_new
 
     def __set_charge_current(self, amps):
@@ -163,11 +164,11 @@ class tesla_energy_consumer(energy_consumer):
         return self._name
     
     @property
-    def max_consumption(self):
+    def max_consumption_power(self):
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)
         return self._consumption
-    @max_consumption.setter
-    def max_consumption(self,value):
+    @max_consumption_power.setter
+    def max_consumption_power(self,value):
         self._consumption = value
         self.persistence.set_consumer_consumption_max(self._name, value)
 
