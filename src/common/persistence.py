@@ -45,6 +45,13 @@ class persistence:
             cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
             con.commit()
 
+        cur = con.cursor()
+        result = cur.execute("PRAGMA table_info(stats)").fetchone()
+        if (result == None):
+            logging.debug ("Creating table stats")
+            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_surplus INTEGER, tesla_consumption INTEGER)")
+            con.commit()
+
 
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(event)").fetchone()
@@ -106,37 +113,6 @@ class persistence:
     def set_current_consumption(self,value):
         self.__set_reading_column_value("current_consumption", value)
 
-    def get_surplus_delay_count(self):
-        return self.__get_reading_column_value("surplus_delay_count")
-    def set_surplus_delay_count(self,value):
-        self.__set_reading_column_value("surplus_delay_count", value)
-
-
-    def get_deficient_delay_count(self):
-        return self.__get_reading_column_value("deficient_delay_count")
-    def set_deficient_delay_count(self,value):
-        self.__set_reading_column_value("deficient_delay_count", value)
-
-
-    def get_surplus_delay_theshold(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT surplus_delay_theshold FROM settings").fetchone()
-        return result[0]
-    def set_surplus_delay_theshold(self, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE settings SET surplus_delay_theshold = :value",{"value":value})
-        con.commit()
-        con.close()
-    
-    def get_deficient_delay_theshold(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT deficient_delay_theshold FROM settings").fetchone()
-        return result[0]
-    def set_deficient_delay_theshold(self, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE settings SET deficient_delay_theshold = :value",{"value":value})
-        con.commit()
-        con.close()
 
     #  consumer consumption_max
     def get_consumer_consumption_max(self, consumer_name):
@@ -233,5 +209,15 @@ class persistence:
     def set_tesla_current_coords(self, current_latitude, current_longitude):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
+        con.commit()
+        con.close()
+
+    def write_statistics(self,tstamp , current_production , current_surplus , tesla_consumption ):
+        con = self.get_db_connection()
+        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_surplus, :tesla_consumption)",
+                                                       {"tstamp"             : tstamp, 
+                                                        "current_production" : current_production, 
+                                                        "current_surplus"    : current_surplus, 
+                                                        "tesla_consumption"  : tesla_consumption})
         con.commit()
         con.close()

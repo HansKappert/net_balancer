@@ -9,6 +9,7 @@ from service.energy_producer        import energy_producer
 from service.tesla_energy_consumer  import tesla_energy_consumer
 from service.eventlog_cleaner       import eventlog_cleaner
 from service.energy_mediator        import mediator
+from service.stats_writer           import stats_writer
 from common.model                   import model
 from common.persistence             import persistence
 
@@ -64,6 +65,12 @@ if __name__ == "__main__":
         logging.exception(e)
     data_model.add_consumer(tesla)
     logging.debug ("Data model created")
+
+    statswriter = stats_writer(data_model,db)
+    th = threading.Thread(target=statswriter.start, daemon=True)
+    th.start()
+    logging.debug ("Eventlog table cleaner is setup")
+
 
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator()
