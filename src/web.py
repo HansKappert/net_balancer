@@ -4,7 +4,7 @@ import os
 from flask                           import Flask
 from flask                           import request, render_template, url_for, redirect, jsonify
 from geopy.geocoders                 import Nominatim
-
+from datetime                        import datetime
 from flask                           import Flask, request, jsonify
 from common.model                    import model
 from common.persistence              import persistence
@@ -72,6 +72,26 @@ def settings():
         return render_template('settings.html', 
         log_retention   = data_model.log_retention
         )
+
+@app.route('/history', methods=['GET'])
+def history():
+        history = db.get_history()
+        surplusses = '['
+        productions = '['
+        tesla_consumptions = '['
+        
+        datetime_obj = datetime.fromtimestamp(history[0][0])
+        datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
+        for i in history:
+            msec_since = str(i[0]-history[0][0])
+            surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
+            productions += '[' + msec_since + ',' + str(i[1]) + '],'
+            tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
+            
+        surplusses = surplusses[:-1] + ']'
+        productions = productions[:-1] + ']'
+        tesla_consumptions = tesla_consumptions[:-1] + ']'
+        return render_template('history.html', start_datetime_str=datetime_str, surplusses = surplusses, productions = productions, tesla_consumptions = tesla_consumptions)
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():

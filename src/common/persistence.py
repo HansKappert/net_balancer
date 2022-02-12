@@ -221,3 +221,9 @@ class persistence:
                                                         "tesla_consumption"  : tesla_consumption})
         con.commit()
         con.close()
+
+    def get_history(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT * FROM stats ORDER BY tstamp").fetchall()
+        return result
+
