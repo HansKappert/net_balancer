@@ -82,11 +82,14 @@ def history():
         
         datetime_obj = datetime.fromtimestamp(history[0][0])
         datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
+        aantal = 0
         for i in history:
-            msec_since = str(i[0]-history[0][0])
-            surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
-            productions += '[' + msec_since + ',' + str(i[1]) + '],'
-            tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
+            aantal += 1
+            if aantal < 288:
+                msec_since = str(i[0]-history[0][0])
+                surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
+                productions += '[' + msec_since + ',' + str(i[1]) + '],'
+                tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
             
         surplusses = surplusses[:-1] + ']'
         productions = productions[:-1] + ']'

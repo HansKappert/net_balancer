@@ -224,6 +224,6 @@ class persistence:
 
     def get_history(self):
         con = self.get_db_connection()
-        result = con.execute("SELECT * FROM stats ORDER BY tstamp").fetchall()
+        result = con.execute("SELECT * FROM stats ORDER BY tstamp DESC").fetchall()
         return result
 
