@@ -85,8 +85,8 @@ def history():
         aantal = 0
         for i in history:
             aantal += 1
-            if aantal < 288:
-                msec_since = str(i[0]-history[0][0])
+            if aantal < 1440:
+                msec_since = str(i[0] )
                 surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
                 productions += '[' + msec_since + ',' + str(i[1]) + '],'
                 tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'

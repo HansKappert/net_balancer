@@ -1,13 +1,33 @@
 {% extends 'base.html' %}
 {% block content %}
    <br>
-    <div id="placeholder" style="width:600px;height:300px;"></div>
+    <div id="placeholder" style="width:600px;height:600px;"></div>
 
     <!--[if IE]>
     <script type="text/javascript" src="path/to/flashcanvas.js"></script>
     <![endif]-->
     <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
     <script type="text/javascript">
+      function padTo2Digits(num) {
+        return num.toString().padStart(2, '0');
+      }
+
+      function formatDate(date) {
+        return (
+          [
+            date.getFullYear(),
+            padTo2Digits(date.getMonth() + 1),
+            padTo2Digits(date.getDate()),
+          ].join('-') +
+          ' ' +
+          [
+            padTo2Digits(date.getHours()),
+            padTo2Digits(date.getMinutes()),
+            padTo2Digits(date.getSeconds()),
+          ].join(':')
+        );
+      }
+
       (function mouse_drag() {
         var container = document.getElementById('placeholder')
         var surplusses = {{ surplusses|safe }};
@@ -15,23 +35,28 @@
         var tesla_consumptions = {{ tesla_consumptions|safe }};
         var start = new Date("{{start_datetime_str}}").getTime();
 
+        /* multiply by 1000 to convert seconds into milliseconds */
         for (i = 0; i < surplusses.length; i++) {
-          surplusses[i][0]         = start + 1000 * surplusses[i][0];
-          productions[i][0]        = start + 1000 * productions[i][0];
-          tesla_consumptions[i][0] = start + 1000 * tesla_consumptions[i][0];
+          surplusses[i][0]         = 1000 * surplusses[i][0];
+          productions[i][0]        = 1000 * productions[i][0];
+          tesla_consumptions[i][0] = 1000 * tesla_consumptions[i][0];
         }
+        
         options = {
           xaxis : {
             labelsAngle : 45, 
             title : "Tijd",
             mode : 'Time',
             timeMode : 'local',
-            timeUnit : 'second'
+            noTicks: 10,
+            tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
           },
           yaxis : {
             max : 3000,
             min : -6000,
-            title : "Watt"
+            minorTicks : [1,3],
+            title : "Watt",
+            noTicks : 10
           },
           selection : {
             mode : 'x'

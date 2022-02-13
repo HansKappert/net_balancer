@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    
+    <title>flotr probe</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+    <script type="text/javascript">
+
+        var
+        d1    = [],
+        start = new Date("2009/01/01 01:00").getTime(),
+        options,
+        graph,
+        i, x, o,
+        container;
+
+    // Draw graph with default options, overwriting with passed options
+    function drawGraph (opts) {
+        container = document.getElementById("placeholder")
+        // Clone the options, so the 'options' variable always keeps intact.
+        o = Flotr._.extend(Flotr._.clone(options), opts || {});
+
+        // Return a new graph.
+        return Flotr.draw(
+        container,
+        [ d1 ],
+        o
+        );
+    }
+
+    function basic_time(container) {      
+    
+      d1 = [[1644753691,100],[1644753700,200],[1644753716,125],[1644753726,135]];
+            
+      options = {
+        xaxis : {
+          mode : 'time', 
+          labelsAngle : 45,
+          noTicks: 15,
+          tickFormatter: function (x) {
+                var d = new Date(parseInt(x));
+                return d.toISOString();
+            }
+        },
+        selection : {
+          mode : 'x'
+        },
+        HtmlText : false,
+        title : 'Time'
+      };
+            
+
+    
+      graph = drawGraph();      
+            
+      Flotr.EventAdapter.observe(container, 'flotr:select', function(area){
+        // Draw selected area
+        graph = drawGraph({
+          xaxis : { min : area.x1, max : area.x2, mode : 'time', labelsAngle : 45 },
+          yaxis : { min : area.y1, max : area.y2 }
+        });
+      });
+            
+      // When graph is clicked, draw the graph with default area.
+      Flotr.EventAdapter.observe(container, 'flotr:click', function () { graph = drawGraph(); });
+    }
+    
+    </script>
+      </head>
+      <body onload="basic_time();">
+        <br>
+        <div id="placeholder" style="width:600px;height:300px;"></div>
+    </body>
+</html>
