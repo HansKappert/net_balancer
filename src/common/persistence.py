@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+import time
 from datetime import datetime, timedelta
 
 
@@ -220,6 +221,10 @@ class persistence:
                                                         "current_surplus"    : current_surplus, 
                                                         "tesla_consumption"  : tesla_consumption})
         con.commit()
+        dt = datetime.now() - timedelta(days=1)
+        unix_ts = time.mktime(dt.timetuple())
+        result = con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
+
         con.close()
 
     def get_history(self):
