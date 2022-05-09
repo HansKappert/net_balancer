@@ -224,7 +224,7 @@ class persistence:
         dt = datetime.now() - timedelta(days=1)
         unix_ts = time.mktime(dt.timetuple())
         result = con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
-
+        con.commit()
         con.close()
 
     def get_history(self):
