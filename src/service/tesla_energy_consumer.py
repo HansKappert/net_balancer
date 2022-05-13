@@ -217,6 +217,9 @@ class tesla_energy_consumer(energy_consumer):
     def balance_activated(self):
         self.__update_vehicle_data() 
         if int(self.charge_state['battery_level']) < self.balance_above:
+            max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
+            max_current_consumption = self.get_current(max_power_consumption)
+            self.__set_charge_current(max_current_consumption)
             return False # Charge at full speed until battery level exceeds 'balance_above' setting
         return self.persistence.get_consumer_balance(self._name) 
     @balance_activated.setter
