@@ -174,6 +174,16 @@ class tesla_energy_consumer(energy_consumer):
 
 
     @property
+    def balance_above(self):
+        self._balance_above = self.persistence.get_tesla_balance_above()
+        return self._balance_above
+    @balance_above.setter
+    def balance_above(self,value):
+        self._balance_above = value
+        self.persistence.set_tesla_balance_above(value)
+
+
+    @property
     def charge_until(self):
         self._charge_until = self.persistence.get_tesla_charge_until()
         return self._charge_until
@@ -205,7 +215,10 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def balance_activated(self):
-        return self.persistence.get_consumer_balance(self._name)
+        self.__update_vehicle_data() 
+        if int(self.charge_state['battery_level']) < self.balance_above:
+            return False # Charge at full speed until battery level exceeds 'balance_above' setting
+        return self.persistence.get_consumer_balance(self._name) 
     @balance_activated.setter
     def balance_activated(self,value):
         if value == 0:

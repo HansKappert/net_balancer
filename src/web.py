@@ -100,7 +100,8 @@ def history():
 def consumer_tesla():
     if request.method == 'POST':
         data_model._consumers[0].max_consumption_power = int(request.form['max_consumption_power'])
-        tesla.charge_until = int(request.form['charge_until'])
+        tesla.balance_above = int(request.form['balance_above'])
+        tesla.charge_until  = int(request.form['charge_until'])
         if 'set_home_location' in request.form:
             set_home_location = request.form['set_home_location']
             if set_home_location=='on':
@@ -122,6 +123,7 @@ def consumer_tesla():
         location_now = osm.reverse(coords_as_string).address
         return render_template('consumer_tesla.html', 
             max_consumption_power = data_model.get_consumer("Tesla").max_consumption_power,
+            balance_above         = tesla.balance_above,
             charge_until          = tesla.charge_until,
             latitude_home         = coords_home[0],
             longitude_home        = coords_home[1],   

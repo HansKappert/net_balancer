@@ -48,7 +48,9 @@ class persistence:
         else:
             result = cur.execute("PRAGMA table_info(tesla)").fetchall()
             if (len(result) == 5):
-                cur.execute("ALTER TABLE tesla ADD COLUMN bakance_above INTEGER")
+                cur.execute("ALTER TABLE tesla ADD COLUMN balance_above INTEGER")
+                con.commit()
+                cur.execute("UPDATE tesla SET balance_above = 50")
                 con.commit()
 
         cur = con.cursor()
@@ -143,6 +145,17 @@ class persistence:
     def set_consumer_consumption_now(self, consumer_name, value):
         con = self.get_db_connection()
         result = con.execute("UPDATE consumer SET consumption_now = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        con.commit()
+        con.close()
+
+    # consumer balance_above
+    def get_tesla_balance_above(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT balance_above FROM tesla").fetchone()
+        return int(result[0])
+    def set_tesla_balance_above(self, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE tesla SET balance_above = :value",{"value":value})
         con.commit()
         con.close()
 
