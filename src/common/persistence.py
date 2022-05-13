@@ -45,6 +45,11 @@ class persistence:
             cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
             cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
             con.commit()
+        else:
+            result = cur.execute("PRAGMA table_info(tesla)").fetchall()
+            if (len(result) == 5):
+                cur.execute("ALTER TABLE tesla ADD COLUMN bakance_above INTEGER")
+                con.commit()
 
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
