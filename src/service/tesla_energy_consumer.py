@@ -36,6 +36,7 @@ class tesla_energy_consumer(energy_consumer):
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
         self.vehicle = vehicles[0]
+        self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
 
     def solve_captcha(self, svg):
         with open('captcha.svg', 'wb') as f:
@@ -46,6 +47,9 @@ class tesla_energy_consumer(energy_consumer):
         diff = datetime.now() - self._last_vehicle_data_update
         if diff.total_seconds() < 5 and len(self.drive_state) > 0: 
             return
+        
+        if self.vehicle is None:
+            self.initialize()
         if self.vehicle['state'] == 'asleep':
             self.vehicle.sync_wake_up()
         
