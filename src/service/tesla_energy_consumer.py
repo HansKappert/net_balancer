@@ -228,7 +228,7 @@ class tesla_energy_consumer(energy_consumer):
         return self.persistence.get_consumer_balance(self._name) 
     @balance_activated.setter
     def balance_activated(self,value):
-        if value == 0:
+        if value == False:
             max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
             max_current_consumption = self.get_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)

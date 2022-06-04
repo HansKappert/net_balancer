@@ -172,8 +172,7 @@ def put_balance(value, consumer_name):
     try:
         logger.info("Setting balance to " + str(value))
         db.set_consumer_balance(consumer_name, value)
-        if value == 0:
-            data_model.get_consumer(consumer_name).balance_activated = value == 1
+        data_model.get_consumer(consumer_name).balance_activated = value == 1
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)
