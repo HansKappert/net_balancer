@@ -32,9 +32,15 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
           par=0;
         url = '/balance/set/' + par + "/" + consumer_name;
         fetch( url )
-          .then(response => response.json())
-          .then(data => alert(data));
-        
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          appendData(data);
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
     }
     function refresh() {
         fetch('/data/get')

@@ -176,7 +176,7 @@ def put_balance(value, consumer_name):
         return jsonify({'result': 'Ok'})
     except Exception as e:
         logger.exception(e)
-        return jsonify({'result': 'Error'})
+        return jsonify({'result': 'Error: ' + e})
 
 
 
