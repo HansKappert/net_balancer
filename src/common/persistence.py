@@ -14,7 +14,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(settings)").fetchone()
         if (result == None):
             logging.debug ("Creating table settings")
-            cur.execute("CREATE TABLE settings (surplus_delay_theshold INTEGER, deficient_delay_theshold INTEGER, log_retention_days INTEGER);")
+            cur.execute("CREATE TABLE settings (surplus_delay_theshold INTEGER, deficient_delay_theshold INTEGER, log_retention_days INTEGER);") # surplus_delay_theshold and deficient_delay_theshold are obsolete
             cur.execute("INSERT INTO  settings VALUES (40,40,1)")
             con.commit()
     
@@ -22,7 +22,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER)")
+            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER)") # deficient_delay_count is obsolete
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 

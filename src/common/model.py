@@ -1,3 +1,4 @@
+import numpy as np
 from common.persistence import persistence
 from service.abc_energy_consumer import energy_consumer
 class model:
@@ -9,6 +10,7 @@ class model:
         # last readings
         self._current_consumption = 0
         self._current_production = 0
+        self._past_surplusses = np.array([])
 
         self._consumers = []
         
@@ -25,15 +27,24 @@ class model:
     def surplus(self,value):
         self._surplus = value
         self.persistence.set_surplus(value)
+        self._past_surplusses = np.append(self._past_surplusses,value)
+        if len(self._past_surplusses) > 50:
+            self._past_surplusses[1:]
 
-    @property
-    def balance(self):
-        self._balance = self.persistence.get_balance()
-        return self._balance
-    @balance.setter
-    def balance(self,value):
-        self._balance = value
-        self.persistence.set_balance(value)
+    def average_surplus(self, periods):
+        """
+        returns the average surplus of the given period
+        """
+        return np.average(self._past_surplusses[-periods:])
+        
+    # @property
+    # def balance(self):
+    #     self._balance = self.persistence.get_balance()
+    #     return self._balance
+    # @balance.setter
+    # def balance(self,value):
+    #     self._balance = value
+    #     self.persistence.set_balance(value)
 
     @property
     def current_consumption(self):
@@ -43,7 +54,6 @@ class model:
     def current_consumption(self,value):
         self._current_consumption = value
         self.surplus = self._current_production - self._current_consumption
-
         self.persistence.set_current_consumption(value)
 
     @property

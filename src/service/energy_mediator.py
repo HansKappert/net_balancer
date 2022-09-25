@@ -26,7 +26,7 @@ class mediator:
 
     def mediate_once(self, consumer : energy_consumer, data_model : model):
         # only one consumer now. Direct all surplus energy to that consumer
-        if consumer.can_consume_this_surplus(data_model.surplus, consumer.balance_activated):
+        if consumer.can_consume_this_surplus(data_model.average_surplus(5), consumer.balance_activated):
             consumer.start_consuming(data_model.surplus)
         
         
