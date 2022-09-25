@@ -9,7 +9,8 @@ from common.persistence import persistence
 from common.database_logging_handler import database_logging_handler
 
 class mediator:
-    def __init__(self) -> None:
+    def __init__(self, data_model) -> None:
+        self.data_model = data_model
         self.persistence = persistence()
         self.mediation_delay = 10
         self.logger = logging.getLogger(__name__)
@@ -32,11 +33,10 @@ class mediator:
         
 
     def mediate(self, consumer : energy_consumer, producer : service.energy_producer):
-        data_model = model(self.persistence)
-
+    
         th = threading.Thread(target=producer.start_reading, daemon=True)
         th.start()
 
         while True:
-            self.mediate_once(consumer, data_model)
+            self.mediate_once(consumer, self.data_model)
             time.sleep(self.mediation_delay)

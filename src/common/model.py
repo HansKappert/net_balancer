@@ -1,4 +1,3 @@
-import numpy as np
 from common.persistence import persistence
 from service.abc_energy_consumer import energy_consumer
 class model:
@@ -10,8 +9,7 @@ class model:
         # last readings
         self._current_consumption = 0
         self._current_production = 0
-        self._past_surplusses = np.array([])
-
+        self._past_surplusses = []
         self._consumers = []
         
     def get_consumer(self, name:str):
@@ -27,15 +25,20 @@ class model:
     def surplus(self,value):
         self._surplus = value
         self.persistence.set_surplus(value)
-        self._past_surplusses = np.append(self._past_surplusses,value)
+        self._past_surplusses.append(value)
         if len(self._past_surplusses) > 50:
-            self._past_surplusses[1:]
+            self._past_surplusses = self._past_surplusses[1:]
 
     def average_surplus(self, periods):
         """
         returns the average surplus of the given period
+        we could have also used numpy's average function, but I had difficulties installing numpy on an OrangePi
         """
-        return np.average(self._past_surplusses[-periods:])
+        subset = self._past_surplusses[-periods:]
+        total = 0
+        for amount in subset:
+            total += amount
+        return int(total/periods)
         
     # @property
     # def balance(self):

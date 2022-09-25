@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
 
     logging.debug ("Energy consumer is setup")
-    energy_mediator = mediator()
+    energy_mediator = mediator(data_model)
     logging.debug ("Mediator is created. Starting mediation")
     energy_mediator.mediate(consumer=tesla, producer=producer)
 
