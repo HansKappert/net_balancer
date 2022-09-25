@@ -31,8 +31,8 @@ Laatste gegevens : <span id="lastUpdate"></span><br/><br/><br/>
         else
           par=0;
         url = '/balance/set/' + par + "/" + consumer_name;
-        res = fetch( url );
-        alert(res);
+        res = fetch( url ).then(response => response.json());
+        alert(response);
     }
     function refresh() {
         fetch('/data/get')
