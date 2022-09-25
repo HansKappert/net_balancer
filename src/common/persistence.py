@@ -178,6 +178,10 @@ class persistence:
     def set_consumer_balance(self, consumer_name, value):
         con = self.get_db_connection()  
         result = con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        if (result == None):
+            print("update of consumer setting successful")
+        else:
+            print("update of consumer setting failed")
         con.commit()
         con.close()
 
