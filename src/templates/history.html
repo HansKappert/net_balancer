@@ -55,9 +55,13 @@
             minorTicks : [1,3],
             title : "Watt"
           },
+          legend: {
+            position: "sw",
+          },
           selection : {
             mode : 'x'
           },
+          title : "Vermogen opgewekt, opgenomen en resultaat",
           HtmlText : false
         };
 
@@ -70,11 +74,12 @@
           // Return a new graph.
           return Flotr.draw(
             container,
-            [ surplusses, productions, tesla_consumptions ],
-            o
+            [ {data : surplusses, label : 'Surplus'}, 
+              {data : productions,label : 'Production'},
+              {data : tesla_consumptions, label : 'Tesla consumption'} ],
+            options
           );
         }
-
         graph = drawGraph();      
 
         Flotr.EventAdapter.observe(container, 'flotr:select', function(area){
