@@ -1,13 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
    <br>
-    <div id="placeholder" style="width:100%;height:600px;"></div>
 
+    <div id="placeholder" style="width:100%;height:600px;"></div>
     <!--[if IE]>
     <script type="text/javascript" src="path/to/flashcanvas.js"></script>
     <![endif]-->
     <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
     <script type="text/javascript">
+      function hours_decrease() {
+        hours_el = document.getElementById("hours");
+        if (parseInt(hours_el.value) > 1) {
+          hours_el.value = parseInt(hours_el.value) - 1;          
+        }
+      }
+      function hours_increase() {
+        hours_el = document.getElementById("hours");
+        hours_el.value = parseInt(hours_el.value) + 1;
+      }
       function padTo2Digits(num) {
         return num.toString().padStart(2, '0');
       }
@@ -74,9 +84,9 @@
           // Return a new graph.
           return Flotr.draw(
             container,
-            [ {data : surplusses, label : 'Surplus'}, 
-              {data : productions,label : 'Production'},
-              {data : tesla_consumptions, label : 'Tesla consumption'} ],
+            [ {data : surplusses        , label : 'Netto Result'     , color: "#0000FF"}, 
+              {data : productions       , label : 'Energy production', color: "#F8D354"},
+              {data : tesla_consumptions, label : 'Tesla consumption', color: "#FF0000"} ],
             options
           );
         }
@@ -94,6 +104,13 @@
       
       })();
     </script>
+   <form name="besturing" method="post">
+    Toon <input id="hours" name="hours" size="2" value="{{ request.form['hours'] or hours }}"> uren&nbsp;
+    
+    <button type="submit" class="btn btn-primary" onclick="hours_decrease()">&nbsp;-&nbsp;</button>
+    <button type="submit" class="btn btn-primary" onclick="hours_increase()">&nbsp;+&nbsp;</button>
+    <div class="form-group"></div>
+  </form>
 
 <br>
 

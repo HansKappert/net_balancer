@@ -73,28 +73,45 @@ def settings():
         log_retention   = data_model.log_retention
         )
 
-@app.route('/history', methods=['GET'])
+@app.route('/history', methods=['GET','POST'])
 def history():
-        history = db.get_history()
+        if request.method == 'POST':
+            hours = int(request.form['hours'])
+        else:
+            hours = 3
+
+        history = db.get_history(hours)
         surplusses = '['
         productions = '['
         tesla_consumptions = '['
+        datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         
-        datetime_obj = datetime.fromtimestamp(history[0][0])
-        datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
-        aantal = 0
-        for i in history:
-            aantal += 1
-            if aantal < 720:
-                msec_since = str(i[0] )
-                surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
-                productions += '[' + msec_since + ',' + str(i[1]) + '],'
-                tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
+        if len(history) > 0:
+            datetime_obj = datetime.fromtimestamp(history[0][0])
+            datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
+
+            aantal = 0
+            for i in history:
+                aantal += 1
+                if aantal < 720:
+                    msec_since = str(i[0] )
+                    surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
+                    productions += '[' + msec_since + ',' + str(i[1]) + '],'
+                    tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
             
-        surplusses = surplusses[:-1] + ']'
-        productions = productions[:-1] + ']'
-        tesla_consumptions = tesla_consumptions[:-1] + ']'
-        return render_template('history.html', start_datetime_str=datetime_str, surplusses = surplusses, productions = productions, tesla_consumptions = tesla_consumptions)
+        surplusses         = surplusses.strip(',') + ']'
+        productions        = productions.strip(',') + ']'
+        tesla_consumptions = tesla_consumptions.strip(',') + ']'
+
+#        if request.method == 'POST':
+#            return redirect(url_for('history'))
+#        else:
+        return render_template('history.html', 
+                                start_datetime_str = datetime_str, 
+                                surplusses         = surplusses, 
+                                productions        = productions, 
+                                tesla_consumptions = tesla_consumptions, 
+                                hours              = hours)
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():
