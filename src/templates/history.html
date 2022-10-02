@@ -103,6 +103,12 @@
       Flotr.EventAdapter.observe(container, 'flotr:click', function () { graph = drawGraph(); });
       
       })();
+
+      function refresh() {
+        document.besturing.submit();  
+      }
+
+      setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
     Toon <input id="hours" name="hours" size="2" value="{{ request.form['hours'] or hours }}"> uren&nbsp;
