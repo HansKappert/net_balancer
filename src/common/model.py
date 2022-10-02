@@ -41,7 +41,7 @@ class model:
             real_periods += 1
             total += amount
         
-        return int(total/ real_periods if real_periods == 0 else 1)
+        return int(total/ real_periods if real_periods > 0 else 1)
         
     # @property
     # def balance(self):
