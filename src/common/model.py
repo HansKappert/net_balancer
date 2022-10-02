@@ -36,9 +36,11 @@ class model:
         """
         subset = self._past_surplusses[-periods:]
         total = 0
+        real_periods = 0
         for amount in subset:
+            real_periods += 1
             total += amount
-        return int(total/periods)
+        return int(total/real_periods)
         
     # @property
     # def balance(self):
