@@ -40,8 +40,9 @@ class model:
         for amount in subset:
             real_periods += 1
             total += amount
-        
-        return int(total/ real_periods if real_periods > 0 else 1)
+        if real_periods < 3:
+            return 0
+        return int(total/ real_periods)
         
     # @property
     # def balance(self):
@@ -69,8 +70,9 @@ class model:
     @current_production.setter
     def current_production(self,value):
         self._current_production = value
-        self.surplus = self._current_production - self._current_consumption
-        self.persistence.set_current_production(value)
+        # We wait until the currnet consumption is set.
+        # self.surplus = self._current_production - self._current_consumption
+        # self.persistence.set_current_production(value)
 
 
 
