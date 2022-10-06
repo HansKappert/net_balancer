@@ -72,8 +72,7 @@ class model:
         self._current_production = value
         # We wait until the currnet consumption is set.
         # self.surplus = self._current_production - self._current_consumption
-        # self.persistence.set_current_production(value)
-
+        self.persistence.set_current_production(value)
 
 
     @property
