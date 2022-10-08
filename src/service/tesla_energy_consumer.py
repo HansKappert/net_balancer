@@ -117,7 +117,11 @@ class tesla_energy_consumer(energy_consumer):
         self.__update_vehicle_data()
         
     def can_consume_this_surplus(self, surplus_power, is_activated):
-
+        """
+        Function that returs true if the consumer is able to serve (consume the given)
+        surpplus energy. This allows for multiple consumers and a mediator to choose
+        the most appropriate consumer, with algorithms yet to be developed.
+        """
         if is_activated == False:
             self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
             return False
@@ -129,18 +133,19 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Tesla is opgeladen tot het opgegeven maximum")
             return False
         
-        old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
+        # old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
         max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
         
         self.__update_vehicle_data() 
-        
+
         # Charge at full speed until battery level exceeds 'balance_above' setting
-        #if int(self.charge_state['battery_level']) < self.balance_above:
-        #    max_current_consumption = self.get_current(max_power_consumption)
-        #    self.__set_charge_current(max_current_consumption)
+        if int(self.charge_state['battery_level']) < self.balance_above:
+            max_current_consumption = self.get_current(max_power_consumption)
+            self.__set_charge_current(max_current_consumption)
+            return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
-        if surplus_power < max_power_consumption:
+        if surplus_power > 0 and surplus_power < max_power_consumption:
             return True
         return False
 
