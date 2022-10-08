@@ -140,9 +140,11 @@ class tesla_energy_consumer(energy_consumer):
         self.__update_vehicle_data() 
 
         # Charge at full speed until battery level exceeds 'balance_above' setting
-        if int(self.charge_state['battery_level']) < self.balance_above:
+        curr_level = int(self.charge_state['battery_level'])
+        if curr_level < self.balance_above:
             max_current_consumption = self.get_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
+            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig barrerij perc. is {}%".format(self.balance_above, curr_level))
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
         if surplus_power > 0 and surplus_power < max_power_consumption:
