@@ -25,7 +25,7 @@ class mediator:
 
         pass
 
-    def __mediate_once(self, consumer : energy_consumer, data_model : model):
+    def __mediate_once(self):
         """
         This function is called on a frequent base by the mediate method.
         It's task is to find a consumer that is willing and able to consume some 
@@ -35,15 +35,16 @@ class mediator:
         started. But an electric vehicle that is charging might be able to deal with 
         a bit less power.
         """
-        av_surplus = data_model.average_surplus(20)
+        av_surplus = self.data_model.average_surplus(20)
         #self.logger.info("Average surplus: " + str(av_surplus))
-        if consumer.balance_activated:
-            if consumer.can_consume_this_surplus(av_surplus):
-                consumer.start_consuming(data_model.surplus)
+        for consumer in self.data_model.consumers:
+            if consumer.balance_activated:
+                if consumer.can_consume_this_surplus(av_surplus):
+                    consumer.start_consuming(self.data_model.surplus)
         
         
 
-    def mediate(self, consumer : energy_consumer, producer : service.energy_producer):
+    def mediate(self, producer : service.energy_producer):
         """
         Main function of this class: it starts a thread to read dta from energy producers,
         and it mediates every 10 seconds the surplus power. 
@@ -52,5 +53,5 @@ class mediator:
         th.start()
 
         while True:
-            self.__mediate_once(consumer, self.data_model)
+            self.__mediate_once()
             time.sleep(self.mediation_delay)

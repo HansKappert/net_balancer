@@ -56,14 +56,16 @@ if __name__ == "__main__":
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logging.debug ("Energy producer is setup")
 
-    tesla = tesla_energy_consumer(db)
-    tesla_user = os.environ["TESLA_USER"]
+    if "TESLA_USER" in os.environ:
+        tesla = tesla_energy_consumer(db)
+        tesla_user = os.environ["TESLA_USER"]
 
-    try:
-        tesla.initialize(email=tesla_user)
-    except Exception as e:
-        logging.exception(e)
-    data_model.add_consumer(tesla)
+        try:
+            tesla.initialize(email=tesla_user)
+        except Exception as e:
+            logging.exception(e)
+        data_model.add_consumer(tesla)
+
     logging.debug ("Data model created")
 
     statswriter = stats_writer(data_model,db)
@@ -73,7 +75,7 @@ if __name__ == "__main__":
 
 
     logging.debug ("Energy consumer is setup")
-    energy_mediator = mediator(data_model)
+    energy_mediator = mediator(data_model) # a list of consumers is part of this data model
     logging.debug ("Mediator is created. Starting mediation")
-    energy_mediator.mediate(consumer=tesla, producer=producer)
+    energy_mediator.mediate(producer=producer)
 
