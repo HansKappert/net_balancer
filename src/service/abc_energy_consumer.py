@@ -11,9 +11,9 @@ class energy_consumer(ABC):
         pass
 
 
-    @abstractmethod
-    def consumer_is_consuming(self):
-        pass
+    # @abstractmethod
+    # def consumer_is_consuming(self):
+    #     pass
         
     @abstractmethod
     def stop_consuming(self):
@@ -85,6 +85,9 @@ class energy_consumer(ABC):
 
     @property
     def balance_activated(self):
+        """
+        This property tells whether or not the consumer wants to be part of balancing
+        """
         pass
     @balance_activated.setter
     def balance_activated(self,value):

@@ -12,8 +12,8 @@ class fake_energy_consumer(energy_consumer):
     def initialize(self, **kwargs):
         pass
 
-    def consumer_is_consuming(self):
-        return self.is_consuming
+    # def consumer_is_consuming(self):
+    #     return self.is_consuming
     
     def stop_consuming(self):
         self.is_consuming = False

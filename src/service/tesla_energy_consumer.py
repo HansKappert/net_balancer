@@ -72,8 +72,8 @@ class tesla_energy_consumer(energy_consumer):
             return        
 
 
-    def consumer_is_consuming(self):
-        return self.is_consuming
+    # def consumer_is_consuming(self):
+    #     return self.is_consuming
         
     def stop_consuming(self):
         if not self.may_stop_consuming():
@@ -117,13 +117,13 @@ class tesla_energy_consumer(energy_consumer):
         except Exception as e:
             self.logger.error(e)
 
-    def can_consume_this_surplus(self, surplus_power, is_activated):
+    def can_consume_this_surplus(self, surplus_power):
         """
         Function that returs true if the consumer is able to serve (consume the given)
         surpplus energy. This allows for multiple consumers and a mediator to choose
         the most appropriate consumer, with algorithms yet to be developed.
         """
-        if is_activated == False:
+        if self.is_activated == False:
             self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
             return False
 
@@ -245,6 +245,11 @@ class tesla_energy_consumer(energy_consumer):
         return self.persistence.get_consumer_balance(self._name) 
     @balance_activated.setter
     def balance_activated(self,value):
+        """
+        Bij het uitschakelen van balaceren, moeten we zorgen dat de tesla of volle sterkte gaat laden.
+        Het daadwerkelijk starten en stoppen moeten we niet forceren, maar overlaten aan
+        bijv. Jedlix, of de gebruiker (via zijn Tesla app).
+        """
         if value == False:
             max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
             max_current_consumption = self.power_to_current(max_power_consumption)
