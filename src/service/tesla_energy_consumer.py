@@ -89,7 +89,11 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
     def start_consuming(self, surplus_power):
-
+        """
+        Tell the consumer to start consumer the given amout of power.
+        Make sure beofrehand that the consumer is capable and willing
+        to consume this. Use that function can_consume_this_surplus.
+        """
         try:
             
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
@@ -113,9 +117,6 @@ class tesla_energy_consumer(energy_consumer):
         except Exception as e:
             self.logger.error(e)
 
-    def set_home_location(self):
-        self.__update_vehicle_data()
-        
     def can_consume_this_surplus(self, surplus_power, is_activated):
         """
         Function that returs true if the consumer is able to serve (consume the given)
@@ -142,23 +143,31 @@ class tesla_energy_consumer(energy_consumer):
         # Charge at full speed until battery level exceeds 'balance_above' setting
         curr_level = int(self.charge_state['battery_level'])
         if curr_level < self.balance_above:
-            max_current_consumption = self.get_current(max_power_consumption)
+            max_current_consumption = self.power_to_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig barrerij perc. is {}%".format(self.balance_above, curr_level))
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
-        if surplus_power > 0 and surplus_power < max_power_consumption:
+        if surplus_power < max_power_consumption:
             return True
         return False
 
-    def get_current(self, power):
+    def power_to_current(self, power):
+        """
+        Function that returns a rounded number indicating how much current will 
+        flow for given power and set voltage. The formula is P=VI, so fof this
+        function I=P/V
+        """
         return int(power / self.voltage)
 
 
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
-        amps_new = charger_actual_current + self.get_current(surplus_power)
+        """
+        This function returns a number between and including 0 and 
+        """
+        amps_new = charger_actual_current + self.power_to_current(surplus_power)
         amps_new = max(0, amps_new)
-        amps_new = min(self.get_current(self.max_consumption_power),amps_new)
+        amps_new = min(self.power_to_current(self.max_consumption_power),amps_new)
         return amps_new
 
     def __set_charge_current(self, amps):
@@ -238,7 +247,7 @@ class tesla_energy_consumer(energy_consumer):
     def balance_activated(self,value):
         if value == False:
             max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
-            max_current_consumption = self.get_current(max_power_consumption)
+            max_current_consumption = self.power_to_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
 
     @property
