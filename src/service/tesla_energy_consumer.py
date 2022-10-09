@@ -163,7 +163,9 @@ class tesla_energy_consumer(energy_consumer):
 
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
         """
-        This function returns a number between and including 0 and 
+        This function returns a number between and including 0 and some maximum.
+        It uses the current power consumption and the given surplus to calculate
+        a new current that it should consume
         """
         amps_new = charger_actual_current + self.power_to_current(surplus_power)
         amps_new = max(0, amps_new)
