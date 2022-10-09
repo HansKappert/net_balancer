@@ -123,7 +123,7 @@ class tesla_energy_consumer(energy_consumer):
         surpplus energy. This allows for multiple consumers and a mediator to choose
         the most appropriate consumer, with algorithms yet to be developed.
         """
-        if self.is_activated == False:
+        if self.balance_activated == False:
             self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
             return False
 
