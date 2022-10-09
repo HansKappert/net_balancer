@@ -27,46 +27,60 @@ class energy_consumer(ABC):
     def name(self):
         pass
 
-    @property
-    def current_consumption_current(self):
-        pass
-    @property
-    def current_consumption_power(self):
-        pass
+    # @property
+    # def current_consumption_current(self):
+    #     pass
+    # @property
+    # def current_consumption_power(self):
+    #     pass
 
-    @property
-    def max_consumption_power(self):
-        pass
-    @max_consumption_power.setter
-    def max_consumption_power(self,value):
-        pass
+    # @property
+    # def max_consumption_power(self):
+    #     pass
+    # @max_consumption_power.setter
+    # def max_consumption_power(self,value):
+    #     pass
 
-
-    @property
-    def charge_until(self):
-        pass
-    @charge_until.setter
-    def charge_until(self,value):
-        pass
 
     @property
     def isConsuming(self):
+        """
+        This function should report back to the caller if the 
+        consumer is currently consuming any power
+        """
         pass
     
     @property
     def can_consume_this_surplus(self):
+        """
+        This function should report back to the caller if the 
+        consumer is able and willing to consume the given amount
+        of surplus power
+        """
         pass
 
     @property
     def can_start_consuming(self):
+        """
+        This function should report back to the caller if the 
+        consumer is able to start consuming at all. The class 
+        can use the method itself, but it is also exposed externally
+        for possible later use
+        """
         pass
 
     @property
     def consumption_amps_now(self):
+        """
+        This function should report back to the caller how much current it is currently consuming
+        """
         pass
     
     @property
     def consumption_power_now(self):
+        """
+        This function should report back to the caller how much power it is currently consuming
+        """
         pass
 
     @property
