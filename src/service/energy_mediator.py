@@ -25,20 +25,32 @@ class mediator:
 
         pass
 
-    def mediate_once(self, consumer : energy_consumer, data_model : model):
-        # only one consumer now. Direct all surplus energy to that consumer
+    def __mediate_once(self, consumer : energy_consumer, data_model : model):
+        """
+        This function is called on a frequent base by the mediate method.
+        It's task is to find a consumer that is willing and able to consume some 
+        surplus (can be negative) power.
+        Every consumer has it's own characteristics for this. A laundry machine
+        cannot deal with some negative suplus power, expecially after when it has 
+        started. But an electric vehicle that is charging might be able to deal with 
+        a bit less power.
+        """
         av_surplus = data_model.average_surplus(20)
         #self.logger.info("Average surplus: " + str(av_surplus))
-        if consumer.can_consume_this_surplus(av_surplus, consumer.balance_activated):
-            consumer.start_consuming(data_model.surplus)
+        if consumer.balance_activated:
+            if consumer.can_consume_this_surplus(av_surplus):
+                consumer.start_consuming(data_model.surplus)
         
         
 
     def mediate(self, consumer : energy_consumer, producer : service.energy_producer):
-    
+        """
+        Main function of this class: it starts a thread to read dta from energy producers,
+        and it mediates every 10 seconds the surplus power. 
+        """
         th = threading.Thread(target=producer.start_reading, daemon=True)
         th.start()
 
         while True:
-            self.mediate_once(consumer, self.data_model)
+            self.__mediate_once(consumer, self.data_model)
             time.sleep(self.mediation_delay)
