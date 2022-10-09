@@ -256,6 +256,8 @@ class tesla_energy_consumer(energy_consumer):
             max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
             max_current_consumption = self.power_to_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
+            self.logger.info("Balanceren werd uitgeschakeld. Laadstroom op {}A gezet".format(max_current_consumption))
+            
 
     @property
     def can_start_consuming(self):
