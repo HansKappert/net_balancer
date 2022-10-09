@@ -70,7 +70,7 @@ class model:
     @current_production.setter
     def current_production(self,value):
         self._current_production = value
-        # We wait until the currnet consumption is set.
+        # We wait until the current consumption is set.
         # self.surplus = self._current_production - self._current_consumption
         self.persistence.set_current_production(value)
 
