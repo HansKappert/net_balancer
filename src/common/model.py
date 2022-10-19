@@ -31,6 +31,9 @@ class model:
         if len(self._past_surplusses) > 50:
             self._past_surplusses = self._past_surplusses[1:]
 
+    def reset_average_surplus(self):
+        self._past_surplusses = []
+        
     def average_surplus(self, periods):
         """
         returns the average surplus of the given period

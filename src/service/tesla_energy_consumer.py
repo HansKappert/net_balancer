@@ -113,7 +113,7 @@ class tesla_energy_consumer(energy_consumer):
                     self.logger.exception("Exception when giving the START_CHARGE command:{}".format(e))
             
             self.__update_vehicle_data()
-            return self.is_consuming
+            return old_charging_current != new_charging_current
         except Exception as e:
             self.logger.error(e)
 

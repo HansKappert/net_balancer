@@ -40,7 +40,9 @@ class mediator:
         for consumer in self.data_model.consumers:
             if consumer.balance_activated:
                 if consumer.can_consume_this_surplus(av_surplus):
-                    consumer.start_consuming(av_surplus)
+                    if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
+                        model.reset_average_surplus()
+
         
         
 
