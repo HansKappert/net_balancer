@@ -1,5 +1,7 @@
+import logging
 from common.persistence import persistence
 from service.abc_energy_consumer import energy_consumer
+
 class model:
     def __init__(self, db:persistence) -> None:
         self.persistence = db
@@ -34,15 +36,22 @@ class model:
         returns the average surplus of the given period
         we could have also used numpy's average function, but I had difficulties installing numpy on an OrangePi
         """
+        ll = ""
         subset = self._past_surplusses[-periods:]
         total = 0
         real_periods = 0
         for amount in subset:
+            ll = ll + " " + str(amount)
             real_periods += 1
             total += amount
         if real_periods < 3:
+            ll = ll + " > te weinig data, dus 0"
+            # logging.info(ll)
             return 0
-        return int(total/ real_periods)
+        avg = int(total/real_periods)
+        ll = f"{ll} > {avg}"
+        #logging.info(ll)
+        return avg
         
     # @property
     # def balance(self):

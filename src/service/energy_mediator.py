@@ -35,12 +35,12 @@ class mediator:
         started. But an electric vehicle that is charging might be able to deal with 
         a bit less power.
         """
-        av_surplus = self.data_model.average_surplus(20)
+        av_surplus = self.data_model.average_surplus(6)
         #self.logger.info("Average surplus: " + str(av_surplus))
         for consumer in self.data_model.consumers:
             if consumer.balance_activated:
                 if consumer.can_consume_this_surplus(av_surplus):
-                    consumer.start_consuming(self.data_model.surplus)
+                    consumer.start_consuming(av_surplus)
         
         
 
