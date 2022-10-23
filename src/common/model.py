@@ -43,6 +43,8 @@ class model:
         subset = self._past_surplusses[-periods:]
 
         b = []
+        if len(subset) == 0:
+            return 0
         mn= min(subset)
         for i in subset:
             if i < -1500 and i<0 and mn > i*4:
