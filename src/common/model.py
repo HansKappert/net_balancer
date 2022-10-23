@@ -33,7 +33,7 @@ class model:
 
     def reset_average_surplus(self):
         self._past_surplusses = []
-        
+    
     def average_surplus(self, periods):
         """
         returns the average surplus of the given period
@@ -41,20 +41,21 @@ class model:
         """
         ll = ""
         subset = self._past_surplusses[-periods:]
-        total = 0
-        real_periods = 0
-        for amount in subset:
-            ll = ll + " " + str(amount)
-            real_periods += 1
-            total += amount
-        if real_periods < 3:
+
+        b = []
+        mn= min(subset)
+        for i in subset:
+            if i < -1500 and i<0 and mn > i*4:
+                continue
+            b.append(i) 
+        av = sum(b)/len(b)
+
+        if len(b) < 3:
             ll = ll + " > te weinig data, dus 0"
             # logging.info(ll)
             return 0
-        avg = int(total/real_periods)
-        ll = f"{ll} > {avg}"
-        #logging.info(ll)
-        return avg
+        
+        return av
         
     # @property
     # def balance(self):
