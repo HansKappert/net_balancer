@@ -95,11 +95,11 @@ def history():
                 aantal += 1
                 msec_since = str(i[0] )
                 surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
-                # productions += '[' + msec_since + ',' + str(i[1]) + '],'
+                productions += '[' + msec_since + ',' + str(i[1]) + '],'
                 tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
             
         surplusses         = surplusses.strip(',') + ']'
-        # productions        = productions.strip(',') + ']'
+        productions        = productions.strip(',') + ']'
         tesla_consumptions = tesla_consumptions.strip(',') + ']'
 
 #        if request.method == 'POST':
@@ -108,7 +108,7 @@ def history():
         return render_template('history.html', 
                                 start_datetime_str = datetime_str, 
                                 surplusses         = surplusses, 
-                                # productions        = productions, 
+                                productions        = productions, 
                                 tesla_consumptions = tesla_consumptions, 
                                 hours              = hours)
 
