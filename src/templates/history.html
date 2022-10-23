@@ -48,14 +48,14 @@
       (function mouse_drag() {
         var container = document.getElementById('placeholder')
         var surplusses = {{ surplusses|safe }};
-        // var productions = {{ productions|safe }};
+        var productions = {{ productions|safe }};
         var tesla_consumptions = {{ tesla_consumptions|safe }};
         var start = new Date("{{start_datetime_str}}").getTime();
 
         /* multiply by 1000 to convert seconds into milliseconds */
         for (i = 0; i < surplusses.length; i++) {
           surplusses[i][0]         = 1000 * surplusses[i][0];
-          // productions[i][0]        = 1000 * productions[i][0];
+          productions[i][0]        = 1000 * productions[i][0];
           tesla_consumptions[i][0] = 1000 * tesla_consumptions[i][0];
         }
         
@@ -92,7 +92,7 @@
           return Flotr.draw(
             container,
             [ {data : surplusses        , label : 'Netto Resultaat' , color: "#0000FF"}, 
-              // {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
+              {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
               {data : tesla_consumptions, label : 'Tesla consumptie', color: "#FF0000"} ],
             options
           );
