@@ -1,6 +1,7 @@
 import logging
 from common.persistence import persistence
 from service.abc_energy_consumer import energy_consumer
+from common.database_logging_handler import database_logging_handler
 
 class model:
     def __init__(self, db:persistence) -> None:
@@ -13,7 +14,16 @@ class model:
         self._current_production = 0
         self._past_surplusses = []
         self._consumers = []
+        self.logger = logging.getLogger(__name__)
         
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+        
+        log_handler = database_logging_handler(self.persistence)
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
+    
     def get_consumer(self, name:str):
         for c in self._consumers:
             if c.name == name:
