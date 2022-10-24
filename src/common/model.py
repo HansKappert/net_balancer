@@ -50,13 +50,12 @@ class model:
             if i < -1500 and i<0 and mn > i*4:
                 continue
             b.append(i) 
+        
+        if len(b) < 3:
+            logging.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
+            return 0
         av = sum(b)/len(b)
 
-        if len(b) < 3:
-            ll = ll + " > te weinig data, dus 0"
-            # logging.info(ll)
-            return 0
-        
         return av
         
     # @property
