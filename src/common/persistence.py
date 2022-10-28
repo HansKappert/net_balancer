@@ -8,8 +8,12 @@ class persistence:
     DBNAME = 'energy_mediator.db'
     def __init__(self) -> None:
         con = sqlite3.connect(persistence.DBNAME)
+        cur = con.cursor()
+
+        result = cur.execute("PRAGMA auto_vacuum = FULL").fetchone()
+        result = cur.execute("vacuum").fetchone()
         logging.debug ("Database connected")
-    
+
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(settings)").fetchone()
         if (result == None):
