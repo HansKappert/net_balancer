@@ -76,11 +76,11 @@ def settings():
 @app.route('/history', methods=['GET','POST'])
 def history():
         if request.method == 'POST':
-            hours = int(request.form['hours'])
+            minutes = int(request.form["minutes"])
         else:
-            hours = 3
+            minutes = 60
 
-        history = db.get_history(hours)
+        history = db.get_history(minutes)
         surplusses = '['
         productions = '['
         tesla_consumptions = '['
@@ -110,7 +110,7 @@ def history():
                                 surplusses         = surplusses, 
                                 productions        = productions, 
                                 tesla_consumptions = tesla_consumptions, 
-                                hours              = hours)
+                                minutes            = minutes)
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():

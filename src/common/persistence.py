@@ -249,9 +249,9 @@ class persistence:
         con.commit()
         con.close()
 
-    def get_history(self, hours):
+    def get_history(self, minutes):
         con = self.get_db_connection()
-        dt = datetime.now() - timedelta(hours=hours)
+        dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
         result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
         return result

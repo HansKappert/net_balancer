@@ -8,15 +8,32 @@
     <![endif]-->
     <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
     <script type="text/javascript">
-      function hours_decrease() {
-        hours_el = document.getElementById("hours");
-        if (parseInt(hours_el.value) > 1) {
-          hours_el.value = parseInt(hours_el.value) - 1;          
+      function interval_decrease() {
+        minutes_el = document.getElementById("minutes");
+        minutes = parseInt(minutes_el.value);
+        if (minutes > 1) {
+          if (minutes > 1)
+            stepsize =  1;
+          if (minutes > 10)
+            stepsize =  10;
+          if (minutes > 30)
+            stepsize =  30;
+          if (minutes > 60)
+            stepsize = 60;
+          minutes_el.value = parseInt(minutes_el.value) - stepsize;          
         }
       }
-      function hours_increase() {
-        hours_el = document.getElementById("hours");
-        hours_el.value = parseInt(hours_el.value) + 1;
+      function interval_increase() {
+        minutes_el = document.getElementById("minutes");
+        minutes = parseInt(minutes_el.value);
+        stepsize =  1;        
+        if (minutes >= 10)
+          stepsize =  10;
+        if (minutes >= 30)
+          stepsize =  30;
+        if (minutes >= 60)
+          stepsize = 60;
+        minutes_el.value = parseInt(minutes_el.value) + stepsize;
       }
       function padTo2Digits(num) {
         return num.toString().padStart(2, '0');
@@ -118,10 +135,10 @@
       setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
-    Toon <input id="hours" name="hours" size="2" value="{{ request.form['hours'] or hours }}"> uren&nbsp;
+    Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
     
-    <button type="submit" class="btn btn-primary" onclick="hours_decrease()">&nbsp;-&nbsp;</button>
-    <button type="submit" class="btn btn-primary" onclick="hours_increase()">&nbsp;+&nbsp;</button>
+    <button type="submit" class="btn btn-primary" onclick="interval_decrease()">&nbsp;-&nbsp;</button>
+    <button type="submit" class="btn btn-primary" onclick="interval_increase()">&nbsp;+&nbsp;</button>
     <div class="form-group"></div>
   </form>
 
