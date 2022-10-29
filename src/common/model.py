@@ -109,6 +109,16 @@ class model:
         self.persistence.set_log_retention(value)
 
 
+    @property
+    def stats_retention(self):
+        self._stats_retention = self.persistence.get_stats_retention()
+        return self._stats_retention
+    @stats_retention.setter
+    def stats_retention(self,value):
+        self._stats_retention = value
+        self.persistence.set_stats_retention(value)
+
+
     def add_consumer(self, consumer : energy_consumer):
         self._consumers.append(consumer)
     

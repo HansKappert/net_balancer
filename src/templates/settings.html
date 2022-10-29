@@ -7,7 +7,11 @@
         <input type="number" name="log_retention"  MIN="0" MAX="10000" STEP="1" 
                placeholder="Post log_retention" class="form-control"
                value="{{ request.form['log_retention'] or log_retention }}"></input>
-        
+        <label for="title">Meterwaarden bewaartijd (in dagen)</label>
+        <input type="number" name="stats_retention"  MIN="0" MAX="10000" STEP="1" 
+                placeholder="Post stats_retention" class="form-control"
+                value="{{ request.form['stats_retention'] or stats_retention }}"></input>
+               
     </div>
 
     <div class="form-group">
