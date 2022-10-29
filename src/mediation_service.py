@@ -43,7 +43,7 @@ if __name__ == "__main__":
     data_model = model(db)
 
 
-    cleaner = eventlog_cleaner()
+    cleaner = eventlog_cleaner(db)
     th = threading.Thread(target=cleaner.start, daemon=True)
     th.start()
     logging.debug ("Eventlog table cleaner is setup")
