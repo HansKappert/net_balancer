@@ -1,3 +1,4 @@
+from pickle import TRUE
 import sqlite3
 import logging
 import time
@@ -15,18 +16,26 @@ class persistence:
         logging.debug ("Database connected")
 
         cur = con.cursor()
-        result = cur.execute("PRAGMA table_info(settings)").fetchone()
+        result = cur.execute("PRAGMA table_info(settings)").fetchall()
         if (result == None):
             logging.debug ("Creating table settings")
-            cur.execute("CREATE TABLE settings (surplus_delay_theshold INTEGER, deficient_delay_theshold INTEGER, log_retention_days INTEGER);") # surplus_delay_theshold and deficient_delay_theshold are obsolete
-            cur.execute("INSERT INTO  settings VALUES (40,40,1)")
+            cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
+            cur.execute("INSERT INTO  settings VALUES (40,40)")
             con.commit()
+        else:
+            for field in result:
+                if field[1] == "surplus_delay_theshold":
+                    cur.execute("DROP TABLE settings")
+                    cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
+                    cur.execute("INSERT INTO  settings VALUES (40,40)")
+                    con.commit()
+                    
     
         cur = con.cursor()
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER,surplus_delay_count INTEGER,deficient_delay_count INTEGER)") # deficient_delay_count is obsolete
+            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER)") # deficient_delay_count is obsolete
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 
@@ -61,8 +70,13 @@ class persistence:
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             logging.debug ("Creating table stats")
-            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_surplus INTEGER, tesla_consumption INTEGER)")
+            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER)")
             con.commit()
+        else:
+            result = cur.execute("PRAGMA table_info(stats)").fetchall()
+            if (result[2][1] == 'current_surplus'):
+                cur.execute("ALTER TABLE stats RENAME COLUMN current_surplus TO current_consumption")
+                con.commit()
 
 
         cur = con.cursor()
@@ -203,6 +217,18 @@ class persistence:
         con.close()
 
 
+    #  stats retention
+    def get_stats_retention(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT stats_retention_days FROM settings").fetchone()
+        return int(result[0])
+    def set_stats_retention(self, value):
+        con = self.get_db_connection()  
+        result = con.execute("UPDATE settings SET stats_retention_days = :value ",{"value":value})
+        con.commit()
+        con.close()
+
+
     def get_log_lines(self):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
@@ -247,7 +273,8 @@ class persistence:
                                                         "current_surplus"    : current_surplus, 
                                                         "tesla_consumption"  : tesla_consumption})
         con.commit()
-        dt = datetime.now() - timedelta(days=1)
+        stats_retention_days = self.get_stats_retention()
+        dt = datetime.now() - timedelta(days=stats_retention_days)
         unix_ts = time.mktime(dt.timetuple())
         result = con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
         con.commit()

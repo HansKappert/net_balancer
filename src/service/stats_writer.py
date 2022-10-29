@@ -16,7 +16,7 @@ class stats_writer:
     def write_stats(self):
         dt = datetime.now()
         unix_ts = time.mktime(dt.timetuple())
-        self.db.write_statistics(unix_ts,self.data_model.current_production, self.data_model.surplus, self.data_model.get_consumer("Tesla").consumption_power_now)
+        self.db.write_statistics(unix_ts,self.data_model.current_production, self.data_model.current_consumption, self.data_model.get_consumer("Tesla").consumption_power_now)
 
     def start(self):
         self.state = "running"
