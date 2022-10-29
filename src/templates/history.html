@@ -38,7 +38,6 @@
       function padTo2Digits(num) {
         return num.toString().padStart(2, '0');
       }
-
       function formatDate(date) {
         return (
           [
@@ -135,11 +134,14 @@
       setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
-    Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
+    <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
     
     <button type="submit" class="btn btn-primary" onclick="interval_decrease()">&nbsp;-&nbsp;</button>
     <button type="submit" class="btn btn-primary" onclick="interval_increase()">&nbsp;+&nbsp;</button>
-    <div class="form-group"></div>
+  </span>
+  <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_db_file') }}">Download database</a></span> 
+  <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_csv_file') }}">Download CSV</a></span> 
+   <div class="form-group"></div>
   </form>
 
 <br>

@@ -1,8 +1,9 @@
 import logging
-import os 
+import os
+from symbol import file_input 
 
 from flask                           import Flask
-from flask                           import request, render_template, url_for, redirect, jsonify
+from flask                           import request, render_template, send_file, url_for, redirect, jsonify
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime
 from flask                           import Flask, request, jsonify
@@ -67,11 +68,33 @@ def index():
 def settings():
     if request.method == 'POST':
         data_model.log_retention = int(request.form['log_retention'])
+        data_model.stats_retention = int(request.form['stats_retention'])
         return redirect(url_for('index'))
     else:
         return render_template('settings.html', 
-        log_retention   = data_model.log_retention
+        log_retention   = data_model.log_retention, 
+        stats_retention = data_model.stats_retention
         )
+
+@app.route('/download_db_file')
+def download_db_file():
+	path = os.path.join("..","energy_mediator.db")
+	return send_file(path, as_attachment=True)
+
+@app.route('/download_csv_file')
+def download_csv_file():
+    file_name = "stats.csv"
+    stats_retention_days = db.get_stats_retention()
+    data = db.get_history(stats_retention_days * 24 * 60)
+    with  open(file_name, "w") as f: 
+        f.write("timestamp;production;surplus;consumption\n")
+        for row in data:
+            f.write(f"{row[0]};{row[1]};{row[2]};{row[3]};\n")
+        f.close()
+
+    return send_file(os.path.join("..",file_name), as_attachment=True)
+
+
 
 @app.route('/history', methods=['GET','POST'])
 def history():
