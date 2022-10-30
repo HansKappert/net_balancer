@@ -54,7 +54,7 @@ class model:
 
         b = []
         if len(subset) == 0:
-            return 0
+            return None
         mn= min(subset)
         for i in subset:
             if i < -1500 and i<0 and mn > i*4:
@@ -63,7 +63,7 @@ class model:
         
         if len(b) < 3:
             logging.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
-            return 0
+            return None
         av = sum(b)/len(b)
 
         return av
