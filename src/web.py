@@ -89,7 +89,8 @@ def download_csv_file():
     with  open(file_name, "w") as f: 
         f.write("timestamp;production;surplus;consumption\n")
         for row in data:
-            f.write(f"{row[0]};{row[1]};{row[2]};{row[3]};\n")
+            dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f"{dt};{row[1]};{row[2]};{row[3]};\n")
         f.close()
 
     return send_file(os.path.join("..",file_name), as_attachment=True)
