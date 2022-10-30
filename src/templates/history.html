@@ -2,7 +2,7 @@
 {% block content %}
    <br>
 
-    <div id="placeholder" style="width:100%;height:600px;"></div>
+    <div id="placeholder" style="width:100%;height:500px;"></div>
     <!--[if IE]>
     <script type="text/javascript" src="path/to/flashcanvas.js"></script>
     <![endif]-->
@@ -134,13 +134,13 @@
       setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
-    <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
+    <span style="display:inline-block;margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
     
     <button type="submit" class="btn btn-primary" onclick="interval_decrease()">&nbsp;-&nbsp;</button>
     <button type="submit" class="btn btn-primary" onclick="interval_increase()">&nbsp;+&nbsp;</button>
   </span>
-  <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_db_file') }}">Download database</a></span> 
-  <span style="margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_csv_file') }}">Download CSV</a></span> 
+  <span style="display:inline-block;margin:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_db_file') }}">Download database</a></span> 
+  <span style="display:inline-block;margin:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163);text-decoration: underline;"><a href="{{ url_for('.download_csv_file') }}">Download CSV</a></span> 
    <div class="form-group"></div>
   </form>
 
