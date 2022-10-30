@@ -6,7 +6,9 @@ from service.abc_P1data_reader import P1data_reader
 
 class P1reader_stub(P1data_reader):
     def __init__(self, port) -> None:
-        self.leveringen = [1000,-100,-200,300,0,-1000]
+        # make sure the length of the two following arrays are equal.
+        self.leveringen = [1000,500,100,100,  0,   0,  0,300,500]
+        self.gebruik    = [250 ,230,250,400,300, 330,250,250,280]
         self.index = 0
         pass
 
@@ -22,7 +24,7 @@ class P1reader_stub(P1data_reader):
         data_frame.append(f'0-0:1.0.0({date_time_string}S)')
         data_frame.append('1-3:0.2.8(42)')
         data_frame.append('0-0:96.14.0(0001)')
-        data_frame.append(f'1-0:1.7.0({afname/1000:.3f}*kW)')              
+        data_frame.append(f'1-0:1.7.0({self.gebruik[self.index]/1000:.3f}*kW)')              
         data_frame.append(f'1-0:2.7.0({self.leveringen[self.index]/1000:.3f}*kW)')
         
         self.index += 1
