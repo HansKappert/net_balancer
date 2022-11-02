@@ -2,7 +2,7 @@ from pickle import TRUE
 import sqlite3
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 
 class persistence:
@@ -93,6 +93,14 @@ class persistence:
             logging.debug ("Creating index last_event")
             cur.execute("create index last_event on event (log_date);")
             con.commit()
+
+        cur = con.cursor()
+        result = cur.execute("PRAGMA table_info(prices)").fetchone()
+        if (result == None):
+            logging.debug ("Creating table prices")
+            cur.execute("CREATE TABLE prices(tstamp INTEGER, price REAL)")
+            con.commit()
+
         con.close()
 
 
@@ -279,6 +287,30 @@ class persistence:
         result = con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
         con.commit()
         con.close()
+
+    def write_prices(self, when: datetime, price: float):
+        con = self.get_db_connection()
+        unix_ts = time.mktime(when.timetuple())
+        result = con.execute("INSERT INTO prices VALUES (:tstamp, :price)",
+                                                       {"tstamp" : unix_ts, 
+                                                        "price"  : price})
+        con.commit()
+        con.close()
+
+    def read_prices(self, when: date):
+        con = self.get_db_connection()
+        unix_ts = time.mktime(when.timetuple())
+        result = con.execute("SELECT * FROM prices WHERE tstamp > :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
+        return result
+
+
+    def get_historical_prices(self, minutes):
+        con = self.get_db_connection()
+        dt = datetime.now() - timedelta(minutes=minutes)
+        unix_ts = time.mktime(dt.timetuple())
+        result = con.execute("SELECT * FROM prices WHERE tstamp > :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
+        return result
+
 
     def get_history(self, minutes):
         con = self.get_db_connection()

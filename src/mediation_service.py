@@ -10,6 +10,7 @@ from service.tesla_energy_consumer  import tesla_energy_consumer
 from service.eventlog_cleaner       import eventlog_cleaner
 from service.energy_mediator        import mediator
 from service.stats_writer           import stats_writer
+from service.prices_writer          import prices_writer
 from common.model                   import model
 from common.persistence             import persistence
 
@@ -72,6 +73,11 @@ if __name__ == "__main__":
     th = threading.Thread(target=statswriter.start, daemon=True)
     th.start()
     logging.debug ("Eventlog table cleaner is setup")
+
+    priceswriter = prices_writer(db)
+    th = threading.Thread(target=priceswriter.start, daemon=True)
+    th.start()
+    logging.debug ("Prices writer is setup")
 
 
     logging.debug ("Energy consumer is setup")
