@@ -1,7 +1,7 @@
 import logging
 import os
 from symbol import file_input 
-
+import time
 from flask                           import Flask
 from flask                           import request, render_template, send_file, url_for, redirect, jsonify
 from geopy.geocoders                 import Nominatim
@@ -99,42 +99,56 @@ def download_csv_file():
 
 @app.route('/history', methods=['GET','POST'])
 def history():
-        if request.method == 'POST':
-            minutes = int(request.form["minutes"])
-        else:
-            minutes = 60
+    if request.method == 'POST':
+        minutes = int(request.form["minutes"])
+    else:
+        minutes = 60
 
-        history = db.get_history(minutes)
-        surplusses = '['
-        productions = '['
-        tesla_consumptions = '['
-        datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    history = db.get_history(minutes)
+    surplusses = '['
+    productions = '['
+    tesla_consumptions = '['
+    datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    
+    if len(history) > 0:
+        datetime_obj = datetime.fromtimestamp(history[0][0])
+        datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
+
+        for i in history:
+            msec_since = str(i[0] )
+            surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
+            productions += '[' + msec_since + ',' + str(i[1]) + '],'
+            tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
         
-        if len(history) > 0:
-            datetime_obj = datetime.fromtimestamp(history[0][0])
-            datetime_str = datetime_obj.strftime("%Y/%m/%d %H:%M:%S")
+    surplusses         = surplusses.strip(',') + ']'
+    productions        = productions.strip(',') + ']'
+    tesla_consumptions = tesla_consumptions.strip(',') + ']'
+    
+    return render_template('history.html', 
+                            start_datetime_str = datetime_str, 
+                            surplusses         = surplusses, 
+                            productions        = productions, 
+                            tesla_consumptions = tesla_consumptions,
+                            minutes            = minutes)
 
-            aantal = 0
-            for i in history:
-                aantal += 1
-                msec_since = str(i[0] )
-                surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
-                productions += '[' + msec_since + ',' + str(i[1]) + '],'
-                tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
-            
-        surplusses         = surplusses.strip(',') + ']'
-        productions        = productions.strip(',') + ']'
-        tesla_consumptions = tesla_consumptions.strip(',') + ']'
-
+@app.route('/prices', methods=['GET'])
+def prices():
+    
+    t = time.localtime()
+    minutes_since_midnight = int(t.tm_hour)*60+int(t.tm_min)
+    price_history = db.get_day_prices(datetime.now())
+    prices = '['
+    if len(price_history) > 0:
+        for i in price_history:
+            msec_since = str(i[0] )
+            prices += '[' + msec_since + ',' + str(i[1]) + '],'
+    prices = prices.strip(',') + ']'
+    
 #        if request.method == 'POST':
 #            return redirect(url_for('history'))
 #        else:
-        return render_template('history.html', 
-                                start_datetime_str = datetime_str, 
-                                surplusses         = surplusses, 
-                                productions        = productions, 
-                                tesla_consumptions = tesla_consumptions, 
-                                minutes            = minutes)
+    return render_template('prices.html', 
+                            prices             = prices)
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():

@@ -66,7 +66,6 @@
         var surplusses = {{ surplusses|safe }};
         var productions = {{ productions|safe }};
         var tesla_consumptions = {{ tesla_consumptions|safe }};
-        var start = new Date("{{start_datetime_str}}").getTime();
 
         /* multiply by 1000 to convert seconds into milliseconds */
         for (i = 0; i < surplusses.length; i++) {
