@@ -135,13 +135,12 @@ def history():
 def prices():
     
     t = time.localtime()
-    minutes_since_midnight = int(t.tm_hour)*60+int(t.tm_min)
     price_history = db.get_day_prices(datetime.now())
     prices = '['
     if len(price_history) > 0:
-        for i in price_history:
-            msec_since = str(i[0] )
-            prices += '[' + msec_since + ',' + str(i[1]) + '],'
+        for row in price_history:
+            dt = datetime.fromtimestamp(int(row[0]))
+            hour = dt.hour        
     prices = prices.strip(',') + ']'
     
 #        if request.method == 'POST':

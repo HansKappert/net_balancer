@@ -41,8 +41,8 @@ class prices_writer:
                     else: 
                         json_response = json.loads(response.text)
                         for idx, p in enumerate(json_response["Prices"]):
-                            dt_str = p["readingDate"]
-                            dt = datetime.strptime(dt_str,'%Y-%m-%dT%H:%M:%SZ')
+                            dt_str = p["readingDate"].replace("Z","")
+                            dt = datetime.strptime(dt_str,'%Y-%m-%dT%H:%M:%S')
                             self.persistence.write_prices(dt, float(p["price"]))
                     time.sleep(1)
 
