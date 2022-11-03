@@ -69,16 +69,15 @@ if __name__ == "__main__":
 
     logging.debug ("Data model created")
 
-    statswriter = stats_writer(data_model,db)
-    th = threading.Thread(target=statswriter.start, daemon=True)
-    th.start()
-    logging.debug ("Eventlog table cleaner is setup")
-
     priceswriter = prices_writer(db)
     th = threading.Thread(target=priceswriter.start, daemon=True)
     th.start()
     logging.debug ("Prices writer is setup")
 
+    statswriter = stats_writer(data_model,db)
+    th = threading.Thread(target=statswriter.start, daemon=True)
+    th.start()
+    logging.debug ("Eventlog table cleaner is setup")
 
     logging.debug ("Energy consumer is setup")
     energy_mediator = mediator(data_model) # a list of consumers is part of this data model

@@ -30,7 +30,7 @@ class prices_writer:
             today = datetime(date.today().year,date.today().month, date.today().day,0,0,0)
             for d in range(-10,1):
                 target_date = today + timedelta(days=d)
-                day_prices = self.persistence.read_prices(target_date)
+                day_prices = self.persistence.get_day_prices(target_date)
                 if len(day_prices) == 0:
                     date_end   = target_date + timedelta(hours=23)
                     url        = base_url + url_params.format(urllib.parse.quote(target_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")), 

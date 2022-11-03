@@ -73,10 +73,17 @@ class persistence:
             cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER)")
             con.commit()
         else:
-            result = cur.execute("PRAGMA table_info(stats)").fetchall()
-            if (result[2][1] == 'current_surplus'):
-                cur.execute("ALTER TABLE stats RENAME COLUMN current_surplus TO current_consumption")
-                con.commit()
+            results = cur.execute("PRAGMA table_info(stats)").fetchall()
+            for result in results:
+                if (result[1] == 'current_surplus'):
+                    cur.execute("ALTER TABLE stats RENAME COLUMN current_surplus TO current_consumption")
+            if len(results) == 4:
+                cur.execute("ALTER TABLE stats ADD COLUMN cost_price REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN profit_price REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN cost REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN profit REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN tesla_cost REAL")
+            con.commit()
 
 
         cur = con.cursor()
@@ -273,14 +280,23 @@ class persistence:
         con.commit()
         con.close()
 
-    def write_statistics(self,tstamp , current_production , current_surplus , tesla_consumption ):
+    def write_statistics(self, when, current_production, current_consumption, tesla_consumption, cost_price, profit_price, cost, profit, tesla_cost ):
         con = self.get_db_connection()
-        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_surplus, :tesla_consumption)",
+        tstamp = time.mktime(when.timetuple())
+        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_consumption, :tesla_consumption, :cost_price, :profit_price, :cost, :profit, :tesla_cost)",
                                                        {"tstamp"             : tstamp, 
                                                         "current_production" : current_production, 
-                                                        "current_surplus"    : current_surplus, 
-                                                        "tesla_consumption"  : tesla_consumption})
+                                                        "current_consumption": current_consumption, 
+                                                        "tesla_consumption"  : tesla_consumption,
+                                                        "cost_price"         : cost_price, 
+                                                        "profit_price"       : profit_price, 
+                                                        "cost"               : cost, 
+                                                        "profit"             : profit, 
+                                                        "tesla_cost"         : tesla_cost
+                                                        })
         con.commit()
+
+         
         stats_retention_days = self.get_stats_retention()
         dt = datetime.now() - timedelta(days=stats_retention_days)
         unix_ts = time.mktime(dt.timetuple())
@@ -297,10 +313,12 @@ class persistence:
         con.commit()
         con.close()
 
-    def read_prices(self, when: date):
+    def get_price_at_datetime(self, when: date):
         con = self.get_db_connection()
         unix_ts = time.mktime(when.timetuple())
-        result = con.execute("SELECT * FROM prices WHERE tstamp > :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
+        result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
+        if result:
+            result = result[0]
         return result
 
 
@@ -318,7 +336,7 @@ class persistence:
         until_dt = today + timedelta(hours=23)
         until_ts = time.mktime(until_dt.timetuple())
         
-        result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp",
+        result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp DESC",
                     {"from_tstamp":from_ts,
                      "to_tstamp"  :until_ts}).fetchall()
         return result

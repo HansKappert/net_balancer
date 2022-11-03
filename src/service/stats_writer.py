@@ -14,9 +14,28 @@ class stats_writer:
         self.state = "stopped"        
 
     def write_stats(self):
-        dt = datetime.now()
-        unix_ts = time.mktime(dt.timetuple())
-        self.db.write_statistics(unix_ts,self.data_model.current_production, -1 * self.data_model.current_consumption, self.data_model.get_consumer("Tesla").consumption_power_now)
+        when = datetime.now()
+        current_price_kwh = self.db.get_price_at_datetime(when)
+        current_price_kwm = current_price_kwh / 60
+        current_price_kw10s = current_price_kwm / 6
+        current_price_w10s  = current_price_kw10s / 1000
+        consumption = self.data_model.current_consumption
+        tesla_consumption = self.data_model.get_consumer("Tesla").consumption_power_now
+        production  = self.data_model.current_production
+        cost        = consumption * current_price_w10s
+        profit      = production  * current_price_w10s
+        tesla_cost  = tesla_consumption * current_price_w10s
+        self.db.write_statistics(
+                                when,
+                                production,
+                                 -1 * consumption,
+                                tesla_consumption,
+                                current_price_kwh,
+                                current_price_kwh,
+                                cost,
+                                profit,
+                                tesla_cost
+                                )
 
     def start(self):
         self.state = "running"
