@@ -326,17 +326,17 @@ class persistence:
         con = self.get_db_connection()
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
-        result = con.execute("SELECT * FROM prices WHERE tstamp >= :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
+        result = con.execute("SELECT * FROM prices WHERE tstamp >= :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
         return result
 
     def get_day_prices(self, from_dt:datetime):
         con = self.get_db_connection()
-        today = datetime(from_dt.year,from_dt.month,from_dt.day)
+        today = datetime(from_dt.year,from_dt.month,from_dt.day,0,0,0)
         from_ts = time.mktime(today.timetuple())
         until_dt = today + timedelta(hours=23)
         until_ts = time.mktime(until_dt.timetuple())
         
-        result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp DESC",
+        result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp",
                     {"from_tstamp":from_ts,
                      "to_tstamp"  :until_ts}).fetchall()
         return result
@@ -346,6 +346,6 @@ class persistence:
         con = self.get_db_connection()
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
-        result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp DESC",{"tstamp":unix_ts}).fetchall()
+        result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
         return result
 
