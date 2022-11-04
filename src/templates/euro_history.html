@@ -2,8 +2,8 @@
 {% block content %}
    <br>
 
-    <div id="placeholder" style="width:100%;height:500px;"></div>
-    <!--[if IE]>
+   <div id="placeholder" style="width:100%;height:500px;"></div>
+   <!--[if IE]>
     <script type="text/javascript" src="path/to/flashcanvas.js"></script>
     <![endif]-->
     <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
@@ -61,24 +61,29 @@
         );
       }
 
-      var container = document.getElementById('placeholder')
+      var placeholder = document.getElementById('placeholder')
       var costs = {{ costs|safe }};
       var profits = {{ profits|safe }};
       var tesla_costs = {{ tesla_costs|safe }};
 
       
       options = {
+        bars : {
+            show : true,
+            shadowSize : 1,
+            barWidth : 0.9,
+          },      
         xaxis : {
           labelsAngle : 45, 
           title : "Tijd",
-          mode : 'Time',
+          noTicks: 13,
           timeMode : 'local',
-          noTicks: 10,
           tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
         },
         yaxis : {
           minorTicks : [1,3],
-          title : "Watt"
+          title : "Euro",
+          min: 0
         },
         legend: {
           position: "sw",
@@ -90,8 +95,8 @@
         HtmlText : false
       };
 
-        Flotr.draw(
-          container,
+      Flotr.draw(
+          placeholder,
           [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
             {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
             {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],

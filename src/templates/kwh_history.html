@@ -108,7 +108,7 @@
         document.besturing.submit();  
       }
 
-      // setInterval(refresh, 10000);   
+      setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
     <span style="display:inline-block;margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;

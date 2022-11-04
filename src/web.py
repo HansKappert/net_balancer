@@ -118,9 +118,9 @@ def kwh_history():
 
         for i in history:
             msec_since = str(i[0] )
-            productions        += '[' + msec_since + ',' + str(i[6]) + '],'
-            consumptions       += '[' + msec_since + ',' + str(i[7]) + '],'
-            tesla_consumptions += '[' + msec_since + ',' + str(i[8]) + '],'
+            productions        += '[' + msec_since + ',' + str(i[1]) + '],'
+            consumptions       += '[' + msec_since + ',' + str(i[2]) + '],'
+            tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
         
     consumptions       =       consumptions.strip(',') + ']'
     productions        =        productions.strip(',') + ']'
@@ -145,17 +145,18 @@ def euro_history():
     tesla_costs = '['
 
     now = datetime.now()
-    while hour <= now.hour:
+    while hour <= 23:
         from_dt  = datetime(now.year,now.month,now.day,hour,0,0)
         until_dt = datetime(now.year,now.month,now.day,hour,59,59)
         summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
         hour += 1
     
-        if summarized_data:            
-            datetime_str = from_dt.strftime("%Y/%m/%d %H:00")
-            profits     += '[' + datetime_str + ',' + str(summarized_data[1]) + '],'
-            costs       += '[' + datetime_str + ',' + str(summarized_data[2]) + '],'
-            tesla_costs += '[' + datetime_str + ',' + str(summarized_data[3]) + '],'
+        if len(summarized_data) == 1:
+            datetime_str = str(time.mktime(from_dt.timetuple()) * 1000)
+            for row in summarized_data:
+                profits     += '[' + datetime_str + ',' + str(row[0] if row[0] else 0) + '],'
+                costs       += '[' + datetime_str + ',' + str(row[1] if row[1] else 0) + '],'
+                tesla_costs += '[' + datetime_str + ',' + str(row[2] if row[2] else 0) + '],'
         
     costs       =       costs.strip(',') + ']'
     profits     =        profits.strip(',') + ']'

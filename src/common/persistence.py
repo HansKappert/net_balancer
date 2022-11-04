@@ -354,7 +354,8 @@ class persistence:
         until_ts = time.mktime(to_datetime.timetuple())
         
         con = self.get_db_connection()
-        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :to_tstamp",
-                    {"from_tstamp":from_ts,
-                     "to_tstamp"  :until_ts}).fetchall()
+        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
+                    {"from_tstamp"  :from_ts,
+                     "until_tstamp" :until_ts}).fetchall()
+        return result
 
