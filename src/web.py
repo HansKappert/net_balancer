@@ -2,6 +2,7 @@ import logging
 import os
 from symbol import file_input 
 import time
+import tempfile
 from flask                           import Flask
 from flask                           import request, render_template, send_file, url_for, redirect, jsonify
 from geopy.geocoders                 import Nominatim
@@ -83,7 +84,8 @@ def download_db_file():
 
 @app.route('/download_csv_file')
 def download_csv_file():
-    file_name = "stats.csv"
+    tmp_path = tempfile.gettempdir()
+    file_name = os.path.join(tmp_path, "stats.csv")
     stats_retention_days = db.get_stats_retention()
     data = db.get_history(stats_retention_days * 24 * 60)
     with  open(file_name, "w") as f: 
@@ -93,7 +95,7 @@ def download_csv_file():
             f.write(f"{dt};{row[1]};{row[2]};{row[3]};\n")
         f.close()
 
-    return send_file(os.path.join("..",file_name), as_attachment=True)
+    return send_file(file_name, as_attachment=True)
 
 
 
