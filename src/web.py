@@ -107,8 +107,8 @@ def history():
         minutes = 60
 
     history = db.get_history(minutes)
-    surplusses = '['
-    productions = '['
+    productions        = '['
+    consumptions       = '['
     tesla_consumptions = '['
     datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     
@@ -118,17 +118,17 @@ def history():
 
         for i in history:
             msec_since = str(i[0] )
-            surplusses += '[' + msec_since + ',' + str(i[2]) + '],'
-            productions += '[' + msec_since + ',' + str(i[1]) + '],'
+            productions        += '[' + msec_since + ',' + str(i[1]) + '],'
+            consumptions       += '[' + msec_since + ',' + str(i[2]) + '],'
             tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
         
-    surplusses         = surplusses.strip(',') + ']'
-    productions        = productions.strip(',') + ']'
+    consumptions       =       consumptions.strip(',') + ']'
+    productions        =        productions.strip(',') + ']'
     tesla_consumptions = tesla_consumptions.strip(',') + ']'
     
     return render_template('history.html', 
                             start_datetime_str = datetime_str, 
-                            surplusses         = surplusses, 
+                            consumptions       = consumptions, 
                             productions        = productions, 
                             tesla_consumptions = tesla_consumptions,
                             minutes            = minutes)

@@ -61,76 +61,54 @@
         );
       }
 
-      (function mouse_drag() {
-        var container = document.getElementById('placeholder')
-        var surplusses = {{ surplusses|safe }};
-        var productions = {{ productions|safe }};
-        var tesla_consumptions = {{ tesla_consumptions|safe }};
+      var container = document.getElementById('placeholder')
+      var consumptions = {{ consumptions|safe }};
+      var productions = {{ productions|safe }};
+      var tesla_consumptions = {{ tesla_consumptions|safe }};
 
-        /* multiply by 1000 to convert seconds into milliseconds */
-        for (i = 0; i < surplusses.length; i++) {
-          surplusses[i][0]         = 1000 * surplusses[i][0];
-          productions[i][0]        = 1000 * productions[i][0];
-          tesla_consumptions[i][0] = 1000 * tesla_consumptions[i][0];
-        }
-        
-        options = {
-          xaxis : {
-            labelsAngle : 45, 
-            title : "Tijd",
-            mode : 'Time',
-            timeMode : 'local',
-            noTicks: 10,
-            tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
-          },
-          yaxis : {
-            minorTicks : [1,3],
-            title : "Watt"
-          },
-          legend: {
-            position: "sw",
-          },
-          selection : {
-            mode : 'x'
-          },
-          title : "Balans en gebruikers uitgezet tegen de tijd",
-          HtmlText : false
-        };
-
-        // Draw graph with default options, overwriting with passed options
-        function drawGraph (opts) {
-
-          // Clone the options, so the 'options' variable always keeps intact.
-          var o = Flotr._.extend(Flotr._.clone(options), opts || {});
-
-          // Return a new graph.
-          return Flotr.draw(
-            container,
-            [ {data : surplusses        , label : 'Netto Resultaat' , color: "#0000FF"}, 
-              {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
-              {data : tesla_consumptions, label : 'Tesla consumptie', color: "#FF0000"} ],
-            options
-          );
-        }
-        graph = drawGraph();      
-
-        Flotr.EventAdapter.observe(container, 'flotr:select', function(area){
-            // Draw selected area
-            graph = drawGraph({ xaxis : { min : area.x1, max : area.x2, mode : 'time', labelsAngle : 45 },
-                                yaxis : { min : area.y1, max : area.y2 }
-                });
-        });
-        
-        // When graph is clicked, draw the graph with default area.
-      Flotr.EventAdapter.observe(container, 'flotr:click', function () { graph = drawGraph(); });
+      /* multiply by 1000 to convert seconds into milliseconds */
+      for (i = 0; i < consumptions.length; i++) {
+        consumptions[i][0]       = 1000 * consumptions[i][0];
+        productions[i][0]        = 1000 * productions[i][0];
+        tesla_consumptions[i][0] = 1000 * tesla_consumptions[i][0];
+      }
       
-      })();
+      options = {
+        xaxis : {
+          labelsAngle : 45, 
+          title : "Tijd",
+          mode : 'Time',
+          timeMode : 'local',
+          noTicks: 10,
+          tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
+        },
+        yaxis : {
+          minorTicks : [1,3],
+          title : "Watt"
+        },
+        legend: {
+          position: "sw",
+        },
+        selection : {
+          mode : 'x'
+        },
+        title : "Balans en gebruikers uitgezet tegen de tijd",
+        HtmlText : false
+      };
 
+        Flotr.draw(
+          container,
+          [ {data : consumptions      , label : 'Netto verbruik'  , color: "#0000FF"}, 
+            {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
+            {data : tesla_consumptions, label : 'Tesla consumptie', color: "#FF0000"} ],
+          options
+        );
+        
       function refresh() {
         document.besturing.submit();  
       }
 
-      setInterval(refresh, 10000);   
+      // setInterval(refresh, 10000);   
     </script>
    <form name="besturing" method="post">
     <span style="display:inline-block;margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
