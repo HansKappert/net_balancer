@@ -349,3 +349,12 @@ class persistence:
         result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
         return result
 
+    def get_summarized_euro_history_from_to(self, from_datetime:datetime, to_datetime:datetime):
+        from_ts = time.mktime(from_datetime.timetuple())
+        until_ts = time.mktime(to_datetime.timetuple())
+        
+        con = self.get_db_connection()
+        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :to_tstamp",
+                    {"from_tstamp":from_ts,
+                     "to_tstamp"  :until_ts}).fetchall()
+

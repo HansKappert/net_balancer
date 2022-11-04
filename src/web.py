@@ -99,8 +99,8 @@ def download_csv_file():
 
 
 
-@app.route('/history', methods=['GET','POST'])
-def history():
+@app.route('/kwh_history', methods=['GET','POST'])
+def kwh_history():
     if request.method == 'POST':
         minutes = int(request.form["minutes"])
     else:
@@ -118,20 +118,56 @@ def history():
 
         for i in history:
             msec_since = str(i[0] )
-            productions        += '[' + msec_since + ',' + str(i[1]) + '],'
-            consumptions       += '[' + msec_since + ',' + str(i[2]) + '],'
-            tesla_consumptions += '[' + msec_since + ',' + str(i[3]) + '],'
+            productions        += '[' + msec_since + ',' + str(i[6]) + '],'
+            consumptions       += '[' + msec_since + ',' + str(i[7]) + '],'
+            tesla_consumptions += '[' + msec_since + ',' + str(i[8]) + '],'
         
     consumptions       =       consumptions.strip(',') + ']'
     productions        =        productions.strip(',') + ']'
     tesla_consumptions = tesla_consumptions.strip(',') + ']'
     
-    return render_template('history.html', 
+    return render_template('kwh_history.html', 
                             start_datetime_str = datetime_str, 
                             consumptions       = consumptions, 
                             productions        = productions, 
                             tesla_consumptions = tesla_consumptions,
                             minutes            = minutes)
+
+@app.route('/euro_history', methods=['GET','POST'])
+def euro_history():
+    if request.method == 'POST':
+        minutes = int(request.form["minutes"])
+    else:
+        minutes = 60
+    hour = 0
+    profits     = '['
+    costs       = '['
+    tesla_costs = '['
+
+    now = datetime.now()
+    while hour <= now.hour:
+        from_dt  = datetime(now.year,now.month,now.day,hour,0,0)
+        until_dt = datetime(now.year,now.month,now.day,hour,59,59)
+        summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
+        hour += 1
+    
+        if summarized_data:            
+            datetime_str = from_dt.strftime("%Y/%m/%d %H:00")
+            profits     += '[' + datetime_str + ',' + str(summarized_data[1]) + '],'
+            costs       += '[' + datetime_str + ',' + str(summarized_data[2]) + '],'
+            tesla_costs += '[' + datetime_str + ',' + str(summarized_data[3]) + '],'
+        
+    costs       =       costs.strip(',') + ']'
+    profits     =        profits.strip(',') + ']'
+    tesla_costs = tesla_costs.strip(',') + ']'
+    
+    datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    return render_template('euro_history.html', 
+                            start_datetime_str = datetime_str, 
+                            costs       = costs, 
+                            profits     = profits, 
+                            tesla_costs = tesla_costs,
+                            minutes     = minutes)
 
 @app.route('/prices', methods=['GET'])
 def prices():
