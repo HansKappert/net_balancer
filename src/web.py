@@ -134,13 +134,13 @@ def history():
 @app.route('/prices', methods=['GET'])
 def prices():
     
-    t = time.localtime()
     price_history = db.get_day_prices(datetime.now())
     prices = '['
     if len(price_history) > 0:
         for row in price_history:
             dt = datetime.fromtimestamp(int(row[0]))
             hour = dt.hour        
+            prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
     
 #        if request.method == 'POST':
