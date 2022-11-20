@@ -97,11 +97,18 @@
 
       Flotr.draw(
           placeholder,
-          [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
-            {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
-            {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
+          [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}
+             ],
           options
         );
+        
+//      Flotr.draw(
+//          placeholder,
+//          [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
+//            {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
+//            {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
+//         options
+//       );
         
       function refresh() {
         document.besturing.submit();  
