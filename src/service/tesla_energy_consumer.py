@@ -31,7 +31,9 @@ class tesla_energy_consumer(energy_consumer):
         self.logger.addHandler(log_handler)
 
     def initialize(self, **kwargs):
-        self.tesla = Tesla(kwargs['email'])
+        if kwargs['email']:
+            self.email = kwargs['email']
+        self.tesla = Tesla(self.email)
         self.tesla.captcha_solver = self.solve_captcha
         self.tesla.fetch_token()
         vehicles = self.tesla.vehicle_list()
