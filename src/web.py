@@ -154,12 +154,12 @@ def euro_history():
         if len(summarized_data) == 1:
             datetime_str = str(time.mktime(from_dt.timetuple()) * 1000)
             for row in summarized_data:
-                profits     += '[' + datetime_str + ',' + str(row[0] if row[0] else 0) + '],'
-                costs       += '[' + datetime_str + ',' + str(row[1] if row[1] else 0) + '],'
-                tesla_costs += '[' + datetime_str + ',' + str(row[2] if row[2] else 0) + '],'
+                profits     += '[' + str(hour) + ',' + str(row[0] if row[0] else 0) + '],'
+                costs       += '[' + str(hour) + ',' + str(row[1] if row[1] else 0) + '],'
+                tesla_costs += '[' + str(hour) + ',' + str(row[2] if row[2] else 0) + '],'
         
-    costs       =       costs.strip(',') + ']'
-    profits     =        profits.strip(',') + ']'
+    costs       = costs.strip(',') + ']'
+    profits     = profits.strip(',') + ']'
     tesla_costs = tesla_costs.strip(',') + ']'
     
     datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")

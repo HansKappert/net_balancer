@@ -76,20 +76,18 @@
         xaxis : {
           labelsAngle : 45, 
           title : "Tijd",
-          noTicks: 13,
+          mode : 'Time',
+          noTicks: 14,
           timeMode : 'local',
-          tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
+          autoscale: true,
+          min:0
         },
         yaxis : {
-          minorTicks : [1,3],
           title : "Euro",
           min: 0
         },
         legend: {
           position: "sw",
-        },
-        selection : {
-          mode : 'x'
         },
         title : "Kosten en opbrengst uitgezet tegen de tijd",
         HtmlText : false

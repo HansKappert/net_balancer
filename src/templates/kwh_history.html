@@ -61,7 +61,7 @@
         );
       }
 
-      var container = document.getElementById('placeholder')
+      var placeholder = document.getElementById('placeholder')
       var consumptions = {{ consumptions|safe }};
       var productions = {{ productions|safe }};
       var tesla_consumptions = {{ tesla_consumptions|safe }};
@@ -97,7 +97,7 @@
       };
 
         Flotr.draw(
-          container,
+          placeholder,
           [ {data : consumptions      , label : 'Netto verbruik'  , color: "#0000FF"}, 
             {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
             {data : tesla_consumptions, label : 'Tesla consumptie', color: "#FF0000"} ],
