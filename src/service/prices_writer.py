@@ -46,5 +46,8 @@ class prices_writer:
                             self.persistence.write_prices(dt, float(p["price"]))
                     time.sleep(1)
 
-
-            time.sleep(1000000)
+            midnight = today + timedelta(days=1)
+            timedelta_until_midnight = midnight - datetime.now()
+            seconds_until_midnight = timedelta_until_midnight.seconds
+            logging.info(f"Waiting {seconds_until_midnight} seconds to get new price information")
+            time.sleep(seconds_until_midnight)
