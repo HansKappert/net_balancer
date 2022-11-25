@@ -86,6 +86,7 @@ def download_db_file():
 def download_csv_file():
     tmp_path = tempfile.gettempdir()
     file_name = os.path.join(tmp_path, "stats.csv")
+    logger.info(f"Writing csv file to: {file_name}")
     stats_retention_days = db.get_stats_retention()
     data = db.get_history(stats_retention_days * 24 * 60)
     with  open(file_name, "w") as f: 
@@ -94,7 +95,6 @@ def download_csv_file():
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
             f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};\n")
         f.close()
-
     return send_file(file_name, as_attachment=True)
 
 
