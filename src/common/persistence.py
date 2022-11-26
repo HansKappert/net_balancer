@@ -237,6 +237,7 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT stats_retention_days FROM settings").fetchone()
         return int(result[0])
+
     def set_stats_retention(self, value):
         con = self.get_db_connection()  
         result = con.execute("UPDATE settings SET stats_retention_days = :value ",{"value":value})
@@ -247,6 +248,7 @@ class persistence:
     def get_log_lines(self):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
+        con.close()
         return result
 
     def remove_old_log_lines(self):
@@ -262,7 +264,9 @@ class persistence:
     def get_tesla_home_coords(self):
         con = self.get_db_connection()
         result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
+        con.close()
         return (result[0],result[1])
+
     def set_tesla_home_coords(self, home_latitude, home_longitude):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET home_latitude = :home_latitude, home_longitude = :home_longitude",{"home_latitude":home_latitude,"home_longitude":home_longitude})
@@ -273,7 +277,9 @@ class persistence:
     def get_tesla_current_coords(self):
         con = self.get_db_connection()
         result = con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()
+        con.close()
         return (result[0],result[1])
+
     def set_tesla_current_coords(self, current_latitude, current_longitude):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
@@ -295,7 +301,6 @@ class persistence:
                                                         "tesla_cost"         : tesla_cost
                                                         })
         con.commit()
-
          
         stats_retention_days = self.get_stats_retention()
         dt = datetime.now() - timedelta(days=stats_retention_days)
@@ -317,6 +322,7 @@ class persistence:
         con = self.get_db_connection()
         unix_ts = time.mktime(when.timetuple())
         result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
+        con.close()
         if result:
             result = result[0]
         return result
@@ -327,6 +333,7 @@ class persistence:
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
         result = con.execute("SELECT * FROM prices WHERE tstamp >= :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
+        con.close()
         return result
 
     def get_day_prices(self, from_dt:datetime):
@@ -339,6 +346,7 @@ class persistence:
         result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp",
                     {"from_tstamp":from_ts,
                      "to_tstamp"  :until_ts}).fetchall()
+        con.close()
         return result
 
 
@@ -347,6 +355,7 @@ class persistence:
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
         result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
+        con.close()
         return result
 
     def get_summarized_euro_history_from_to(self, from_datetime:datetime, to_datetime:datetime):
@@ -357,5 +366,6 @@ class persistence:
         result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
                     {"from_tstamp"  :from_ts,
                      "until_tstamp" :until_ts}).fetchall()
+        con.close()
         return result
 
