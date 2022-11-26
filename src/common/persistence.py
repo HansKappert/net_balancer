@@ -133,6 +133,7 @@ class persistence:
     def __get_reading_column_value(self, column_name):
         con = self.get_db_connection()
         result = con.execute("SELECT " + column_name + " FROM readings").fetchone()
+        con.close()
         return result[0]
     
     def __set_reading_column_value(self, column_name, value):
@@ -162,6 +163,7 @@ class persistence:
     def get_consumer_consumption_max(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT consumption_max FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        con.close()
         if result == None:
             return 0
         return int(result[0])
@@ -175,6 +177,7 @@ class persistence:
     def get_consumer_consumption_now(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT consumption_now FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        con.close()
         if result == None:
             return 0
         return int(result[0])
@@ -188,6 +191,7 @@ class persistence:
     def get_tesla_balance_above(self):
         con = self.get_db_connection()
         result = con.execute("SELECT balance_above FROM tesla").fetchone()
+        con.close()
         return int(result[0])
     def set_tesla_balance_above(self, value):
         con = self.get_db_connection()
@@ -199,6 +203,7 @@ class persistence:
     def get_tesla_charge_until(self):
         con = self.get_db_connection()
         result = con.execute("SELECT charge_until FROM tesla").fetchone()
+        con.close()
         return int(result[0])
     def set_tesla_charge_until(self, value):
         con = self.get_db_connection()
@@ -210,6 +215,7 @@ class persistence:
     def get_consumer_balance(self, consumer_name):
         con = self.get_db_connection()
         result = con.execute("SELECT balance FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        con.close()
         return int(result[0])
     def set_consumer_balance(self, consumer_name, value):
         con = self.get_db_connection()  
@@ -227,6 +233,7 @@ class persistence:
     def get_log_retention(self):
         con = self.get_db_connection()
         result = con.execute("SELECT log_retention_days FROM settings").fetchone()
+        con.close()
         return int(result[0])
     def set_log_retention(self, value):
         con = self.get_db_connection()  
@@ -239,6 +246,7 @@ class persistence:
     def get_stats_retention(self):
         con = self.get_db_connection()
         result = con.execute("SELECT stats_retention_days FROM settings").fetchone()
+        con.close()
         return int(result[0])
 
     def set_stats_retention(self, value):
