@@ -2,8 +2,10 @@ import time
 import os
 import logging
 
-from common.model       import model
-from common.P1datagram  import P1datagram
+from common.model                    import model
+from common.P1datagram               import P1datagram
+from common.persistence              import persistence
+from common.database_logging_handler import database_logging_handler
 
 class energy_producer:
     DATA_DUMP_FOLDER_NAME = "output"
@@ -14,6 +16,14 @@ class energy_producer:
         self.state = 'stopped'
         self.sleep_time = sleep_time
         self.data_model = data_model
+        self.logger = logging.getLogger(__name__)
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+        log_handler = database_logging_handler(persistence())
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
+
         #if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
         #    os.makedirs(self.DATA_DUMP_FOLDER_NAME)
         #if not os.path.exists(self.DATA_DUMP_FILE_NAME):
@@ -30,7 +40,7 @@ class energy_producer:
         if datagram.actual_electricity_power_delivered is not None:
             data_model.current_consumption =  datagram.actual_electricity_power_delivered
 
-        logging.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
+        self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
         # self.write_datagram_to_file(datagram, False)
 
     def write_datagram_to_file(self, dg : P1datagram, header : bool):
@@ -76,7 +86,7 @@ class energy_producer:
         self.state = "running"
         while self.state == "running":
             self.read_once(self.data_model)
-            logging.debug("Next reading is in {} seconds".format(self.sleep_time))
+            self.logger.debug("Next reading is in {} seconds".format(self.sleep_time))
             time.sleep(self.sleep_time)
 
     def stop_reading(self):

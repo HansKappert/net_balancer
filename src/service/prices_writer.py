@@ -11,7 +11,6 @@ class prices_writer:
     def __init__(self, database) -> None:
         self.persistence = database
         self.logger = logging.getLogger(__name__)
-        
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
@@ -28,10 +27,11 @@ class prices_writer:
 
         while True:
             today = datetime(date.today().year,date.today().month, date.today().day,0,0,0)
-            for d in range(-10,1):
+            for d in range(-1,1):
                 target_date = today + timedelta(days=d)
                 day_prices = self.persistence.get_day_prices(target_date)
                 if len(day_prices) == 0:
+                    self.logger.info(f"Fetching prices for {target_date}")
                     date_end   = target_date + timedelta(hours=23)
                     url        = base_url + url_params.format(urllib.parse.quote(target_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")), 
                                                               urllib.parse.quote( date_end.strftime("%Y-%m-%dT%H:%M:%S.000Z")))

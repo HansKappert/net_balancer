@@ -1,8 +1,8 @@
-from pickle import TRUE
 import sqlite3
 import logging
 import time
-from datetime import date, datetime, timedelta
+from datetime                         import date, datetime, timedelta
+from common.database_logging_handler  import database_logging_handler
 
 
 class persistence:
@@ -17,7 +17,7 @@ class persistence:
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
         
-        log_handler = self
+        log_handler = database_logging_handler(self)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 

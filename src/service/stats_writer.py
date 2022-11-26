@@ -4,28 +4,28 @@ import logging
 
 from common.model       import model
 from common.persistence import persistence
-from common.P1datagram  import P1datagram
+from common.database_logging_handler  import database_logging_handler
+
 
 class stats_writer:
 
-    def __init__(self, data_model : model, db : persistence) -> None:
+    def __init__(self, data_model : model, persistence : persistence) -> None:
         self.data_model = data_model
-        self.db = db
+        self.persistence = persistence
         self.state = "stopped"        
         self.logger = logging.getLogger(__name__)
-        
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
         
-        log_handler = self
+        log_handler = database_logging_handler(self.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 
 
     def write_stats(self):
         when = datetime.now()
-        current_price_kwh = self.db.get_price_at_datetime(when)
+        current_price_kwh = self.persistence.get_price_at_datetime(when)
         if current_price_kwh:
             current_price_kwm = current_price_kwh / 60
             current_price_kw10s = current_price_kwm / 6
@@ -36,7 +36,7 @@ class stats_writer:
             cost        = consumption * current_price_w10s
             profit      = production  * current_price_w10s
             tesla_cost  = tesla_consumption * current_price_w10s
-            self.db.write_statistics(
+            self.persistence.write_statistics(
                                     when,
                                     production,
                                     -1 * consumption,
@@ -47,7 +47,8 @@ class stats_writer:
                                     profit,
                                     tesla_cost
                                     )
-        self.logger.info("Geen prijsinformatie bekend voor dit tijdstip.")
+        else:
+            self.logger.info("Geen prijsinformatie bekend voor dit tijdstip.")
 
     def start(self):
         self.state = "running"

@@ -1,17 +1,15 @@
 import logging
 import os
-from symbol import file_input 
 import time
 import tempfile
-from flask                           import Flask
-from flask                           import request, render_template, send_file, url_for, redirect, jsonify
+from flask                           import Flask, request, jsonify, render_template, send_file, url_for, redirect
+from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime
-from flask                           import Flask, request, jsonify
+
 from common.model                    import model
 from common.persistence              import persistence
 from common.database_logging_handler import database_logging_handler
-
 from service.tesla_energy_consumer   import tesla_energy_consumer
 
 
@@ -31,13 +29,15 @@ data_model.add_consumer(tesla)
 
 logger = logging.getLogger(__name__)
 
+app.logger.removeHandler(default_handler)
+
 log_handler = logging.StreamHandler()
 log_handler.setLevel(logging.DEBUG)
-logger.addHandler(log_handler)
+app.logger.addHandler(log_handler)
 
 log_handler = database_logging_handler(db)
 log_handler.setLevel(logging.INFO)
-logger.addHandler(log_handler)
+app.logger.addHandler(log_handler)
 
 ###
 #    Web page routings
@@ -89,11 +89,11 @@ def download_db_file():
 def download_csv_file():
     tmp_path = tempfile.gettempdir()
     file_name = os.path.join(tmp_path, "stats.csv")
-    logger.info(f"Writing csv file to: {file_name}")
+    app.logger.info(f"Writing csv file to: {file_name}")
     stats_retention_days = db.get_stats_retention()
     data = db.get_history(stats_retention_days * 24 * 60)
     with  open(file_name, "w") as f: 
-        logger.info(f"Writing data to temporary file {file_name}")
+        app.logger.info(f"Writing data to temporary file {file_name}")
         f.write("timestamp;production;consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost\n")
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
