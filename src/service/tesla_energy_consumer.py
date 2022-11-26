@@ -169,7 +169,6 @@ class tesla_energy_consumer(energy_consumer):
         """
         return int(power / self.voltage)
 
-
     def calc_new_charge_current(self, charger_actual_current, surplus_power):
         """
         This function returns a number between and including 0 and some maximum.
@@ -209,7 +208,6 @@ class tesla_energy_consumer(energy_consumer):
     def max_consumption_power(self,value):
         self._consumption = value
         self.persistence.set_consumer_consumption_max(self._name, value)
-
 
     @property
     def balance_above(self):
