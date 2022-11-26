@@ -114,6 +114,7 @@ def kwh_history():
         minutes = 60
 
     history = db.get_history(minutes)
+    app.logger.info(f"Got {len(history)} records from the database.")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['
