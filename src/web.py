@@ -79,7 +79,7 @@ def settings():
 
 @app.route('/download_db_file')
 def download_db_file():
-    file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","energy_mediator.db")
+    file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)),"energy_mediator.db")
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
     else:
