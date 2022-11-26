@@ -27,18 +27,23 @@ except Exception as e:
     logging.exception(e)
 data_model.add_consumer(tesla)
 
-logger = logging.getLogger(__name__)
+mylogger = logging.getLogger(__name__)
 
 app.logger.removeHandler(default_handler)
 
-log_handler = logging.StreamHandler()
-log_handler.setLevel(logging.DEBUG)
-app.logger.addHandler(log_handler)
+streamlog_handler = logging.StreamHandler()
+# streamlog_handler.setLevel(logging.DEBUG)
+# app.logger.addHandler(streamlog_handler)
 
-log_handler = database_logging_handler(db)
-log_handler.setLevel(logging.INFO)
-app.logger.addHandler(log_handler)
-app.logger.info("Web app ready to receive requests")
+dblog_handler = database_logging_handler(db)
+# dblog_handler.setLevel(logging.INFO)
+# app.logger.addHandler(dblog_handler)
+
+for logger in (    app.logger,    mylogger):
+    logger.addHandler(streamlog_handler)
+    logger.addHandler(dblog_handler)
+
+logger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
@@ -83,7 +88,7 @@ def download_db_file():
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
     else:
-        logger.error(f"Cannot find database file at {file_name}")
+        app.logger.error(f"Cannot find database file at {file_name}")
 
 @app.route('/download_csv_file')
 def download_csv_file():
@@ -102,7 +107,7 @@ def download_csv_file():
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
     else:
-        logger.error(f"Cannot find the file ({file_name}) I just created!")
+        app.logger.error(f"Cannot find the file ({file_name}) I just created!")
 
 
 
@@ -115,6 +120,7 @@ def kwh_history():
 
     history = db.get_history(minutes)
     app.logger.info(f"Got {len(history)} records from the database.")
+    mylogger.info(f"Got {len(history)} records from the database (mylogger).")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['
