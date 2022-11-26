@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-import os
+import logging
 
 from common.model       import model
 from common.persistence import persistence
@@ -12,6 +12,16 @@ class stats_writer:
         self.data_model = data_model
         self.db = db
         self.state = "stopped"        
+        self.logger = logging.getLogger(__name__)
+        
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+        
+        log_handler = self
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
+
 
     def write_stats(self):
         when = datetime.now()
@@ -37,6 +47,7 @@ class stats_writer:
                                     profit,
                                     tesla_cost
                                     )
+        self.logger.info("Geen prijsinformatie bekend voor dit tijdstip.")
 
     def start(self):
         self.state = "running"

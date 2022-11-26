@@ -11,13 +11,23 @@ class persistence:
         con = sqlite3.connect(persistence.DBNAME)
         cur = con.cursor()
 
+        self.logger = logging.getLogger(__name__)
+        
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+        
+        log_handler = self
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
+
         result = cur.execute("PRAGMA auto_vacuum = FULL").fetchone()
         result = cur.execute("vacuum").fetchone()
-        logging.debug ("Database connected")
+        self.logger.debug ("Database connected")
 
         result = cur.execute("PRAGMA table_info(settings)").fetchall()
         if (result == None):
-            logging.debug ("Creating table settings")
+            self.logger.debug ("Creating table settings")
             cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
             cur.execute("INSERT INTO  settings VALUES (40,40)")
             con.commit()
@@ -32,14 +42,14 @@ class persistence:
     
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
-            logging.debug ("Creating table readings")
+            self.logger.debug ("Creating table readings")
             cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER)") # deficient_delay_count is obsolete
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
-            logging.debug ("Creating table consumer")
+            self.logger.debug ("Creating table consumer")
             cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, balance BOOLEAN NOT NULL CHECK (balance IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 1, 0)")
             con.commit()
@@ -51,7 +61,7 @@ class persistence:
 
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
-            logging.debug ("Creating table tesla")
+            self.logger.debug ("Creating table tesla")
             cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
             cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
             con.commit()
@@ -65,7 +75,7 @@ class persistence:
 
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
-            logging.debug ("Creating table stats")
+            self.logger.debug ("Creating table stats")
             cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER)")
             con.commit()
         else:
@@ -84,20 +94,20 @@ class persistence:
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
-            logging.debug ("Creating table event")
+            self.logger.debug ("Creating table event")
             cur.execute("CREATE TABLE event(log_date, levelname, source, message, occurrences)")
             con.commit()
 
 
         result = cur.execute("PRAGMA index_info(last_event)").fetchone()
         if (result == None):
-            logging.debug ("Creating index last_event")
+            self.logger.debug ("Creating index last_event")
             cur.execute("create index last_event on event (log_date);")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(prices)").fetchone()
         if (result == None):
-            logging.debug ("Creating table prices")
+            self.logger.debug ("Creating table prices")
             cur.execute("CREATE TABLE prices(tstamp INTEGER, price REAL)")
             con.commit()
 
@@ -313,13 +323,16 @@ class persistence:
 
     def get_price_at_datetime(self, when: date):
         con = self.get_db_connection()
-        unix_ts = time.mktime(when.timetuple())
-        result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
-        con.close()
-        if result:
-            result = result[0]
-        return result
-
+        try:
+            unix_ts = time.mktime(when.timetuple())
+            result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
+            con.close()
+            if result:
+                result = result[0]
+            return result
+        except Exception as e:
+            self.logger.exception(e)
+            return None
 
     def get_historical_prices(self, minutes):
         con = self.get_db_connection()
