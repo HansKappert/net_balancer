@@ -15,7 +15,6 @@ class persistence:
         result = cur.execute("vacuum").fetchone()
         logging.debug ("Database connected")
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(settings)").fetchall()
         if (result == None):
             logging.debug ("Creating table settings")
@@ -31,7 +30,6 @@ class persistence:
                     con.commit()
                     
     
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(readings)").fetchone()
         if (result == None):
             logging.debug ("Creating table readings")
@@ -51,7 +49,6 @@ class persistence:
                 cur.execute("ALTER TABLE consumer RENAME COLUMN override TO balance")
                 con.commit()
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
             logging.debug ("Creating table tesla")
@@ -66,7 +63,6 @@ class persistence:
                 cur.execute("UPDATE tesla SET balance_above = 50")
                 con.commit()
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             logging.debug ("Creating table stats")
@@ -86,7 +82,6 @@ class persistence:
             con.commit()
 
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             logging.debug ("Creating table event")
@@ -94,14 +89,12 @@ class persistence:
             con.commit()
 
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA index_info(last_event)").fetchone()
         if (result == None):
             logging.debug ("Creating index last_event")
             cur.execute("create index last_event on event (log_date);")
             con.commit()
 
-        cur = con.cursor()
         result = cur.execute("PRAGMA table_info(prices)").fetchone()
         if (result == None):
             logging.debug ("Creating table prices")
