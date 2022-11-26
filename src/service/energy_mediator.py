@@ -37,7 +37,7 @@ class mediator:
         """
         av_surplus = self.data_model.average_surplus(6)
         if not av_surplus is None:
-            self.logger.info("Average surplus: " + str(av_surplus))
+            # self.logger.info("Average surplus: " + str(av_surplus))
             for consumer in self.data_model.consumers:
                 if consumer.balance_activated:
                     if consumer.can_consume_this_surplus(av_surplus):

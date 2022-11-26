@@ -38,7 +38,7 @@ app.logger.addHandler(log_handler)
 log_handler = database_logging_handler(db)
 log_handler.setLevel(logging.INFO)
 app.logger.addHandler(log_handler)
-
+app.logger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
