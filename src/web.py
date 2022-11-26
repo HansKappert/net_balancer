@@ -79,8 +79,11 @@ def settings():
 
 @app.route('/download_db_file')
 def download_db_file():
-	path = os.path.join("..","energy_mediator.db")
-	return send_file(path, as_attachment=True)
+    file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","energy_mediator.db")
+    if os.path.isfile(file_name):
+        return send_file(file_name, as_attachment=True)
+    else:
+        logger.error(f"Cannot find database file at {file_name}")
 
 @app.route('/download_csv_file')
 def download_csv_file():
@@ -90,12 +93,16 @@ def download_csv_file():
     stats_retention_days = db.get_stats_retention()
     data = db.get_history(stats_retention_days * 24 * 60)
     with  open(file_name, "w") as f: 
+        logging.info(f"Writing data to temporary file {file_name}")
         f.write("timestamp;production;consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost\n")
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
             f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};\n")
         f.close()
-    return send_file(file_name, as_attachment=True)
+    if os.path.isfile(file_name):
+        return send_file(file_name, as_attachment=True)
+    else:
+        logging.error(f"Cannot find the file ({file_name}) I just created!")
 
 
 
