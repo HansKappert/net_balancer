@@ -37,7 +37,7 @@ class prices_writer:
                                                               urllib.parse.quote( date_end.strftime("%Y-%m-%dT%H:%M:%S.000Z")))
                     response = requests.get(url)
                     if response.status_code != 200:
-                        logging.print("HTTP status code: {} {}".format(response.status_code, response.reason) )
+                        self.logger.print("HTTP status code: {} {}".format(response.status_code, response.reason) )
                     else: 
                         json_response = json.loads(response.text)
                         for idx, p in enumerate(json_response["Prices"]):
@@ -49,5 +49,5 @@ class prices_writer:
             midnight = today + timedelta(days=1)
             timedelta_until_midnight = midnight - datetime.now()
             seconds_until_midnight = timedelta_until_midnight.seconds
-            logging.info(f"Waiting {seconds_until_midnight} seconds to get new price information")
+            self.logger.info(f"Waiting {seconds_until_midnight} seconds to get new price information")
             time.sleep(seconds_until_midnight)

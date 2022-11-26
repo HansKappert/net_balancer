@@ -62,7 +62,7 @@ class model:
             b.append(i) 
         
         if len(b) < 3:
-            logging.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
+            self.logger.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
             return None
         av = sum(b)/len(b)
 

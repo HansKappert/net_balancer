@@ -93,7 +93,7 @@ def download_csv_file():
     stats_retention_days = db.get_stats_retention()
     data = db.get_history(stats_retention_days * 24 * 60)
     with  open(file_name, "w") as f: 
-        logging.info(f"Writing data to temporary file {file_name}")
+        logger.info(f"Writing data to temporary file {file_name}")
         f.write("timestamp;production;consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost\n")
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
@@ -102,7 +102,7 @@ def download_csv_file():
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
     else:
-        logging.error(f"Cannot find the file ({file_name}) I just created!")
+        logger.error(f"Cannot find the file ({file_name}) I just created!")
 
 
 
