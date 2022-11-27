@@ -32,18 +32,18 @@ mylogger = logging.getLogger(__name__)
 app.logger.removeHandler(default_handler)
 
 streamlog_handler = logging.StreamHandler()
-# streamlog_handler.setLevel(logging.DEBUG)
+streamlog_handler.setLevel(logging.DEBUG)
 # app.logger.addHandler(streamlog_handler)
 
 dblog_handler = database_logging_handler(db)
-# dblog_handler.setLevel(logging.INFO)
+dblog_handler.setLevel(logging.INFO)
 # app.logger.addHandler(dblog_handler)
 
 for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
 
-logger.info("Web app ready to receive requests")
+mylogger.logger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
@@ -120,7 +120,6 @@ def kwh_history():
 
     history = db.get_history(minutes)
     app.logger.info(f"Got {len(history)} records from the database.")
-    mylogger.info(f"Got {len(history)} records from the database (mylogger).")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['
