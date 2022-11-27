@@ -12,6 +12,7 @@ from common.persistence              import persistence
 from common.database_logging_handler import database_logging_handler
 from service.tesla_energy_consumer   import tesla_energy_consumer
 
+# See reference webite for Flots: https://humblesoftware.com/flotr2/documentation
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
