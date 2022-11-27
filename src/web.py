@@ -169,8 +169,10 @@ def euro_history():
         if len(summarized_data) == 1:
             datetime_str = str(time.mktime(from_dt.timetuple()) * 1000)
             for row in summarized_data:
-                profits     += '[' + str(hour) + ',' + str(row[0] if row[0] else 0) + '],'
-                costs       += '[' + str(hour) + ',' + str(row[1] if row[1] else 0) + '],'
+                app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(row[0] if row[0] else 0)} ")
+        
+                costs       += '[' + str(hour) + ',' + str(row[0] if row[0] else 0) + '],'
+                profits     += '[' + str(hour) + ',' + str(row[1] if row[1] else 0) + '],'
                 tesla_costs += '[' + str(hour) + ',' + str(row[2] if row[2] else 0) + '],'
         
     costs       = costs.strip(',') + ']'
