@@ -13,6 +13,7 @@ from common.database_logging_handler import database_logging_handler
 from service.tesla_energy_consumer   import tesla_energy_consumer
 
 # See reference webite for Flots: https://humblesoftware.com/flotr2/documentation
+# and the project itself on https://github.com/HumbleSoftware/Flotr2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
@@ -44,7 +45,7 @@ for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
 
-mylogger.logger.info("Web app ready to receive requests")
+mylogger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
