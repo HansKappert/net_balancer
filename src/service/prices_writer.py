@@ -3,6 +3,7 @@ import urllib.parse
 import json
 import logging
 import time
+import pytz
 from datetime                        import date, datetime, timedelta
 from common.persistence              import persistence
 from common.database_logging_handler import database_logging_handler
@@ -27,14 +28,14 @@ class prices_writer:
 
         while True:
             today = datetime(date.today().year,date.today().month, date.today().day,0,0,0)
-            for d in range(-1,1):
+            for d in range(-10,1):
                 target_date = today + timedelta(days=d)
                 day_prices = self.persistence.get_day_prices(target_date)
                 if len(day_prices) == 0:
                     self.logger.info(f"Fetching prices for {target_date}")
                     date_end   = target_date + timedelta(hours=23)
-                    url        = base_url + url_params.format(urllib.parse.quote(target_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")), 
-                                                              urllib.parse.quote( date_end.strftime("%Y-%m-%dT%H:%M:%S.000Z")))
+                    url        = base_url + url_params.format(urllib.parse.quote(target_date.astimezone(pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")), 
+                                                              urllib.parse.quote(   date_end.astimezone(pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")))
                     response = requests.get(url)
                     if response.status_code != 200:
                         self.logger.print("HTTP status code: {} {}".format(response.status_code, response.reason) )
@@ -43,7 +44,9 @@ class prices_writer:
                         for idx, p in enumerate(json_response["Prices"]):
                             dt_str = p["readingDate"].replace("Z","")
                             dt = datetime.strptime(dt_str,'%Y-%m-%dT%H:%M:%S')
-                            self.persistence.write_prices(dt, float(p["price"]))
+                            price = float(p['price'])
+                            self.logger.info(f"Got new price for {dt_str}: {price}")
+                            self.persistence.write_prices(dt, price)
                     time.sleep(1)
 
             midnight = today + timedelta(days=1)
