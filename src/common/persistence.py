@@ -115,7 +115,7 @@ class persistence:
 
 
     def get_db_connection(self):
-        conn = sqlite3.connect(persistence.DBNAME)
+        conn = sqlite3.connect(persistence.DBNAME, timeout=60)
         conn.row_factory = sqlite3.Row
         return conn
 
