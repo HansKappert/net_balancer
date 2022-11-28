@@ -8,7 +8,7 @@ from common.database_logging_handler  import database_logging_handler
 class persistence:
     DBNAME = 'energy_mediator.db'
     def __init__(self) -> None:
-        con = sqlite3.connect(persistence.DBNAME)
+        con = self.get_db_connection()
         cur = con.cursor()
 
         self.logger = logging.getLogger(__name__)
