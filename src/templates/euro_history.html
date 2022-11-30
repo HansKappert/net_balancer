@@ -68,17 +68,11 @@
 
       
       options = {
-        bars : {
-            show : true,
-            shadowSize : 0,
-            barWidth : 1,
-          },      
         xaxis : {
-          labelsAngle : 45, 
           title : "Tijd",
-          noTicks: 12,
-          autoscale: true,
+          tickDecimals:0,
           min:0
+
         },
         yaxis : {
           title : "Euro",
@@ -91,20 +85,20 @@
         HtmlText : false
       };
 
-      Flotr.draw(
-          placeholder,
-          [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}
-             ],
-          options
-        );
+      // Flotr.draw(
+      //     placeholder,
+      //     [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}
+      //        ],
+      //     options
+      //   );
         
-//      Flotr.draw(
-//          placeholder,
-//          [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
-//            {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
-//            {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
-//         options
-//       );
+     Flotr.draw(
+         placeholder,
+         [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
+           {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
+           {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
+        options
+      );
         
       function refresh() {
         document.besturing.submit();  

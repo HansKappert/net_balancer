@@ -9,20 +9,6 @@
     <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
     <script type="text/javascript">
       
-      function padTo2Digits(num) {
-        return num.toString().padStart(2, '0');
-      }
-      function formatDate(date) {
-        return (
-          [
-            padTo2Digits(date.getHours()),
-            padTo2Digits(date.getMinutes()),
-            padTo2Digits(date.getSeconds()),
-          ].join(':')
-        );
-        
-      }
-
         var placeholder_prices = document.getElementById('placeholder_prices')
         var prices = {{ prices|safe }};
         
@@ -33,16 +19,14 @@
             barWidth : 0.8,
           },            
           xaxis : {
-            labelsAngle : 45, 
             title : "Tijd",
-            mode : 'Time',
-            timeMode : 'local',
-            noTicks: 14,
-            autoscale: true,
+            tickDecimals:0,
             min:0
           },
           yaxis : {
             title : "Euro",
+            noTicks: 10,
+            minorTickFreq: 4,
             min: 0
           },
           legend: {
