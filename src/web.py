@@ -6,17 +6,22 @@ from flask                           import Flask, request, jsonify, render_temp
 from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime
+from flask_bootstrap import Bootstrap
+from flask_datepicker                import datepicker
 
 from common.model                    import model
 from common.persistence              import persistence
 from common.database_logging_handler import database_logging_handler
 from service.tesla_energy_consumer   import tesla_energy_consumer
 
+
 # See reference webite for Flots: https://humblesoftware.com/flotr2/documentation
 # and the project itself on https://github.com/HumbleSoftware/Flotr2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
+Bootstrap(app)
+datepicker(app)
 
 db = persistence()
 data_model = model(db)

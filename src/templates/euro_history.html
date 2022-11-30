@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% block scripts %}
+  {{ super() }}
+  {{ datepicker.loader() }} {# to load jQuery-ui #}
+  {{ datepicker.picker(id=".dp") }}
+{% endblock %}
 {% block content %}
    <br>
 
@@ -106,12 +111,9 @@
 
       // setInterval(refresh, 10000);   
     </script>
-   <form name="besturing" method="post">
-    <span style="display:inline-block;margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
-    
-    <button type="submit" class="btn btn-primary" onclick="interval_decrease()">&nbsp;-&nbsp;</button>
-    <button type="submit" class="btn btn-primary" onclick="interval_increase()">&nbsp;+&nbsp;</button>
-  </span>
+    <form name="besturing" method="post" class="verticalform">
+      <input type="text" class="form-control dp" />
+    </span>
    <div class="form-group"></div>
   </form>
 
