@@ -6,7 +6,6 @@ from flask                           import Flask, request, jsonify, render_temp
 from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime,timedelta
-from flask_bootstrap import Bootstrap
 from flask_datepicker                import datepicker
 
 from common.model                    import model
