@@ -18,8 +18,6 @@ from service.tesla_energy_consumer   import tesla_energy_consumer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
-Bootstrap(app)
-datepicker(app)
 
 db = persistence()
 data_model = model(db)
