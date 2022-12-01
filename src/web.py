@@ -3,8 +3,6 @@ import os
 import time
 import tempfile
 from flask                           import Flask, request, jsonify, render_template, send_file, url_for, redirect
-from flask_wtf                       import Form
-from wtforms                         import DateField
 from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime,timedelta
@@ -52,8 +50,6 @@ for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
 
-class DateForm(Form):
-    dt = DateField('Datum', format="%d-%m-%Y")
 
 mylogger.info("Web app ready to receive requests")
 ###
