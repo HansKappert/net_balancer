@@ -1,4 +1,6 @@
+<!-- jinja -->
 {% extends 'base.html' %}
+
 {% block content %}
    <br>
 
@@ -36,8 +38,6 @@
           HtmlText : false
         };
 
-        // Draw graph with default options_energy, overwriting with passed options
-
         Flotr.draw(
           placeholder_prices,
             [ {data : prices        , label : 'Prijzen' , color: "#0000FF"}, 
@@ -45,9 +45,24 @@
               options_prices
           );
     
-
+          $(function() {
+            $( ".dtpick" ).datepicker({  
+               dateFormat:"yy-mm-dd"  
+            });
+          });
       
     </script>
+
+
+    <form name="besturing" method="post" class="verticalform">
+      <input name="datum" type="text" class="dtpick" value="{{ request.form['datum'] or datum }}"  size=10></input>
+      <!-- 
+        <input name="go"    type="submit" value="eerder">
+        <input name="go"    type="submit" value="later">
+      -->
+      <button type="submit" class="btn btn-primary">Go</button> 
+    </form>
+    <div class="form-group"></div>
 
 <br>
 

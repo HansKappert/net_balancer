@@ -3,9 +3,11 @@ import os
 import time
 import tempfile
 from flask                           import Flask, request, jsonify, render_template, send_file, url_for, redirect
+from flask_wtf                       import Form
+from wtforms                         import DateField
 from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
-from datetime                        import datetime
+from datetime                        import datetime,timedelta
 from flask_bootstrap import Bootstrap
 from flask_datepicker                import datepicker
 
@@ -49,6 +51,9 @@ dblog_handler.setLevel(logging.INFO)
 for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
+
+class DateForm(Form):
+    dt = DateField('Datum', format="%d-%m-%Y")
 
 mylogger.info("Web app ready to receive requests")
 ###
@@ -156,18 +161,24 @@ def kwh_history():
 @app.route('/euro_history', methods=['GET','POST'])
 def euro_history():
     if request.method == 'POST':
-        minutes = int(request.form["minutes"])
+        datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
+        if "go" in request.form:
+            if request.form["go"] == "eerder":
+                datum = datum + timedelta(days=-1)
+            if request.form["go"] == "later":
+                datum = datum + timedelta(days=1)
     else:
-        minutes = 60
+        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+
     hour = 0
     profits     = '['
     costs       = '['
     tesla_costs = '['
 
-    now = datetime.now()
+    
     while hour <= 23:
-        from_dt  = datetime(now.year,now.month,now.day,hour,0,0)
-        until_dt = datetime(now.year,now.month,now.day,hour,59,59)
+        from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
+        until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
         summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
         hour += 1
     
@@ -190,12 +201,21 @@ def euro_history():
                             costs       = costs, 
                             profits     = profits, 
                             tesla_costs = tesla_costs,
-                            minutes     = minutes)
+                            datum       = datum)
 
-@app.route('/prices', methods=['GET'])
+@app.route('/prices', methods=['GET','POST'])
 def prices():
-    
-    price_history = db.get_day_prices(datetime.now())
+    if request.method == 'POST':
+        datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
+        if "go" in request.form:
+            if request.form["go"] == "eerder":
+                datum = datum + timedelta(days=-1)
+            if request.form["go"] == "later":
+                datum = datum + timedelta(days=1)
+    else:
+        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+
+    price_history = db.get_day_prices(datum)
     prices = '['
     if len(price_history) > 0:
         for row in price_history:
@@ -203,12 +223,10 @@ def prices():
             hour = dt.hour        
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
+    datum = datum.strftime("%Y-%m-%d")
+    return render_template('prices.html', datum=datum, prices = prices)
+
     
-#        if request.method == 'POST':
-#            return redirect(url_for('history'))
-#        else:
-    return render_template('prices.html', 
-                            prices             = prices)
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():

@@ -109,13 +109,23 @@
         document.besturing.submit();  
       }
 
+      $(function() {
+            $( ".dtpick" ).datepicker({  
+               dateFormat:"yy-mm-dd"  
+            });
+          });
+      
       // setInterval(refresh, 10000);   
     </script>
     <form name="besturing" method="post" class="verticalform">
-      <input type="text" class="form-control dp" />
-    </span>
-   <div class="form-group"></div>
-  </form>
+      <input name="datum" type="text" class="dtpick" value="{{ request.form['datum'] or datum }}"  size=10></input>
+      <!-- 
+        <input name="go"    type="submit" value="eerder">
+        <input name="go"    type="submit" value="later">
+      -->
+      <button type="submit" class="btn btn-primary">Go</button> 
+    </form>
+    <div class="form-group"></div>
 
 <br>
 
