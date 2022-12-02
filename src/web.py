@@ -187,9 +187,9 @@ def euro_history():
     profits     = profits.strip(',') + ']'
     tesla_costs = tesla_costs.strip(',') + ']'
     
-    datetime_str = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    datum = datum.strftime("%Y-%m-%d")
+
     return render_template('euro_history.html', 
-                            start_datetime_str = datetime_str, 
                             costs       = costs, 
                             profits     = profits, 
                             tesla_costs = tesla_costs,
