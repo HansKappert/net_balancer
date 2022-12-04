@@ -76,7 +76,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table stats")
-            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER)")
+            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
             con.commit()
         else:
             results = cur.execute("PRAGMA table_info(stats)").fetchall()
@@ -91,6 +91,11 @@ class persistence:
                 cur.execute("ALTER TABLE stats ADD COLUMN tesla_cost REAL")
             con.commit()
 
+        result = cur.execute("PRAGMA table_info(cum_stats)").fetchone()
+        if (result == None):
+            self.logger.debug ("Creating table cum_stats")
+            cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
+            con.commit()
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
@@ -372,6 +377,7 @@ class persistence:
         con.close()
         return result
 
+
     def get_summarized_euro_history_from_to(self, from_datetime:datetime, to_datetime:datetime):
         from_ts = time.mktime(from_datetime.timetuple())
         until_ts = time.mktime(to_datetime.timetuple())
@@ -380,6 +386,46 @@ class persistence:
         result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
                     {"from_tstamp"  :from_ts,
                      "until_tstamp" :until_ts}).fetchall()
+        con.close()
+        return result
+
+
+    def get_cum_stats_for_date_hour(self, date_hour:datetime):
+        con = self.get_db_connection()
+        result = con.execute("SELECT * FROM cum_stats WHERE year = :year AND month = :month AND day = :day AND hour = :hour",
+                    {"year":date_hour.year,
+                    "month":date_hour.month,
+                    "day":date_hour.day,
+                    "hour":date_hour.hour}).fetchall()
+        con.close()
+        return result
+
+    def get_cum_stats_for_date(self, date:datetime):
+        con = self.get_db_connection()
+        result = con.execute("SELECT * FROM cum_status WHERE year = :year AND month = :month AND day = :day ORDER BY by hour",
+                    {"year":date.year,
+                    "month":date.month,
+                    "day":date.day}).fetchall()
+        con.close()
+        return result
+
+    def accumulate_date_hour(self, date_hour:datetime):
+        from_ts = time.mktime(date_hour.timetuple())
+        until_dt = date_hour + timedelta(hours=1)
+        until_ts = time.mktime(until_dt.timetuple())
+        
+        con = self.get_db_connection()
+        result = con.execute("""INSERT INTO cum_stats
+        (year, month, day, hour, current_production, current_consumption, tesla_consumption, cost, profit, tesla_cost) 
+          SELECT :year, :month, :day, :hour, sum(current_production), sum(current_consumption), sum(tesla_consumption), sum(cost), sum(profit), sum(tesla_cost) 
+        FROM stats WHERE tstamp between :from_tstamp and :until_tstamp""",
+                    {"year"        : date_hour.year,
+                    "month"        : date_hour.month,
+                    "day"          : date_hour.day,
+                    "hour"         : date_hour.hour,
+                    "from_tstamp"  : from_ts,
+                    "until_tstamp" : until_ts}).fetchall()
+        con.commit()
         con.close()
         return result
 

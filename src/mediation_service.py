@@ -10,6 +10,7 @@ from service.tesla_energy_consumer   import tesla_energy_consumer
 from service.eventlog_cleaner        import eventlog_cleaner
 from service.energy_mediator         import mediator
 from service.stats_writer            import stats_writer
+from service.cum_stats_writer        import cum_stats_writer
 from service.prices_writer           import prices_writer
 from common.model                    import model
 from common.persistence              import persistence
@@ -54,12 +55,6 @@ if __name__ == "__main__":
 
     logger.debug ("Device name  : " + args.device_name)
 
-
-    cleaner = eventlog_cleaner(db)
-    th = threading.Thread(target=cleaner.start, daemon=True)
-    th.start()
-    logger.debug ("Eventlog table cleaner is setup")
-
     if args.device_name == "stub":
         current_data_supplier = P1reader_stub("none")
     else:
@@ -80,6 +75,12 @@ if __name__ == "__main__":
 
     logger.debug ("Data model created")
 
+    # Start some background processes
+    cleaner = eventlog_cleaner(db)
+    th = threading.Thread(target=cleaner.start, daemon=True)
+    th.start()
+    logger.debug ("Eventlog table cleaner is setup")
+
     priceswriter = prices_writer(db)
     th = threading.Thread(target=priceswriter.start, daemon=True)
     th.start()
@@ -88,7 +89,12 @@ if __name__ == "__main__":
     statswriter = stats_writer(data_model,db)
     th = threading.Thread(target=statswriter.start, daemon=True)
     th.start()
-    logger.debug ("Eventlog table cleaner is setup")
+    logger.debug ("Stats writer is setup")
+
+    cum_statswriter = cum_stats_writer(db)
+    th = threading.Thread(target=cum_statswriter.start, daemon=True)
+    th.start()
+    logger.debug ("Cum_stats writer is setup")
 
     logger.debug ("Energy consumer is setup")
     energy_mediator = mediator(data_model) # a list of consumers is part of this data model
