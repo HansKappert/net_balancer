@@ -5,128 +5,132 @@
   {{ datepicker.picker(id=".dp") }}
 {% endblock %}
 {% block content %}
-   <br>
+  <br>
 
-   <div id="placeholder" style="width:100%;height:500px;"></div>
-   <!--[if IE]>
-    <script type="text/javascript" src="path/to/flashcanvas.js"></script>
-    <![endif]-->
-    <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
-    <script type="text/javascript">
-      function interval_decrease() {
-        minutes_el = document.getElementById("minutes");
-        minutes = parseInt(minutes_el.value);
-        if (minutes > 1) {
-          if (minutes > 1)
-            stepsize =  1;
-          if (minutes > 10)
-            stepsize =  10;
-          if (minutes > 30)
-            stepsize =  30;
-          if (minutes > 60)
-            stepsize = 60;
-          minutes_el.value = parseInt(minutes_el.value) - stepsize;          
-        }
-      }
-      function interval_increase() {
-        minutes_el = document.getElementById("minutes");
-        minutes = parseInt(minutes_el.value);
-        stepsize =  1;        
-        if (minutes >= 10)
-          stepsize =  10;
-        if (minutes >= 30)
-          stepsize =  30;
-        if (minutes >= 60)
-          stepsize = 60;
-        minutes_el.value = parseInt(minutes_el.value) + stepsize;
-      }
-      function padTo2Digits(num) {
-        return num.toString().padStart(2, '0');
-      }
-      function formatDate(date) {
-        return (
-          [
-            padTo2Digits(date.getHours()),
-            padTo2Digits(date.getMinutes()),
-            padTo2Digits(date.getSeconds()),
-          ].join(':')
-        );
-        return (
-          [
-            date.getFullYear(),
-            padTo2Digits(date.getMonth() + 1),
-            padTo2Digits(date.getDate()),
-          ].join('-') +
-          ' ' +
-          [
-            padTo2Digits(date.getHours()),
-            padTo2Digits(date.getMinutes()),
-            padTo2Digits(date.getSeconds()),
-          ].join(':')
-        );
-      }
+  <div id="placeholder" style="width:100%;height:500px;"></div>
+  <!--[if IE]>
+  <script type="text/javascript" src="path/to/flashcanvas.js"></script>
+  <![endif]-->
+  <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+  <script type="text/javascript">
+  function interval_decrease() {
+    minutes_el = document.getElementById("minutes");
+    minutes = parseInt(minutes_el.value);
+    if (minutes > 1) {
+      if (minutes > 1)
+        stepsize =  1;
+      if (minutes > 10)
+        stepsize =  10;
+      if (minutes > 30)
+        stepsize =  30;
+      if (minutes > 60)
+        stepsize = 60;
+      minutes_el.value = parseInt(minutes_el.value) - stepsize;          
+    }
+  }
+  function interval_increase() {
+    minutes_el = document.getElementById("minutes");
+    minutes = parseInt(minutes_el.value);
+    stepsize =  1;        
+    if (minutes >= 10)
+      stepsize =  10;
+    if (minutes >= 30)
+      stepsize =  30;
+    if (minutes >= 60)
+      stepsize = 60;
+    minutes_el.value = parseInt(minutes_el.value) + stepsize;
+  }
+  function padTo2Digits(num) {
+    return num.toString().padStart(2, '0');
+  }
+  function formatDate(date) {
+    return (
+      [
+        padTo2Digits(date.getHours()),
+        padTo2Digits(date.getMinutes()),
+        padTo2Digits(date.getSeconds()),
+      ].join(':')
+    );
+    return (
+      [
+        date.getFullYear(),
+        padTo2Digits(date.getMonth() + 1),
+        padTo2Digits(date.getDate()),
+      ].join('-') +
+      ' ' +
+      [
+        padTo2Digits(date.getHours()),
+        padTo2Digits(date.getMinutes()),
+        padTo2Digits(date.getSeconds()),
+      ].join(':')
+    );
+  }
 
-      var placeholder = document.getElementById('placeholder')
-      var costs = {{ costs|safe }};
-      var profits = {{ profits|safe }};
-      var tesla_costs = {{ tesla_costs|safe }};
+  var placeholder = document.getElementById('placeholder')
+  var costs = {{ costs }};
+  var profits = {{ profits }};
+  var tesla_costs = {{ tesla_costs }};
 
-      
-      options = {
-        xaxis : {
-          title : "Tijd",
-          tickDecimals:0,
-          min:0
 
-        },
-        yaxis : {
-          title : "Euro",
-          min: 0
-        },
-        legend: {
-          position: "sw",
-        },
-        title : "Kosten en opbrengst uitgezet tegen de tijd",
-        HtmlText : false
-      };
+  options = {
+    xaxis : {
+      title : "Tijd",
+      tickDecimals:0,
+      min:0
 
-      // Flotr.draw(
-      //     placeholder,
-      //     [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}
-      //        ],
-      //     options
-      //   );
-        
-     Flotr.draw(
-         placeholder,
-         [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
-           {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
-           {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
-        options
-      );
-        
-      function refresh() {
-        document.besturing.submit();  
-      }
+    },
+    yaxis : {
+      title : "Euro",
+      min: 0
+    },
+    legend: {
+      position: "sw",
+    },
+    title : "Kosten en opbrengst uitgezet tegen de tijd",
+    HtmlText : false
+  };
 
-      $(function() {
-            $( ".dtpick" ).datepicker({  
-               dateFormat:"yy-mm-dd"  
-            });
-          });
-      
-      // setInterval(refresh, 10000);   
-    </script>
-    <form name="besturing" method="post" class="verticalform">
+  // Flotr.draw(
+  //     placeholder,
+  //     [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}
+  //        ],
+  //     options
+  //   );
+    
+  Flotr.draw(
+      placeholder,
+      [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
+        {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
+        {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
+    options
+  );
+    
+  function refresh() {
+    document.besturing.submit();  
+  }
+
+  $(function() {
+        $( ".dtpick" ).datepicker({  
+            dateFormat:"yy-mm-dd"  
+        });
+      });
+
+  // setInterval(refresh, 10000);   
+  </script>
+  Totaal:<br>
+  Verbruik: {{total_costs}}<br>
+  Opbrengst: {{total_profits}}<br>
+  Tesla consumptie: {{total_tesla}}<br>
+  <form name="besturing" method="post" class="verticalform">
       <input name="datum" type="text" class="dtpick" value="{{ request.form['datum'] or datum }}"  size=10></input>
       <!-- 
         <input name="go"    type="submit" value="eerder">
         <input name="go"    type="submit" value="later">
       -->
       <button type="submit" class="btn btn-primary">Go</button> 
-    </form>
-    <div class="form-group"></div>
-
-<br>
+  </form>
+  
+  <div class="form-group"></div>
+  <br>
 
 {% endblock %}
