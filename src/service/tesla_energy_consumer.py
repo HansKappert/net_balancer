@@ -293,8 +293,9 @@ class tesla_energy_consumer(energy_consumer):
     def is_at_home(self):
         self.__update_vehicle_data()  
         (lat,lon) = self.persistence.get_tesla_home_coords()
-        if abs(float(self.drive_state['longitude']) - lon) < 0.000100 and abs(float(self.drive_state['latitude'])  - lat) < 0.000100: 
-            return True
+        if 'longitude' in self.drive_state and 'latitude' in self.drive_state:
+            if abs(float(self.drive_state['longitude']) - lon) < 0.000100 and abs(float(self.drive_state['latitude'])  - lat) < 0.000100: 
+                return True
         return False
 
     @property
