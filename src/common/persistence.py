@@ -96,9 +96,9 @@ class persistence:
             self.logger.debug ("Creating table cum_stats")
             cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
             con.commit()
-        else:
-            cur.execute("DELETE FROM cum_stats")
-            con.commit()
+        # else:
+        #     cur.execute("DELETE FROM cum_stats")
+        #     con.commit()
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
