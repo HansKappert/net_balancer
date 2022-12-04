@@ -117,10 +117,6 @@
 
   // setInterval(refresh, 10000);   
   </script>
-  Totaal:<br>
-  Verbruik: {{total_costs}}<br>
-  Opbrengst: {{total_profits}}<br>
-  Tesla consumptie: {{total_tesla}}<br>
   <form name="besturing" method="post" class="verticalform">
       <input name="datum" type="text" class="dtpick" value="{{ request.form['datum'] or datum }}"  size=10></input>
       <!-- 
@@ -129,6 +125,11 @@
       -->
       <button type="submit" class="btn btn-primary">Go</button> 
   </form>
+  <table>Totaal:<br>
+    <tr><td>Verbruik:</td><td>{{total_costs}}</td></tr>
+    <tr><td>Opbrengst:</td><td>{{total_profits}}</td></tr>
+    <tr><td>Tesla consumptie:</td><td>{{total_tesla}}</td></tr>
+  </table>
   
   <div class="form-group"></div>
   <br>
