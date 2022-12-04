@@ -5,7 +5,7 @@ from common.database_logging_handler import database_logging_handler
 
 class model:
     def __init__(self, db:persistence) -> None:
-        self.persistence = db
+        self._persistence = db
         self._surplus = 0 # the last calculated value.
         self._balance = 0
         self._log_retention = 0
@@ -15,6 +15,7 @@ class model:
         self._past_surplusses = []
         self._consumers = []
         self.logger = logging.getLogger(__name__)
+
         
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
@@ -28,6 +29,10 @@ class model:
         for c in self._consumers:
             if c.name == name:
                 return c
+
+    @property
+    def persistence(self):
+        return self._persistence
 
     @property
     def surplus(self):

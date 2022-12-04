@@ -20,7 +20,7 @@ class energy_producer:
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
-        log_handler = database_logging_handler(persistence())
+        log_handler = database_logging_handler(data_model.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 

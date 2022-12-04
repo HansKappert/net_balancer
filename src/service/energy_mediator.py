@@ -11,7 +11,6 @@ from common.database_logging_handler import database_logging_handler
 class mediator:
     def __init__(self, data_model) -> None:
         self.data_model = data_model
-        self.persistence = persistence()
         self.mediation_delay = 10
         self.logger = logging.getLogger(__name__)
         
@@ -19,7 +18,7 @@ class mediator:
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
         
-        log_handler = database_logging_handler(self.persistence)
+        log_handler = database_logging_handler(data_model.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 
