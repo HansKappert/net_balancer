@@ -96,6 +96,9 @@ class persistence:
             self.logger.debug ("Creating table cum_stats")
             cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
             con.commit()
+        else:
+            cur.execute("DELETE FROM cum_stats")
+            con.commit()
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
@@ -416,8 +419,8 @@ class persistence:
         
         con = self.get_db_connection()
         result = con.execute("""INSERT INTO cum_stats
-        (year, month, day, hour, current_production, current_consumption, tesla_consumption, cost, profit, tesla_cost) 
-          SELECT :year, :month, :day, :hour, sum(current_production), sum(current_consumption), sum(tesla_consumption), sum(cost), sum(profit), sum(tesla_cost) 
+                 (year,  month,  day,  hour,           current_production,                            current_consumption,                           tesla_consumption,                            cost_price,               profit_price,               cost,               profit,               tesla_cost) 
+          SELECT :year, :month, :day, :hour, round(sum(current_production)/1000.0/360.0,6), round(sum(current_consumption)/1000.0/360.0,6), round(sum(tesla_consumption)/1000.0/360.0,6), round(avg(cost_price),6), round(avg(profit_price),6), round(sum(cost),6), round(sum(profit),6), round(sum(tesla_cost),6)  
         FROM stats WHERE tstamp between :from_tstamp and :until_tstamp""",
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,
