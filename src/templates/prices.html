@@ -2,67 +2,76 @@
 {% extends 'base.html' %}
 
 {% block content %}
-   <br>
+<br>
 
-   <div id="placeholder_prices" style="width:100%;height:500px;"></div>
-   <!--[if IE]>
-    <script type="text/javascript" src="path/to/flashcanvas.js"></script>
-    <![endif]-->
-    <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
-    <script type="text/javascript">
-      
-        var placeholder_prices = document.getElementById('placeholder_prices')
-        var prices = {{ prices|safe }};
-        
-        options_prices = {
-          bars : {
-            show : true,
-            shadowSize : 0,
-            barWidth : 0.8,
-          },            
-          xaxis : {
-            title : "Tijd",
-            tickDecimals:0,
-            min:0
+<div id="placeholder_prices" style="width:100%;height:500px;"></div>
+<!--[if IE]>
+<script type="text/javascript" src="path/to/flashcanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+<script type="text/javascript">
+  
+var placeholder_prices = document.getElementById('placeholder_prices')
+var prices = {{ prices|safe }};
+
+options_prices = {
+  bars : {
+    show : true,
+    shadowSize : 0,
+    barWidth : 0.8,
+  },            
+  xaxis : {
+    title : "Tijd",
+    tickDecimals:0,
+    min:0
+  },
+  yaxis : {
+    title : "Euro",
+    noTicks: 10,
+    minorTickFreq: 4,
+    min: 0
+  },
+  legend: {
+    position: "ne",
+  },
+  title : "KWh prijzen uitgezet tegen de tijd",
+  HtmlText : false
+};
+
+Flotr.draw(
+  placeholder_prices,
+    [ {data : prices        , label : 'Prijzen' , color: "#0000FF"}, 
+      ],
+      options_prices
+  );
+
+  $(function() {
+        $(".dtpick")
+        .datepicker(
+          {  
+              dateFormat:"yy-mm-dd",
+              firstDay: 1 // Start with Monday     
           },
-          yaxis : {
-            title : "Euro",
-            noTicks: 10,
-            minorTickFreq: 4,
-            min: 0
-          },
-          legend: {
-            position: "ne",
-          },
-          title : "KWh prijzen uitgezet tegen de tijd",
-          HtmlText : false
-        };
+          {
+          onSelect: function(dateText) {
+          console.log("Selected date: " + dateText + "; input's current value: " + this.value);
+        $(this).change();
+    }
+  })
+  .on("change", function() {
+    console.log("Got change event from field");
+    document.besturing.submit();
+  });
+  });
 
-        Flotr.draw(
-          placeholder_prices,
-            [ {data : prices        , label : 'Prijzen' , color: "#0000FF"}, 
-              ],
-              options_prices
-          );
-    
-          $(function() {
-            $( ".dtpick" ).datepicker({  
-               dateFormat:"yy-mm-dd"  
-            });
-          });
-      
-    </script>
+</script>
 
-
-    <form name="besturing" method="post" class="verticalform">
-      <input name="datum" type="text" class="dtpick" value="{{ request.form['datum'] or datum }}"  size=10></input>
-      <!-- 
-        <input name="go"    type="submit" value="eerder">
-        <input name="go"    type="submit" value="later">
-      -->
-      <button type="submit" class="btn btn-primary">Go</button> 
-    </form>
-    <div class="form-group"></div>
+<form name="besturing" method="post" class="verticalform">
+  <input name="datum" type="text" class="dtpick" value="{{ datum }}"  size=10></input>
+  <input name="go"    type="submit" value="eerder" class="btn btn-primary">
+  <input name="go"    type="submit" value="later"  class="btn btn-primary"> 
+</form>
+<div class="form-group"></div>
 
 <br>
 

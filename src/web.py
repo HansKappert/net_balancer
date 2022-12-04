@@ -229,8 +229,8 @@ def prices():
             hour = dt.hour        
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
-    datum = datum.strftime("%Y-%m-%d")
-    return render_template('prices.html', datum=datum, prices = prices)
+    ddatum = datum.strftime("%Y-%m-%d")
+    return render_template('prices.html', datum=ddatum, prices = prices)
 
     
 
