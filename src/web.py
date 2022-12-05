@@ -175,8 +175,7 @@ def euro_history():
         from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
         until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
         summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
-        hour += 1
-    
+        
         if len(summarized_data) == 1:
             datetime_str = str(time.mktime(from_dt.timetuple()) * 1000)
             for row in summarized_data:
@@ -190,6 +189,7 @@ def euro_history():
                 total_costs   = total_costs   + c
                 total_profits = total_profits + p 
                 total_tesla   = total_tesla   + t
+        hour += 1
     costs       = costs.strip(',') + ']'
     profits     = profits.strip(',') + ']'
     tesla_costs = tesla_costs.strip(',') + ']'
