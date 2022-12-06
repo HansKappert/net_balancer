@@ -152,6 +152,7 @@ def kwh_history():
 
 @app.route('/euro_history', methods=['GET','POST'])
 def euro_history():
+    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
     if request.method == 'POST':
         datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
         if "go" in request.form:
@@ -160,7 +161,7 @@ def euro_history():
             if request.form["go"] == "later":
                 datum = datum + timedelta(days=1)
     else:
-        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+        datum = today
 
     hour = 0
     profits     = '['
@@ -172,23 +173,33 @@ def euro_history():
     total_tesla   = 0.0
     
     while hour <= 23:
-        from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
-        until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
-        summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
+        c = 0.0
+        p =  0.0
+        t = 0.0
+        if datum < today:
+            date_hour = datum + timedelta(hours=hour)
+            summarized_data = db.get_cum_stats_for_date_hour(date_hour)
+            for row in summarized_data: # typically 1 row.
+                    c = row[9]  if row[9] else 0.0
+                    p = row[10] if row[10] else 0.0
+                    t = row[11] if row[1] else 0.0
+        else:
+            from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
+            until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
+            summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
         
-        if len(summarized_data) == 1:
-            datetime_str = str(time.mktime(from_dt.timetuple()) * 1000)
-            for row in summarized_data:
-                c = row[0] if row[0] else 0.0
-                p = row[1] if row[1] else 0.0
-                t = row[2] if row[2] else 0.0
-                app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)} ")
-                costs       += '[' + str(hour) + ',' + str(c) + '],'
-                profits     += '[' + str(hour) + ',' + str(p) + '],'
-                tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
-                total_costs   = total_costs   + c
-                total_profits = total_profits + p 
-                total_tesla   = total_tesla   + t
+            if len(summarized_data) == 1:
+                for row in summarized_data: # typically 1 row.
+                    c = row[0] if row[0] else 0.0
+                    p = row[1] if row[1] else 0.0
+                    t = row[2] if row[2] else 0.0
+            app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)} ")
+            costs       += '[' + str(hour) + ',' + str(c) + '],'
+            profits     += '[' + str(hour) + ',' + str(p) + '],'
+            tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
+            total_costs   = total_costs   + c
+            total_profits = total_profits + p 
+            total_tesla   = total_tesla   + t
         hour += 1
     costs       = costs.strip(',') + ']'
     profits     = profits.strip(',') + ']'
