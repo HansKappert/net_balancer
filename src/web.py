@@ -176,6 +176,8 @@ def euro_history():
         c = 0.0
         p =  0.0
         t = 0.0
+        has_data_this_hour = False
+
         if datum < today:
             date_hour = datum + timedelta(hours=hour)
             summarized_data = db.get_cum_stats_for_date_hour(date_hour)
@@ -185,23 +187,27 @@ def euro_history():
                         p = row[10] if row[10] else 0.0
                         t = row[11] if row[11] else 0.0
                 app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}")
+                has_data_this_hour = True
         else:
-            from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
-            until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
-            summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
-        
-            if len(summarized_data) == 1:
-                for row in summarized_data: # typically 1 row.
-                    c = row[0] if row[0] else 0.0
-                    p = row[1] if row[1] else 0.0
-                    t = row[2] if row[2] else 0.0
-                app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}")
-        costs       += '[' + str(hour) + ',' + str(c) + '],'
-        profits     += '[' + str(hour) + ',' + str(p) + '],'
-        tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
-        total_costs   = total_costs   + c
-        total_profits = total_profits + p 
-        total_tesla   = total_tesla   + t
+            if datetime.now().hour >= hour:
+                from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
+                until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
+                summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
+            
+                if len(summarized_data) == 1:
+                    for row in summarized_data: # typically 1 row.
+                        c = row[0] if row[0] else 0.0
+                        p = row[1] if row[1] else 0.0
+                        t = row[2] if row[2] else 0.0
+                    app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}")
+                    has_data_this_hour = True
+        if has_data_this_hour:
+            costs       += '[' + str(hour) + ',' + str(c) + '],'
+            profits     += '[' + str(hour) + ',' + str(p) + '],'
+            tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
+            total_costs   = total_costs   + c
+            total_profits = total_profits + p 
+            total_tesla   = total_tesla   + t
         hour += 1
     costs       = costs.strip(',') + ']'
     profits     = profits.strip(',') + ']'
