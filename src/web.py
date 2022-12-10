@@ -215,9 +215,12 @@ def euro_history():
     
     datum = datum.strftime("%Y-%m-%d")
 
-    total_costs   = f"€{round(total_costs,4)}"
+    total_netto   = total_costs - total_tesla
+
+    total_costs   = f"€{round(total_costs  ,4)}"
     total_profits = f"€{round(total_profits,4)}"
-    total_tesla   = f"€{round(total_tesla,4)}"
+    total_tesla   = f"€{round(total_tesla  ,4)}"
+    total_netto   = f"€{round(total_netto  ,4)}"
     return render_template('euro_history.html', 
                             costs         = costs, 
                             profits       = profits, 
@@ -225,7 +228,8 @@ def euro_history():
                             datum         = datum,
                             total_costs   = total_costs,
                             total_profits = total_profits,
-                            total_tesla   = total_tesla
+                            total_tesla   = total_tesla,
+                            total_netto   = total_netto
                             )
 
 @app.route('/prices', methods=['GET','POST'])
