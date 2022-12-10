@@ -34,7 +34,7 @@ class P1datagram:
         self.instantaneous_active_power_L3_MinusP = 0            # 1-0:62.7.0(00.470*kW)
         # undocumented      0-1:24.1.0(003)
         # undocumented      0-1:96.1.0(4730303332353631323838313236303137)
-        # undocumented      0-1:24.2.1(210529150000S)(03072.410*m3)
+        self.gas_metering                         = 0            # 0-1:24.2.1(210529150000S)(03072.410*m3)
 
     def _strip_to_string(self, string_value):
         string_value = string_value[:-1]
@@ -43,6 +43,14 @@ class P1datagram:
     def _strip_to_number(self, string_value):
         string_value = string_value.strip(')').strip('*kWh').strip('*kW').strip('*A').replace(".","")
         return int(string_value)
+
+    def _strip_gas_meter_value(self, string_value):
+        parts = string_value.split("(")
+        part = parts[2]
+        parts = part.split("*")
+        part = parts[0]
+        gas_metering = float(part)
+        return gas_metering
 
     def _strip_to_date(self, string_value):
         string_value = string_value.strip(')')
@@ -86,3 +94,4 @@ class P1datagram:
                 elif obis_ref == "1-0:22.7.0":  self.instantaneous_active_power_L1_MinusP      = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:42.7.0":  self.instantaneous_active_power_L2_MinusP      = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_number(obis_value)
+                elif obis_ref == "0-1:24.2.1":  self.gas_metering                              = self._strip_gas_meter_value(obis_value)

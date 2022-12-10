@@ -70,8 +70,9 @@ class energy_producer:
             self.write_datagram_field(dg, "instantaneous_active_power_L3_PlusP"     , header) + ";" + \
             self.write_datagram_field(dg, "instantaneous_active_power_L1_MinusP"    , header) + ";" + \
             self.write_datagram_field(dg, "instantaneous_active_power_L2_MinusP"    , header) + ";" + \
-            self.write_datagram_field(dg, "instantaneous_active_power_L3_MinusP"    , header) 
-            
+            self.write_datagram_field(dg, "instantaneous_active_power_L3_MinusP"    , header) + ";" + \
+            self.write_datagram_field(dg, "gas_metering"                            , header)
+
         with open(self.DATA_DUMP_FILE_NAME, 'a') as f:
             f.write(line + "\n")
             f.close()
