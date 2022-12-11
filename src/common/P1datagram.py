@@ -45,11 +45,8 @@ class P1datagram:
         return int(string_value)
 
     def _strip_gas_meter_value(self, string_value):
-        parts = string_value.split("(")
-        part = parts[2]
-        parts = part.split("*")
-        part = parts[0]
-        gas_metering = float(part)
+        string_value = string_value.strip('*m3)')
+        gas_metering = float(string_value)
         return gas_metering
 
     def _strip_to_date(self, string_value):
@@ -93,5 +90,8 @@ class P1datagram:
                 elif obis_ref == "1-0:61.7.0":  self.instantaneous_active_power_L3_PlusP       = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:22.7.0":  self.instantaneous_active_power_L1_MinusP      = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:42.7.0":  self.instantaneous_active_power_L2_MinusP      = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_number(obis_value)
-                elif obis_ref == "0-1:24.2.1":  self.gas_metering                              = self._strip_gas_meter_value(obis_value)
+                elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_number(obis_value)  
+            elif len(pieces) == 3:
+                obis_ref = pieces[0]
+                obis_value = pieces[2]
+                if obis_ref == "0-1:24.2.1":  self.gas_metering                              = self._strip_gas_meter_value(obis_value)

@@ -150,6 +150,7 @@ def kwh_history():
                             tesla_consumptions = tesla_consumptions,
                             minutes            = minutes)
 
+
 @app.route('/euro_history', methods=['GET','POST'])
 def euro_history():
     today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
@@ -167,15 +168,18 @@ def euro_history():
     profits     = '['
     costs       = '['
     tesla_costs = '['
+    gas_usages  = '['
 
     total_costs   = 0.0
     total_profits = 0.0
     total_tesla   = 0.0
+    total_gas     = 0.0
     
     while hour <= 23:
         c = 0.0
-        p =  0.0
+        p = 0.0
         t = 0.0
+        g = 0.0
         has_data_this_hour = False
 
         if datum < today:
@@ -186,7 +190,8 @@ def euro_history():
                         c = row[9]  if row[9] else 0.0
                         p = row[10] if row[10] else 0.0
                         t = row[11] if row[11] else 0.0
-                app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}")
+                        g = row[12] if row[12] else 0.0
+                app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
                 has_data_this_hour = True
         else:
             if datetime.now().hour >= hour:
@@ -199,19 +204,23 @@ def euro_history():
                         c = row[0] if row[0] else 0.0
                         p = row[1] if row[1] else 0.0
                         t = row[2] if row[2] else 0.0
-                    app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}")
+                        g = row[3] if row[3] else 0.0
+                    app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
                     has_data_this_hour = True
         if has_data_this_hour:
             costs       += '[' + str(hour) + ',' + str(c) + '],'
             profits     += '[' + str(hour) + ',' + str(p) + '],'
             tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
+            gas_usages  += '[' + str(hour) + ',' + str(g) + '],'
             total_costs   = total_costs   + c
             total_profits = total_profits + p 
             total_tesla   = total_tesla   + t
+            total_gas     = total_gas     + g
         hour += 1
-    costs       = costs.strip(',') + ']'
-    profits     = profits.strip(',') + ']'
+    costs       = costs.strip(',')       + ']'
+    profits     = profits.strip(',')     + ']'
     tesla_costs = tesla_costs.strip(',') + ']'
+    gas_usages  = gas_usages.strip(',')   + ']'
     
     datum = datum.strftime("%Y-%m-%d")
 
@@ -221,6 +230,7 @@ def euro_history():
     total_profits = f"€{round(total_profits,4)}"
     total_tesla   = f"€{round(total_tesla  ,4)}"
     total_netto   = f"€{round(total_netto  ,4)}"
+    total_gas     = f"€{round(total_gas    ,3)}"
     return render_template('euro_history.html', 
                             costs         = costs, 
                             profits       = profits, 
@@ -229,8 +239,67 @@ def euro_history():
                             total_costs   = total_costs,
                             total_profits = total_profits,
                             total_tesla   = total_tesla,
-                            total_netto   = total_netto
+                            total_netto   = total_netto,
+                            gas_usages    = gas_usages,
+                            total_gas     = total_gas
                             )
+
+@app.route('/gas_usage_history', methods=['GET','POST'])
+def gas_usage_history():
+    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    if request.method == 'POST':
+        datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
+        if "go" in request.form:
+            if request.form["go"] == "eerder":
+                datum = datum + timedelta(days=-1)
+            if request.form["go"] == "later":
+                datum = datum + timedelta(days=1)
+    else:
+        datum = today
+
+    hour = 0
+    gas_usages   = '['
+
+    total_gas     = 0.0
+    
+    while hour <= 23:
+        g = 0.0
+        has_data_this_hour = False
+
+        if datum < today:
+            date_hour = datum + timedelta(hours=hour)
+            summarized_data = db.get_cum_stats_for_date_hour(date_hour)
+            if len(summarized_data) == 1:
+                for row in summarized_data: # typically 1 row.
+                        g = row[12] if row[12] else 0.0
+                app.logger.debug(f"gas {str(g)}")
+                has_data_this_hour = True
+        else:
+            if datetime.now().hour >= hour:
+                from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
+                until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
+                summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
+            
+                if len(summarized_data) == 1:
+                    for row in summarized_data: # typically 1 row.
+                        g = row[3] if row[3] else 0.0
+                    app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : gas {str(g)}")
+                    has_data_this_hour = True
+        if has_data_this_hour:
+            gas_usages   += '[' + str(hour) + ',' + str(g) + '],'
+            total_gas     = total_gas     + g
+        hour += 1
+    gas_usages   = gas_usages.strip(',')   + ']'
+    
+    datum = datum.strftime("%Y-%m-%d")
+
+    total_gas   = f"€{round(total_gas  ,4)}"
+    return render_template('gas_usage_history.html', 
+                            datum         = datum,
+                            gas_usages    = gas_usages,
+                            total_gas     = total_gas
+                            )
+
 
 @app.route('/prices', methods=['GET','POST'])
 def prices():

@@ -39,6 +39,8 @@ class energy_producer:
             data_model.current_production = datagram.actual_electricity_power_received
         if datagram.actual_electricity_power_delivered is not None:
             data_model.current_consumption =  datagram.actual_electricity_power_delivered
+        if datagram.gas_metering:
+            data_model.current_gas_reading = datagram.gas_metering
 
         self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
         # self.write_datagram_to_file(datagram, False)

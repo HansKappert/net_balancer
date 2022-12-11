@@ -13,10 +13,10 @@
   <![endif]-->
   <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
   <script type="text/javascript">
+
   var placeholder = document.getElementById('placeholder')
-  var costs = {{ costs }};
-  var profits = {{ profits }};
-  var tesla_costs = {{ tesla_costs }};
+  var gas_usages = {{ gas_usages }};
+
 
   options = {
     xaxis : {
@@ -27,22 +27,21 @@
       max:24
     },
     yaxis : {
-      title : "Euro",
+      title : "M3",
       noTicks: 20,
       min: 0
     },
     legend: {
       position: "ne",
     },
-    title : "Kosten en opbrengst uitgezet tegen de tijd",
+    title : "Gebruik in M3 uitgezet tegen de tijd",
     HtmlText : false
   };
 
   Flotr.draw(
       placeholder,
-      [ {data : costs      , label : 'Verbruik'      , color: "#0000FF"}, 
-        {data : profits    , label : 'Teruglevering' , color: "#FFFF00"},
-        {data : tesla_costs, label : 'Tesla verbruik', color: "#FF0000"} ],
+      [ {data : gas_usages      , label : 'Verbruik'      , color: "#0000FF"}, 
+         ],
     options
   );
     
@@ -77,10 +76,7 @@
   <input name="go"    type="submit" value="later"  class="btn btn-primary"> 
 </form><br>
 <table>Totaal:<br>
-  <tr><td>Verbruik:</td><td>{{total_costs}}</td></tr>
-  <tr><td>Opbrengst:</td><td>{{total_profits}}</td></tr>
-  <tr><td>Tesla consumptie:</td><td>{{total_tesla}}</td></tr>
-  <tr><td>Eigen verbruik (zonder Tesla):</td><td>{{total_netto}}</td></tr>
+  <tr><td>Verbruik:</td><td>{{total_gas_usages}}</td></tr>
 </table>
 
 <div class="form-group"></div>

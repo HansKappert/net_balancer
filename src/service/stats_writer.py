@@ -34,10 +34,11 @@ class stats_writer:
             consumption       = self.data_model.current_consumption
             tesla_consumption = self.data_model.get_consumer("Tesla").consumption_power_now
             production        = self.data_model.current_production
+            gas_reading       = self.data_model.current_gas_reading
             cost              = consumption       * current_price_w10s
             profit            = production        * current_price_w10s
             tesla_cost        = tesla_consumption * current_price_w10s
-            self.logger.info(f"KWh price={current_price_kwh}, consumption={consumption} cost={cost}")
+            self.logger.debug(f"KWh price={current_price_kwh}, consumption={consumption} cost={cost} tesla_cost={tesla_cost} gas_reading={gas_reading}")
             self.persistence.write_statistics(
                                     when,
                                     production,
@@ -47,7 +48,8 @@ class stats_writer:
                                     current_price_kwh,
                                     cost,
                                     profit,
-                                    tesla_cost
+                                    tesla_cost,
+                                    gas_reading
                                     )
         else:
             self.logger.info("Geen prijsinformatie bekend voor dit tijdstip.")

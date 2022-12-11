@@ -12,6 +12,7 @@ class model:
         # last readings
         self._current_consumption = 0
         self._current_production = 0
+        self._current_gas_reading = 0
         self._past_surplusses = []
         self._consumers = []
         self.logger = logging.getLogger(__name__)
@@ -102,6 +103,16 @@ class model:
         # We wait until the current consumption is set.
         # self.surplus = self._current_production - self._current_consumption
         self.persistence.set_current_production(value)
+
+
+    @property
+    def current_gas_reading(self):
+        self._current_gas_reading = self.persistence.get_current_gas_reading()
+        return self._current_gas_reading
+    @current_gas_reading.setter
+    def current_gas_reading(self,value):
+        self._current_gas_reading = value
+        self.persistence.set_current_gas_reading(value)
 
 
     @property

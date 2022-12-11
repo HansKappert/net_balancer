@@ -40,11 +40,12 @@ class persistence:
                     con.commit()
                     
     
-        result = cur.execute("PRAGMA table_info(readings)").fetchone()
-        if (result == None):
-            self.logger.debug ("Creating table readings")
-            cur.execute("CREATE TABLE readings(surplus INTEGER,current_consumption INTEGER,current_production INTEGER)") # deficient_delay_count is obsolete
-            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0)")
+        result = cur.execute("PRAGMA table_info(readings)").fetchall()
+        if len(result) != 4:
+            self.logger.debug ("Re-Creating table readings")
+            cur.execute("DROP TABLE IF EXISTS  readings")
+            cur.execute("CREATE TABLE readings(surplus INTEGER, current_consumption INTEGER, current_production INTEGER, current_gas_reading REAL)")
+            cur.execute("INSERT INTO  readings VALUES (0,0,0,0)")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
@@ -76,7 +77,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table stats")
-            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
+            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_reading REA)")
             con.commit()
         else:
             results = cur.execute("PRAGMA table_info(stats)").fetchall()
@@ -89,12 +90,18 @@ class persistence:
                 cur.execute("ALTER TABLE stats ADD COLUMN cost REAL")
                 cur.execute("ALTER TABLE stats ADD COLUMN profit REAL")
                 cur.execute("ALTER TABLE stats ADD COLUMN tesla_cost REAL")
+            if len(results) == 9:
+                cur.execute("ALTER TABLE stats ADD COLUMN gas_reading REAL")
             con.commit()
 
-        result = cur.execute("PRAGMA table_info(cum_stats)").fetchone()
-        if (result == None):
+        result = cur.execute("PRAGMA table_info(cum_stats)").fetchall()
+        if len(result) == 0:
             self.logger.debug ("Creating table cum_stats")
             cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
+            con.commit()
+        if len(result) == 12:
+            self.logger.debug ("Adding column gas_consumption") 
+            cur.execute("ALTER TABLE cum_stats ADD COLUMN gas_consumption REAL")
             con.commit()
         # else:
         #     cur.execute("DELETE FROM cum_stats")
@@ -165,6 +172,11 @@ class persistence:
         return self.__get_reading_column_value("current_consumption")
     def set_current_consumption(self,value):
         self.__set_reading_column_value("current_consumption", value)
+
+    def get_current_gas_reading(self):
+        return self.__get_reading_column_value("current_gas_reading")
+    def set_current_gas_reading(self,value):
+        self.__set_reading_column_value("current_gas_reading", value)
 
 
     #  consumer consumption_max
@@ -305,10 +317,10 @@ class persistence:
         con.commit()
         con.close()
 
-    def write_statistics(self, when, current_production, current_consumption, tesla_consumption, cost_price, profit_price, cost, profit, tesla_cost ):
+    def write_statistics(self, when, current_production, current_consumption, tesla_consumption, cost_price, profit_price, cost, profit, tesla_cost, gas_reading = 0 ):
         con = self.get_db_connection()
         tstamp = time.mktime(when.timetuple())
-        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_consumption, :tesla_consumption, :cost_price, :profit_price, :cost, :profit, :tesla_cost)",
+        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_consumption, :tesla_consumption, :cost_price, :profit_price, :cost, :profit, :tesla_cost, :gas_reading)",
                                                        {"tstamp"             : tstamp, 
                                                         "current_production" : current_production, 
                                                         "current_consumption": current_consumption, 
@@ -317,7 +329,8 @@ class persistence:
                                                         "profit_price"       : profit_price, 
                                                         "cost"               : cost, 
                                                         "profit"             : profit, 
-                                                        "tesla_cost"         : tesla_cost
+                                                        "tesla_cost"         : tesla_cost,
+                                                        "gas_reading"        : gas_reading
                                                         })
         con.commit()
          
@@ -386,7 +399,7 @@ class persistence:
         until_ts = time.mktime(to_datetime.timetuple())
         
         con = self.get_db_connection()
-        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
+        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost), round(max(gas_reading) - min(gas_reading),6) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
                     {"from_tstamp"  :from_ts,
                      "until_tstamp" :until_ts}).fetchall()
         con.close()
@@ -419,8 +432,8 @@ class persistence:
         
         con = self.get_db_connection()
         result = con.execute("""INSERT INTO cum_stats
-                 (year,  month,  day,  hour,           current_production,                            current_consumption,                           tesla_consumption,                            cost_price,               profit_price,               cost,               profit,               tesla_cost) 
-          SELECT :year, :month, :day, :hour, round(sum(current_production)/1000.0/360.0,6), round(sum(current_consumption)/1000.0/360.0,6), round(sum(tesla_consumption)/1000.0/360.0,6), round(avg(cost_price),6), round(avg(profit_price),6), round(sum(cost),6), round(sum(profit),6), round(sum(tesla_cost),6)  
+                 (year,  month,  day,  hour,           current_production,                            current_consumption,                            tesla_consumption,                            cost_price,               profit_price,               cost,               profit,               tesla_cost    , gas_consumption) 
+          SELECT :year, :month, :day, :hour, round(sum(current_production)/1000.0/360.0,6), round(sum(current_consumption)/1000.0/360.0,6), round(sum(tesla_consumption)/1000.0/360.0,6), round(avg(cost_price),6), round(avg(profit_price),6), round(sum(cost),6), round(sum(profit),6), round(sum(tesla_cost),6), round(max(gas_reading) - min(gas_reading),6)  
         FROM stats WHERE tstamp between :from_tstamp and :until_tstamp""",
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,
