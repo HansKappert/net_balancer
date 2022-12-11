@@ -94,6 +94,7 @@ def download_db_file():
     else:
         app.logger.error(f"Cannot find database file at {file_name}")
 
+
 @app.route('/download_csv_file')
 def download_csv_file():
     tmp_path = tempfile.gettempdir()
@@ -107,6 +108,24 @@ def download_csv_file():
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
             f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};\n")
+        f.close()
+    if os.path.isfile(file_name):
+        return send_file(file_name, as_attachment=True)
+    else:
+        app.logger.error(f"Cannot find the file ({file_name}) I just created!")
+
+
+@app.route('/download_cum_csv_file')
+def download_cum_csv_file():
+    tmp_path = tempfile.gettempdir()
+    file_name = os.path.join(tmp_path, "cum_stats.csv")
+    app.logger.info(f"Writing csv file to: {file_name}")
+    data = db.get_cum_stats()
+    with  open(file_name, "w") as f: 
+        app.logger.info(f"Writing data to temporary file {file_name}")
+        f.write("year;month;day;hour;current_production;current_consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost;gas_consumption\n")
+        for row in data:
+            f.write(f"{row[0]};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};{row[8]};{row[9]};{row[10]};{row[11]};{row[12]}\n")
         f.close()
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
@@ -244,6 +263,7 @@ def euro_history():
                             total_gas     = total_gas
                             )
 
+
 @app.route('/gas_usage_history', methods=['GET','POST'])
 def gas_usage_history():
     today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
@@ -323,8 +343,7 @@ def prices():
     prices = prices.strip(',') + ']'
     ddatum = datum.strftime("%Y-%m-%d")
     return render_template('prices.html', datum=ddatum, prices = prices)
-
-    
+  
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():

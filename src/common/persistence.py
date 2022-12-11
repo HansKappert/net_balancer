@@ -416,12 +416,24 @@ class persistence:
         con.close()
         return result
 
-    def get_cum_stats_for_date(self, date:datetime):
+    def get_cum_stats_for_month(self, year: int, month: int):
         con = self.get_db_connection()
-        result = con.execute("SELECT * FROM cum_status WHERE year = :year AND month = :month AND day = :day ORDER BY by hour",
-                    {"year":date.year,
-                    "month":date.month,
-                    "day":date.day}).fetchall()
+        result = con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month, day ORDER BY year, month, day",
+                    {"year":year,
+                    "month":month}).fetchall()
+        con.close()
+        return result
+
+    def get_cum_stats_for_year(self, year: int):
+        con = self.get_db_connection()
+        result = con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month ORDER BY year, month",
+                    {"year":date.year}).fetchall()
+        con.close()
+        return result
+
+    def get_cum_stats(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT * FROM cum_stats ORDER BY year, month, day, hour").fetchall()
         con.close()
         return result
 
