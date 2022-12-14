@@ -302,7 +302,7 @@ def gas_usage_history():
             
                 if len(summarized_data) == 1:
                     for row in summarized_data: # typically 1 row.
-                        g = row[9] if row[9] else 0.0
+                        g = row[3] if row[3] else 0.0
                     app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : gas {str(g)}")
                     has_data_this_hour = True
         if has_data_this_hour:
