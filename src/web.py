@@ -313,7 +313,7 @@ def gas_usage_history():
     
     datum = datum.strftime("%Y-%m-%d")
 
-    total_gas   = f"€{round(total_gas  ,4)}"
+    total_gas   = f"{round(total_gas  ,4)}m3"
     return render_template('gas_usage_history.html', 
                             datum         = datum,
                             gas_usages    = gas_usages,
