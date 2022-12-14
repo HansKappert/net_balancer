@@ -25,6 +25,7 @@ class prices_writer:
     def start(self):
         base_url   = "https://api.energyzero.nl/v1/energyprices"
         url_params = "?fromDate={}&tillDate={}&interval=4&usageType=1&inclBtw=true"
+        CET = pytz.timezone('CET')
 
         while True:
             today = datetime(date.today().year,date.today().month, date.today().day,0,0,0)
@@ -42,11 +43,12 @@ class prices_writer:
                     else: 
                         json_response = json.loads(response.text)
                         for idx, p in enumerate(json_response["Prices"]):
-                            dt_str = p["readingDate"].replace("Z","")
-                            dt = datetime.strptime(dt_str,'%Y-%m-%dT%H:%M:%S')
+                            dt_str = p["readingDate"].replace("Z"," +0000")
+                            dt = datetime.strptime(dt_str,'%Y-%m-%dT%H:%M:%S %z')
+                            cet_dt = dt + timedelta(seconds=CET._utcoffset.seconds)
                             price = float(p['price'])
-                            self.logger.info(f"Got new price for {dt_str}: {price}")
-                            self.persistence.write_prices(dt, price)
+                            self.logger.info(f"Got new price for {cet_dt}: {price}")
+                            self.persistence.write_prices(cet_dt, price)
                     time.sleep(1)
 
             midnight = today + timedelta(days=1)
