@@ -107,7 +107,9 @@ def download_csv_file():
         f.write("timestamp;production;consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost;gas_reading\n")
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};{row[8]};{row[9]}\n")
+            line = dt + "{0};{1};{2};{3:.2f};{4:.2f};{5:.7f};{6:.7f};{7:.7f};{8:.2f}\n".format(row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9])
+            line = line.replace('.',',')
+            f.write(line)
         f.close()
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
@@ -125,7 +127,18 @@ def download_cum_csv_file():
         app.logger.info(f"Writing data to temporary file {file_name}")
         f.write("year;month;day;hour;current_production;current_consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost;gas_consumption\n")
         for row in data:
-            f.write(f"{row[0]};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};{row[8]};{row[9]};{row[10]};{row[11]};{row[12]}\n")
+            line = "{0};{1};{2};{3};{4};{5};{6};{7:.2f};{8:.2f};{9:.7f};{10:.7f};{11:.7f};{12:.2f}\n".format(row[0],row[1],row[2],row[3],
+            row[4]  if row[4] else 0,
+            row[5]  if row[5] else 0,
+            row[6]  if row[6] else 0,
+            row[7]  if row[7] else 0,
+            row[8]  if row[8] else 0,
+            row[9]  if row[9] else 0,
+            row[10] if row[10] else 0,
+            row[11] if row[11] else 0,
+            row[12] if row[12] else 0)
+            line = line.replace('.',',')
+            f.write(line)
         f.close()
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
