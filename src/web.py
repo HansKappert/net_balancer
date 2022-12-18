@@ -107,7 +107,7 @@ def download_csv_file():
         f.write("timestamp;production;consumption;tesla_consumption;cost_price;profit_price;cost;profit;tesla_cost;gas_reading\n")
         for row in data:
             dt = datetime.fromtimestamp(int(row[0])).strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};{row[8]}\n")
+            f.write(f"{dt};{row[1]};{row[2]};{row[3]};{row[4]};{row[5]};{row[6]};{row[7]};{row[8]};{row[9]}\n")
         f.close()
     if os.path.isfile(file_name):
         return send_file(file_name, as_attachment=True)
