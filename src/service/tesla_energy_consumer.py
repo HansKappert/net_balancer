@@ -69,7 +69,10 @@ class tesla_energy_consumer(energy_consumer):
             self.charge_state = self.vehicle['charge_state']
             self.drive_state = self.vehicle['drive_state']
             self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
-            self._consumption_amps_now = self.charge_state['charger_actual_current']
+            if self.is_at_home:
+                self._consumption_amps_now = self.charge_state['charger_actual_current']
+            else: 
+                self._consumption_amps_now = 0
             self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
             self.latitude_current = float(self.drive_state['latitude'])
             self.longitude_current = float(self.drive_state['longitude'])
