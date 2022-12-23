@@ -56,16 +56,19 @@ class tesla_energy_consumer(energy_consumer):
         
         try:
             if self.vehicle is None:
-                self.initialize()          
+                self.initialize()
         except:
             self.initialize()
-        if self.vehicle['state'] == 'asleep':
-            self.vehicle.sync_wake_up()
-        
-        self._last_vehicle_data_update = datetime.now()
+        try:
+            if self.vehicle['state'] == 'asleep':
+                self.vehicle.sync_wake_up()
+        except Exception as e:
+            self.logger.debug("Error during waking up the car: " + str(e))
+            return 
         
         try:
             self.vehicle.get_vehicle_data()
+            self._last_vehicle_data_update = datetime.now()
             self.charge_state = self.vehicle['charge_state']
             self.drive_state = self.vehicle['drive_state']
             self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
