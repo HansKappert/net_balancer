@@ -62,11 +62,7 @@ class tesla_energy_consumer(energy_consumer):
         try:
             if self.vehicle['state'] == 'asleep':
                 self.vehicle.sync_wake_up()
-        except Exception as e:
-            self.logger.debug("Error during waking up the car: " + str(e))
-            return 
         
-        try:
             self.vehicle.get_vehicle_data()
             self._last_vehicle_data_update = datetime.now()
             self.charge_state = self.vehicle['charge_state']
@@ -83,7 +79,7 @@ class tesla_energy_consumer(energy_consumer):
             self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
             self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
         except Exception as e:
-            self.logger.debug("Error during getting vehicle data: " + str(e))
+            self.logger.error("Error during getting vehicle data: " + str(e))
             return        
 
 
