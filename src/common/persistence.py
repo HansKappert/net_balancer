@@ -357,7 +357,7 @@ class persistence:
             result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
             con.close()
             if result:
-                result = result[0]
+                return result[0]
             return None
         except Exception as e:
             self.logger.exception(e)
