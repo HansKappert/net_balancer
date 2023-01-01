@@ -13,7 +13,8 @@
   <![endif]-->
   <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
   <script type="text/javascript">
-  var placeholder = document.getElementById('placeholder')
+  var placeholder = document.getElementById('placeholder');
+  placeholder.setAttribute("style","height:" + (window.innerHeight - 250) * 0.9 + "px");
   var costs = {{ costs }};
   var profits = {{ profits }};
   var tesla_costs = {{ tesla_costs }};
@@ -28,7 +29,7 @@
     },
     yaxis : {
       title : "Euro",
-      noTicks: 20,
+      noTicks: Math.round(window.innerHeight / 40),
       min: 0
     },
     legend: {

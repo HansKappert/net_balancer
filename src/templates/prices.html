@@ -4,14 +4,16 @@
 {% block content %}
 <br>
 
-<div id="placeholder_prices" style="width:100%;height:450px;"></div>
+<div id="placeholder" style="width:100%;height:450px;"></div>
 <!--[if IE]>
 <script type="text/javascript" src="path/to/flashcanvas.js"></script>
 <![endif]-->
 <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
 <script type="text/javascript">
   
-var placeholder_prices = document.getElementById('placeholder_prices')
+var placeholder = document.getElementById('placeholder');
+placeholder.setAttribute("style","height:" + (window.innerHeight - 100) * 0.9 + "px");
+
 var prices = {{ prices|safe }};
 
 options_prices = {
@@ -29,7 +31,7 @@ options_prices = {
   },
   yaxis : {
     title : "Euro",
-    noTicks: 20,
+    noTicks: Math.round(window.innerHeight / 40),
     min: 0
   },
   legend: {
@@ -40,7 +42,7 @@ options_prices = {
 };
 
 Flotr.draw(
-  placeholder_prices,
+  placeholder,
     [ {data : prices        , label : 'Prijzen' , color: "#0000FF"}, 
       ],
       options_prices

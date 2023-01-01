@@ -61,10 +61,11 @@
         );
       }
 
-      var placeholder = document.getElementById('placeholder')
+      var placeholder = document.getElementById('placeholder');
       var consumptions = {{ consumptions|safe }};
       var productions = {{ productions|safe }};
       var tesla_consumptions = {{ tesla_consumptions|safe }};
+      placeholder.setAttribute("style","height:" + (window.innerHeight - 120) * 0.9 + "px");
 
       /* multiply by 1000 to convert seconds into milliseconds */
       for (i = 0; i < consumptions.length; i++) {

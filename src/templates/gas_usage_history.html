@@ -14,9 +14,9 @@
   <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
   <script type="text/javascript">
 
-  var placeholder = document.getElementById('placeholder')
+  var placeholder = document.getElementById('placeholder');
+  placeholder.setAttribute("style","height:" + (window.innerHeight - 200) * 0.9 + "px");
   var gas_usages = {{ gas_usages }};
-
 
   options = {
     xaxis : {
@@ -28,7 +28,7 @@
     },
     yaxis : {
       title : "M3",
-      noTicks: 20,
+      noTicks: Math.round(window.innerHeight / 40),
       min: 0
     },
     legend: {
