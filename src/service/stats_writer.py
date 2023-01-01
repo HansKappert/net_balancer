@@ -27,7 +27,7 @@ class stats_writer:
     def write_stats(self):
         when = datetime.now()
         current_price_kwh = self.persistence.get_price_at_datetime(when)
-        if current_price_kwh:
+        if current_price_kwh is None:
             current_price_kwm = current_price_kwh / 60   # price in euro
             current_price_kw10s = current_price_kwm / 6
             current_price_w10s  = current_price_kw10s / 1000

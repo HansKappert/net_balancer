@@ -358,7 +358,7 @@ class persistence:
             con.close()
             if result:
                 result = result[0]
-            return result
+            return None
         except Exception as e:
             self.logger.exception(e)
             return None
