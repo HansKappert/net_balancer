@@ -29,7 +29,7 @@ class prices_writer:
 
         while True:
             today = datetime(date.today().year,date.today().month, date.today().day,0,0,0)
-            for d in range(-10,1):
+            for d in range(-10,2):
                 target_date = today + timedelta(days=d)
                 day_prices = self.persistence.get_day_prices(target_date)
                 if len(day_prices) == 0:
