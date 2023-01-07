@@ -52,7 +52,8 @@ class prices_writer:
                     time.sleep(1)
 
             midnight = today + timedelta(days=1)
-            timedelta_until_midnight = midnight - datetime.now()
-            seconds_until_midnight = timedelta_until_midnight.seconds
-            self.logger.info(f"Waiting {seconds_until_midnight} seconds to get new price information")
-            time.sleep(seconds_until_midnight)
+            fivePM = midnight - timedelta(hours=7)
+            timedelta_until_next_run = fivePM - datetime.now()
+            seconds_until_next_run = timedelta_until_next_run.seconds
+            self.logger.info(f"Waiting {seconds_until_next_run} seconds to get new price information")
+            time.sleep(seconds_until_next_run)
