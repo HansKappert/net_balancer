@@ -51,9 +51,9 @@ class prices_writer:
                             self.persistence.write_prices(cet_dt, price)
                     time.sleep(1)
 
-            midnight = today + timedelta(days=1)
-            fivePM = midnight - timedelta(hours=7)
-            timedelta_until_next_run = fivePM - datetime.now()
+            # at 15u prices for the next day are available. So we'll collect them at 15:05
+            fifteen_hour_five = today + timedelta(hours=15) + timedelta(minutes=5)
+            timedelta_until_next_run = fifteen_hour_five - datetime.now() 
             seconds_until_next_run = timedelta_until_next_run.seconds
             self.logger.info(f"Waiting {seconds_until_next_run} seconds to get new price information")
             time.sleep(seconds_until_next_run)
