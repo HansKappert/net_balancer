@@ -35,16 +35,29 @@ class mediator:
         a bit less power.
         """
         av_surplus = self.data_model.average_surplus(6)
-        if not av_surplus is None:
+        if av_surplus:
             # self.logger.info("Average surplus: " + str(av_surplus))
             for consumer in self.data_model.consumers:
                 if consumer.balance_activated:
                     if consumer.can_consume_this_surplus(av_surplus):
                         if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
                             self.data_model.reset_average_surplus()
+                        else:
+                            current, average = self.data_model.get_current_and_average_price()
+                            if current < average * 0.5:
+                                for consumer in self.data_model.consumers:
+                                    max_consumption_power = consumer.max_consumption_power
+                                    if consumer.can_consume_this_surplus(max_consumption_power):
+                                        consumer.start_consuming(max_consumption_power)
+        else:
+            current, average = self.data_model.get_current_and_average_price()
+            if current < average * 0.5:
+                for consumer in self.data_model.consumers:
+                    max_consumption_power = consumer.max_consumption_power
+                    if consumer.can_consume_this_surplus(max_consumption_power):
+                        consumer.start_consuming(max_consumption_power)
 
-        
-        
+            
 
     def mediate(self, producer : service.energy_producer):
         """

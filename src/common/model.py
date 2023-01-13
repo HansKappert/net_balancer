@@ -1,4 +1,5 @@
 import logging
+from datetime                        import datetime,timedelta
 from common.persistence import persistence
 from service.abc_energy_consumer import energy_consumer
 from common.database_logging_handler import database_logging_handler
@@ -141,3 +142,16 @@ class model:
     @property
     def consumers(self):
         return self._consumers
+
+    def get_current_and_average_price(self):
+        total = 0
+        current_price = 0
+        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+        prices = self.persistence.get_day_prices(datum)
+        for row in prices:
+            dt = datetime.fromtimestamp(int(row[0]))
+            hour = dt.hour   
+            total += row[1]
+            if hour == datetime.now().hour:
+                current_price = row[1]
+        return current_price, total/24    
