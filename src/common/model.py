@@ -154,4 +154,4 @@ class model:
             total += row[1]
             if hour == datetime.now().hour:
                 current_price = row[1]
-        return current_price, total/24    
+        return current_price, round(total/24,2)    

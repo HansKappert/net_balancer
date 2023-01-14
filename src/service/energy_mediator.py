@@ -24,15 +24,6 @@ class mediator:
 
         pass
 
-    def consume_because_of_low_price(self):
-        current, average = self.data_model.get_current_and_average_price()
-        if current < average * 0.5:
-            self.logger.info(f"Price this hour ({current}) is below today's average ({average}), so consume at maximum")
-            for consumer in self.data_model.consumers:
-                max_consumption_power = consumer.max_consumption_power
-                consumer.start_consuming(max_consumption_power)
-        else:
-            self.logger.info(f"Price this hour ({current}) is below today's average ({average}), so consume at maximum")
 
 
     def __mediate_once(self):
@@ -45,20 +36,22 @@ class mediator:
         started. But an electric vehicle that is charging might be able to deal with 
         a bit less power.
         """
-        av_surplus = self.data_model.average_surplus(6)
-        if av_surplus:
-            # self.logger.info("Average surplus: " + str(av_surplus))
+        current, average = self.data_model.get_current_and_average_price()
+        if current < average * 0.5:
+            self.logger.info(f"Price this hour ({current}) is below 50% of today's average ({average}), so consume at maximum")
             for consumer in self.data_model.consumers:
-                if consumer.balance_activated:
-                    if consumer.can_consume_this_surplus(av_surplus):
-                        if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
-                            self.data_model.reset_average_surplus()
-                        else:
-                            self.consume_because_of_low_price()
-                else:
-                    self.consume_because_of_low_price()
+                max_consumption_power = consumer.max_consumption_power
+                consumer.start_consuming(max_consumption_power)
         else:
-            self.consume_because_of_low_price()
+            self.logger.info(f"Price this hour ({current}) is above 50% of today's average ({average}), so balance ")
+            av_surplus = self.data_model.average_surplus(6)
+            if av_surplus:
+                # self.logger.info("Average surplus: " + str(av_surplus))
+                for consumer in self.data_model.consumers:
+                    if consumer.balance_activated:
+                        if consumer.can_consume_this_surplus(av_surplus):
+                            if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
+                                self.data_model.reset_average_surplus()
 
             
 
