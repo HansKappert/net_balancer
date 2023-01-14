@@ -24,6 +24,14 @@ class mediator:
 
         pass
 
+    def consume_because_of_low_price(self):
+        current, average = self.data_model.get_current_and_average_price()
+        if current < average * 0.5:
+            for consumer in self.data_model.consumers:
+                max_consumption_power = consumer.max_consumption_power
+                if consumer.can_consume_this_surplus(max_consumption_power):
+                    consumer.start_consuming(max_consumption_power)
+
     def __mediate_once(self):
         """
         This function is called on a frequent base by the mediate method.
@@ -43,19 +51,11 @@ class mediator:
                         if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
                             self.data_model.reset_average_surplus()
                         else:
-                            current, average = self.data_model.get_current_and_average_price()
-                            if current < average * 0.5:
-                                for consumer in self.data_model.consumers:
-                                    max_consumption_power = consumer.max_consumption_power
-                                    if consumer.can_consume_this_surplus(max_consumption_power):
-                                        consumer.start_consuming(max_consumption_power)
+                            self.consume_because_of_low_price()
+                else:
+                    self.consume_because_of_low_price()
         else:
-            current, average = self.data_model.get_current_and_average_price()
-            if current < average * 0.5:
-                for consumer in self.data_model.consumers:
-                    max_consumption_power = consumer.max_consumption_power
-                    if consumer.can_consume_this_surplus(max_consumption_power):
-                        consumer.start_consuming(max_consumption_power)
+            self.consume_because_of_low_price()
 
             
 
