@@ -63,7 +63,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table tesla")
-            cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL)")
+            cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL, balance_above INTEGER, price_percentage INTEGER)")
             cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
             con.commit()
         else:
@@ -72,6 +72,12 @@ class persistence:
                 cur.execute("ALTER TABLE tesla ADD COLUMN balance_above INTEGER")
                 con.commit()
                 cur.execute("UPDATE tesla SET balance_above = 50")
+                con.commit()
+            result = cur.execute("PRAGMA table_info(tesla)").fetchall()
+            if (len(result) == 6):
+                cur.execute("ALTER TABLE tesla ADD COLUMN price_percentage INTEGER")
+                con.commit()
+                cur.execute("UPDATE tesla SET price_percentage = 50")
                 con.commit()
 
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
@@ -218,6 +224,20 @@ class persistence:
         result = con.execute("UPDATE tesla SET balance_above = :value",{"value":value})
         con.commit()
         con.close()
+
+
+    # consumer price_percentage
+    def get_tesla_price_percentage(self):
+        con = self.get_db_connection()
+        result = con.execute("SELECT price_percentage FROM tesla").fetchone()
+        con.close()
+        return int(result[0])
+    def set_tesla_price_percentage(self, value):
+        con = self.get_db_connection()
+        result = con.execute("UPDATE tesla SET price_percentage = :value",{"value":value})
+        con.commit()
+        con.close()
+
 
     # consumer charge_until
     def get_tesla_charge_until(self):

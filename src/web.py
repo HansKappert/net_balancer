@@ -362,8 +362,9 @@ def prices():
 def consumer_tesla():
     if request.method == 'POST':
         data_model._consumers[0].max_consumption_power = int(request.form['max_consumption_power'])
-        tesla.balance_above = int(request.form['balance_above'])
-        tesla.charge_until  = int(request.form['charge_until'])
+        tesla.balance_above     = int(request.form['balance_above'])
+        tesla.charge_until      = int(request.form['charge_until'])
+        tesla.price_percentage  = int(request.form['price_percentage'])
         if 'set_home_location' in request.form:
             set_home_location = request.form['set_home_location']
             if set_home_location=='on':
@@ -373,6 +374,8 @@ def consumer_tesla():
     else:
         coords_home = db.get_tesla_home_coords()
         coords_current = db.get_tesla_current_coords()
+        price_percentage  = db.get_tesla_price_percentage()
+        
         osm = Nominatim(user_agent='TeslaPy')
         battery_level = tesla.battery_level
         if coords_home[0] == 0 and coords_home[1] == 0:
@@ -394,7 +397,8 @@ def consumer_tesla():
             location_now          = location_now,
             location_home         = location_home,
             battery_level         = battery_level,
-            est_battery_range     = tesla.est_battery_range
+            est_battery_range     = tesla.est_battery_range,
+            price_percentage      = price_percentage
         )
 
 

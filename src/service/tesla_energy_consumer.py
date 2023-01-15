@@ -19,6 +19,7 @@ class tesla_energy_consumer(energy_consumer):
         self.charge_state = {}
         self.drive_state = {}
         self._est_battery_range = 0
+        self._price_percentage = db.get_tesla_price_percentage()
         
         self.logger = logging.getLogger(__name__)
         
@@ -219,6 +220,15 @@ class tesla_energy_consumer(energy_consumer):
     def balance_above(self,value):
         self._balance_above = value
         self.persistence.set_tesla_balance_above(value)
+
+    @property
+    def price_percentage(self):
+        self._price_percentage = self.persistence.get_tesla_price_percentage()
+        return self._price_percentage
+    @price_percentage.setter
+    def price_percentage(self,value):
+        self._price_percentage = value
+        self.persistence.set_tesla_price_percentage(value)
 
 
     @property

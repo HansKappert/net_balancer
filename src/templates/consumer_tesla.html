@@ -23,6 +23,14 @@
                 placeholder="Post charge_until" class="form-control"
                 value="{{ request.form['charge_until'] or charge_until }}">
             </input>
+
+            <br>
+            <label for="title">Ook laden als uurprijs onder </label>
+            <input type="number" name="price_percentage"  MIN="5" MAX="100" STEP="1" 
+                placeholder="Post price_percentage" class="form-control"
+                value="{{ request.form['price_percentage'] or price_percentage }}">
+            </input>% ligt van daggemiddelde<br>
+    
     
             <br>
             <label for="title">Huidig batterijniveau&nbsp;</label> 

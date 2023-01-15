@@ -92,3 +92,13 @@ class energy_consumer(ABC):
     @balance_activated.setter
     def balance_activated(self,value):
         pass
+
+    @property
+    def price_percentage(self):
+        """
+        This function should report back to the caller above what percentage of the day's average price, the energy consumer would llike to receive maximum power
+        """
+        pass
+    @price_percentage.setter
+    def price_percentage(self,value):
+        pass

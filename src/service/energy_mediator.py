@@ -40,7 +40,8 @@ class mediator:
         for consumer in self.data_model.consumers:
             if consumer.balance_activated:
                 current, average = self.data_model.get_current_and_average_price()
-                if current < average * 0.5:
+                price_percentage = consumer.price_percentage
+                if current < average * (price_percentage/100):
                     self.logger.info(f"Price this hour ({current}) is below 50% of today's average ({average}), so consume at maximum")
                     max_consumption_power = consumer.max_consumption_power
                     if consumer.can_consume_this_surplus(av_surplus):
