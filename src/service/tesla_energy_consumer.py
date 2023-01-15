@@ -156,7 +156,7 @@ class tesla_energy_consumer(energy_consumer):
         if curr_level < self.balance_above:
             max_current_consumption = self.power_to_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
-            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig barrerij perc. is {}%".format(self.balance_above, curr_level))
+            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
         if surplus_power < max_power_consumption:
