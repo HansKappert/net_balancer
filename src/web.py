@@ -347,15 +347,21 @@ def prices():
         datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
 
     price_history = db.get_day_prices(datum)
+    total = 0
     prices = '['
     if len(price_history) > 0:
         for row in price_history:
             dt = datetime.fromtimestamp(int(row[0]))
             hour = dt.hour        
+            total += row[1]
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
     ddatum = datum.strftime("%Y-%m-%d")
-    return render_template('prices.html', datum=ddatum, prices = prices)
+    return render_template('prices.html', 
+                            datum=ddatum, 
+                            prices = prices, 
+                            avg= round(total/len(price_history),2) 
+                            )
   
 
 @app.route('/consumer_tesla', methods=['GET','POST'])
