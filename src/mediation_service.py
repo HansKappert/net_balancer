@@ -60,7 +60,7 @@ if __name__ == "__main__":
     else:
         current_data_supplier = P1reader(port=args.device_name)
     logger.debug ("Data supplier reader is setup")
-    producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
+    producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 8)
     logger.debug ("Energy producer is setup")
 
     if "TESLA_USER" in os.environ:
