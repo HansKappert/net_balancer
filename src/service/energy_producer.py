@@ -23,6 +23,7 @@ class energy_producer:
         log_handler = database_logging_handler(data_model.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
+        self.write_datagram_to_file(None, True)
 
         #if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
         #    os.makedirs(self.DATA_DUMP_FOLDER_NAME)
