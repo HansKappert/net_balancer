@@ -43,7 +43,7 @@ class energy_producer:
             data_model.current_gas_reading = datagram.gas_metering
 
         self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
-        # self.write_datagram_to_file(datagram, False)
+        self.write_datagram_to_file(datagram, False)
 
     def write_datagram_to_file(self, dg : P1datagram, header : bool):
         line = \
