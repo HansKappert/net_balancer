@@ -23,13 +23,11 @@ class energy_producer:
         log_handler = database_logging_handler(data_model.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
-        self.write_datagram_to_file(None, True)
 
         if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
            os.makedirs(self.DATA_DUMP_FOLDER_NAME)
         if not os.path.exists(self.DATA_DUMP_FILE_NAME):
-           with open(self.DATA_DUMP_FILE_NAME,"w") as f:
-               self.write_datagram_to_file(dg = None,header = True)
+           self.write_datagram_to_file(dg = None,header = True)
 
     def read_once(self, data_model : model):
         raw_data_array, errortxt = self.current_reader.read_data()
@@ -44,7 +42,7 @@ class energy_producer:
             data_model.current_gas_reading = datagram.gas_metering
 
         self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
-        
+        self.write_datagram_to_file(datagram, False)
 
     def write_datagram_to_file(self, dg : P1datagram, header : bool):
         line = \
