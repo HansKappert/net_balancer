@@ -12,6 +12,10 @@ class P1reader_stub(P1data_reader):
         self.gas_usages = [0.001,0.002,0.002,0.003,0.002,0.002,0.001,0.0,0.0,0.3]
         self.index = 0
         self.gasmeter = 100
+        self.meter_reading_delivered_by_client_low    = 1000
+        self.meter_reading_delivered_by_client_normal = 1000
+        self.meter_reading_delivered_to_client_low    = 1000
+        self.meter_reading_delivered_to_client_normal = 1000
         pass
 
     def read_data(self):
@@ -28,10 +32,21 @@ class P1reader_stub(P1data_reader):
         data_frame.append('0-0:96.14.0(0001)')
         data_frame.append(f'1-0:1.7.0({self.gebruik[self.index]/1000:.3f}*kW)')              
         data_frame.append(f'1-0:2.7.0({self.leveringen[self.index]/1000:.3f}*kW)')
+
         data_frame.append(f'0-1:24.2.1(210529150000S)({self.gasmeter:09.3f}*m3)')
+
+        data_frame.append(f'1-0:1.8.1({self.meter_reading_delivered_to_client_low:010.3f}*kWh)')
+        data_frame.append(f'1-0:1.8.2({self.meter_reading_delivered_to_client_normal:010.3f}*kWh)')
+        data_frame.append(f'1-0:2.8.1({self.meter_reading_delivered_by_client_low:010.3f}*kWh)')
+        data_frame.append(f'1-0:2.8.2({self.meter_reading_delivered_by_client_normal:010.3f}*kWh)')
         
-        self.index += 1
         self.gasmeter += self.gas_usages[self.index]
+        self.meter_reading_delivered_by_client_low    += (self.leveringen[self.index]/1000)
+        self.meter_reading_delivered_by_client_normal += (self.leveringen[self.index]/1000)
+        self.meter_reading_delivered_to_client_low    += (self.gebruik[self.index]/1000)
+        self.meter_reading_delivered_to_client_normal += (self.gebruik[self.index]/1000)
+
+        self.index += 1
         if self.index >= len(self.leveringen):
             self.index = 0
 

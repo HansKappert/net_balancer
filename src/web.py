@@ -155,7 +155,7 @@ def kwh_history():
         minutes = 60
 
     history = db.get_history(minutes)
-    app.logger.info(f"Got {len(history)} records from the database.")
+    app.logger.info(f"Page: kwh_history received {len(history)} records from the database.")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['
@@ -214,7 +214,7 @@ def euro_history():
         g = 0.0
         has_data_this_hour = False
 
-        if datum < today:
+        if datum <= today:
             date_hour = datum + timedelta(hours=hour)
             summarized_data = db.get_cum_stats_for_date_hour(date_hour)
             if len(summarized_data) == 1:
@@ -225,20 +225,20 @@ def euro_history():
                         g = row[12] if row[12] else 0.0
                 app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
                 has_data_this_hour = True
-        else:
-            if datetime.now().hour >= hour:
-                from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
-                until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
-                summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
+        # else:
+        #     if datetime.now().hour >= hour:
+        #         from_dt  = datetime(datum.year,datum.month,datum.day,hour,0,0)
+        #         until_dt = datetime(datum.year,datum.month,datum.day,hour,59,59)
+        #         summarized_data  = db.get_summarized_euro_history_from_to(from_dt,until_dt)
             
-                if len(summarized_data) == 1:
-                    for row in summarized_data: # typically 1 row.
-                        c = row[0] if row[0] else 0.0
-                        p = row[1] if row[1] else 0.0
-                        t = row[2] if row[2] else 0.0
-                        g = row[3] if row[3] else 0.0
-                    app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
-                    has_data_this_hour = True
+        #         if len(summarized_data) == 1:
+        #             for row in summarized_data: # typically 1 row.
+        #                 c = row[0] if row[0] else 0.0
+        #                 p = row[1] if row[1] else 0.0
+        #                 t = row[2] if row[2] else 0.0
+        #                 g = row[3] if row[3] else 0.0
+        #             app.logger.debug(f"hour {hour} (from {from_dt} until {until_dt}) : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
+        #             has_data_this_hour = True
         if has_data_this_hour:
             costs       += '[' + str(hour) + ',' + str(c) + '],'
             profits     += '[' + str(hour) + ',' + str(p) + '],'

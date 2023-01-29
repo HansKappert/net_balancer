@@ -14,6 +14,11 @@ class model:
         self._current_consumption = 0
         self._current_production = 0
         self._current_gas_reading = 0
+        self._meter_reading_delivered_by_client_low    = 0
+        self._meter_reading_delivered_by_client_normal = 0
+        self._meter_reading_delivered_to_client_low    = 0
+        self._meter_reading_delivered_to_client_normal = 0
+        
         self._past_surplusses = []
         self._consumers = []
         self.logger = logging.getLogger(__name__)
@@ -114,6 +119,42 @@ class model:
     def current_gas_reading(self,value):
         self._current_gas_reading = value
         self.persistence.set_current_gas_reading(value)
+
+    @property
+    def meter_reading_delivered_by_client_low(self):
+        self._meter_reading_delivered_by_client_low = self.persistence.get_meter_reading_delivered_by_client_low()
+        return self._meter_reading_delivered_by_client_low
+    @meter_reading_delivered_by_client_low.setter
+    def meter_reading_delivered_by_client_low(self, value):
+        self._meter_reading_delivered_by_client_normal = value
+        self.persistence.set_meter_reading_delivered_by_client_low(value)
+
+    @property
+    def meter_reading_delivered_by_client_normal(self):
+        self._meter_reading_delivered_by_client_normal = self.persistence.get_meter_reading_delivered_by_client_normal()
+        return self._meter_reading_delivered_by_client_normal
+    @meter_reading_delivered_by_client_normal.setter
+    def meter_reading_delivered_by_client_normal(self, value):
+        self._meter_reading_delivered_by_client_normal = value
+        self.persistence.set_meter_reading_delivered_by_client_normal(value)
+
+    @property
+    def meter_reading_delivered_to_client_low(self):
+        self._meter_reading_delivered_to_client_low = self.persistence.get_meter_reading_delivered_to_client_low()
+        return self._meter_reading_delivered_to_client_low
+    @meter_reading_delivered_to_client_low.setter
+    def meter_reading_delivered_to_client_low(self, value):
+        self._meter_reading_delivered_to_client_normal = value
+        self.persistence.set_meter_reading_delivered_to_client_low(value)
+
+    @property
+    def meter_reading_delivered_to_client_normal(self):
+        self._meter_reading_delivered_to_client_normal = self.persistence.get_meter_reading_delivered_to_client_normal()
+        return self._meter_reading_delivered_to_client_normal
+    @meter_reading_delivered_to_client_normal.setter
+    def meter_reading_delivered_to_client_normal(self, value):
+        self._meter_reading_delivered_to_client_normal = value
+        self.persistence.set_meter_reading_delivered_to_client_normal(value)
 
 
     @property

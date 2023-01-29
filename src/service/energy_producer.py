@@ -40,6 +40,14 @@ class energy_producer:
             data_model.current_consumption =  datagram.actual_electricity_power_delivered
         if datagram.gas_metering:
             data_model.current_gas_reading = datagram.gas_metering
+        if datagram.meter_reading_delivered_by_client_low:
+            data_model.meter_reading_delivered_by_client_low = datagram.meter_reading_delivered_by_client_low
+        if datagram.meter_reading_delivered_by_client_low:
+            data_model.meter_reading_delivered_by_client_normal = datagram.meter_reading_delivered_by_client_normal
+        if datagram.meter_reading_delivered_to_client_low:
+            data_model.meter_reading_delivered_to_client_low = datagram.meter_reading_delivered_to_client_low
+        if datagram.meter_reading_delivered_to_client_low:
+            data_model.meter_reading_delivered_to_client_normal = datagram.meter_reading_delivered_to_client_normal
 
         self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
         self.write_datagram_to_file(datagram, False)

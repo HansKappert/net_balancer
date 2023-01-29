@@ -41,11 +41,19 @@ class persistence:
                     
     
         result = cur.execute("PRAGMA table_info(readings)").fetchall()
-        if len(result) != 4:
+        if len(result) != 18:
             self.logger.debug ("Re-Creating table readings")
             cur.execute("DROP TABLE IF EXISTS  readings")
-            cur.execute("CREATE TABLE readings(surplus INTEGER, current_consumption INTEGER, current_production INTEGER, current_gas_reading REAL)")
-            cur.execute("INSERT INTO  readings VALUES (0,0,0,0)")
+            cur.execute("""CREATE TABLE readings(
+                surplus INTEGER, 
+                current_consumption INTEGER, 
+                current_production INTEGER, 
+                current_gas_reading REAL, 
+                meter_reading_delivered_by_client_low REAL, 
+                meter_reading_delivered_by_client_normal REAL, 
+                meter_reading_delivered_to_client_low REAL, 
+                meter_reading_delivered_to_client_normal REAL)""") 
+            cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0,0,0)")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
@@ -83,7 +91,7 @@ class persistence:
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table stats")
-            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_reading REA)")
+            cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_reading REAL, meter_reading_delivered_to_client_low REAL, meter_reading_delivered_to_client_normal REAL, meter_reading_delivered_by_client_low REAL, meter_reading_delivered_by_client_normal REAL)")
             con.commit()
         else:
             results = cur.execute("PRAGMA table_info(stats)").fetchall()
@@ -98,20 +106,26 @@ class persistence:
                 cur.execute("ALTER TABLE stats ADD COLUMN tesla_cost REAL")
             if len(results) == 9:
                 cur.execute("ALTER TABLE stats ADD COLUMN gas_reading REAL")
+            if len(results) == 10:
+                self.logger.debug ("Adding column gas_consumption") 
+                cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_to_client_low    REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_to_client_normal REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_by_client_low    REAL")
+                cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_by_client_normal REAL")
             con.commit()
 
         result = cur.execute("PRAGMA table_info(cum_stats)").fetchall()
+        # for f in result:
+        #    print(f'{f[0]} {f[1]}')
         if len(result) == 0:
             self.logger.debug ("Creating table cum_stats")
-            cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL)")
+            cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_consumption REAL")
             con.commit()
         if len(result) == 12:
             self.logger.debug ("Adding column gas_consumption") 
             cur.execute("ALTER TABLE cum_stats ADD COLUMN gas_consumption REAL")
             con.commit()
-        # else:
-        #     cur.execute("DELETE FROM cum_stats")
-        #     con.commit()
+        
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
@@ -183,6 +197,26 @@ class persistence:
         return self.__get_reading_column_value("current_gas_reading")
     def set_current_gas_reading(self,value):
         self.__set_reading_column_value("current_gas_reading", value)
+
+    def get_meter_reading_delivered_by_client_low(self):
+        return self.__get_reading_column_value("meter_reading_delivered_by_client_low")
+    def set_meter_reading_delivered_by_client_low(self,value):
+        self.__set_reading_column_value("meter_reading_delivered_by_client_low", value)
+
+    def get_meter_reading_delivered_by_client_normal(self):
+        return self.__get_reading_column_value("meter_reading_delivered_by_client_normal")
+    def set_meter_reading_delivered_by_client_normal(self,value):
+        self.__set_reading_column_value("meter_reading_delivered_by_client_normal", value)
+
+    def get_meter_reading_delivered_to_client_low(self):
+        return self.__get_reading_column_value("meter_reading_delivered_to_client_low")
+    def set_meter_reading_delivered_to_client_low(self,value):
+        self.__set_reading_column_value("meter_reading_delivered_to_client_low", value)
+
+    def get_meter_reading_delivered_to_client_normal(self):
+        return self.__get_reading_column_value("meter_reading_delivered_to_client_normal")
+    def set_meter_reading_delivered_to_client_normal(self,value):
+        self.__set_reading_column_value("meter_reading_delivered_to_client_normal", value)
 
 
     #  consumer consumption_max
@@ -337,21 +371,65 @@ class persistence:
         con.commit()
         con.close()
 
-    def write_statistics(self, when, current_production, current_consumption, tesla_consumption, cost_price, profit_price, cost, profit, tesla_cost, gas_reading = 0 ):
+
+    def write_statistics(self, 
+                        when, 
+                        current_production, 
+                        current_consumption, 
+                        tesla_consumption, 
+                        price, 
+                        tesla_cost, 
+                        gas_reading = 0,
+                        meter_reading_delivered_to_client_low    = 0,
+                        meter_reading_delivered_to_client_normal = 0,
+                        meter_reading_delivered_by_client_low    = 0,
+                        meter_reading_delivered_by_client_normal = 0
+                        ):
         con = self.get_db_connection()
         tstamp = time.mktime(when.timetuple())
-        result = con.execute("INSERT INTO stats VALUES (:tstamp, :current_production, :current_consumption, :tesla_consumption, :cost_price, :profit_price, :cost, :profit, :tesla_cost, :gas_reading)",
-                                                       {"tstamp"             : tstamp, 
-                                                        "current_production" : current_production, 
-                                                        "current_consumption": current_consumption, 
-                                                        "tesla_consumption"  : tesla_consumption,
-                                                        "cost_price"         : cost_price, 
-                                                        "profit_price"       : profit_price, 
-                                                        "cost"               : cost, 
-                                                        "profit"             : profit, 
-                                                        "tesla_cost"         : tesla_cost,
-                                                        "gas_reading"        : gas_reading
-                                                        })
+        result = con.execute("""
+        INSERT INTO stats 
+        (        
+            tstamp, 
+            current_production, 
+            current_consumption, 
+            tesla_consumption, 
+            cost_price, 
+            profit_price,            
+            tesla_cost, 
+            gas_reading, 
+            meter_reading_delivered_to_client_low, 
+            meter_reading_delivered_to_client_normal, 
+            meter_reading_delivered_by_client_low, 
+            meter_reading_delivered_by_client_normal
+        )
+        VALUES (
+            :tstamp, 
+            :current_production, 
+            :current_consumption, 
+            :tesla_consumption, 
+            :cost_price, 
+            :profit_price,  
+            :tesla_cost, 
+            :gas_reading,
+            :meter_reading_delivered_to_client_low,
+            :meter_reading_delivered_to_client_normal,
+            :meter_reading_delivered_by_client_low,
+            :meter_reading_delivered_by_client_normal
+        )""",
+            {"tstamp"            : tstamp, 
+            "current_production" : current_production, 
+            "current_consumption": current_consumption, 
+            "tesla_consumption"  : tesla_consumption,
+            "cost_price"         : price, 
+            "profit_price"       : price, 
+            "tesla_cost"         : tesla_cost,
+            "gas_reading"        : gas_reading,
+            "meter_reading_delivered_to_client_low"    : meter_reading_delivered_to_client_low,
+            "meter_reading_delivered_to_client_normal" : meter_reading_delivered_to_client_normal,
+            "meter_reading_delivered_by_client_low"    : meter_reading_delivered_by_client_normal,
+            "meter_reading_delivered_by_client_normal" : meter_reading_delivered_by_client_low
+            })
         con.commit()
          
         stats_retention_days = self.get_stats_retention()
@@ -464,8 +542,38 @@ class persistence:
         
         con = self.get_db_connection()
         result = con.execute("""INSERT INTO cum_stats
-                 (year,  month,  day,  hour,           current_production,                            current_consumption,                            tesla_consumption,                            cost_price,               profit_price,               cost,               profit,               tesla_cost    , gas_consumption) 
-          SELECT :year, :month, :day, :hour, round(sum(current_production)/1000.0/360.0,6), round(sum(current_consumption)/1000.0/360.0,6), round(sum(tesla_consumption)/1000.0/360.0,6), round(avg(cost_price),6), round(avg(profit_price),6), round(sum(cost),6), round(sum(profit),6), round(sum(tesla_cost),6), round(max(gas_reading) - min(gas_reading),6)  
+                 (year,  month,  day,  hour,           
+                 current_production,                            
+                 current_consumption,                            
+                 tesla_consumption,                            
+                 cost_price,               
+                 profit_price,               
+                 cost,               
+                 profit,               
+                 tesla_cost    , 
+                 gas_consumption) 
+        SELECT :year, :month, :day, :hour, 
+            round((max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
+                  (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
+                  ,3) as current_production,
+            round((max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
+                  (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
+                  ,3) as current_consumption,        
+            round(sum(tesla_consumption)/1000.0/360.0, 6) as tesla_consumption, 
+            round(avg(cost_price)  ,2) as cost_price, 
+            round(avg(profit_price),2) as profit_price, 
+            round(avg(cost_price) * (
+                                (max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
+                                (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
+                              )
+                    ,2) as cost, 
+            round(avg(cost_price) * (
+                                (max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
+                                (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
+                              )
+                    ,2) as profit, 
+            round(sum(tesla_cost)  ,2) as tesla_cost, 
+            round(max(gas_reading) - min(gas_reading),6)  as gas_consumption
         FROM stats WHERE tstamp between :from_tstamp and :until_tstamp""",
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,

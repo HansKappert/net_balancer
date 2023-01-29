@@ -23,17 +23,17 @@ class cum_stats_writer:
 
     def start(self):
         while True:
-            for last_days in range(-10,1):
-                today = datetime(date.today().year,date.today().month, date.today().day,0,0,0) + timedelta(days=last_days)
-                yesterday = today - timedelta(days=1)
-                existing_cum_stats = self.persistence.get_cum_stats_for_date_hour(yesterday)
-                if len(existing_cum_stats) == 0:
-                    for hour in range(0,24):
-                        target_hour = yesterday + timedelta(hours=hour)
-                        self.persistence.accumulate_date_hour(target_hour)
+            for last_days in range(0,1):
+                target_date = datetime(date.today().year,date.today().month, date.today().day,0,0,0) + timedelta(days=last_days)
+                for hour in range(0,24):
+                    target_date_hour = target_date + timedelta(hours=hour)
+                    if target_date_hour < datetime.now():
+                        existing_cum_stats = self.persistence.get_cum_stats_for_date_hour(target_date_hour)
+                        if len(existing_cum_stats) == 0:
+                            self.persistence.accumulate_date_hour(target_date_hour)
 
-            midnight = today + timedelta(days=1)
-            timedelta_until_midnight = midnight - datetime.now()
-            seconds_until_midnight = timedelta_until_midnight.seconds
-            self.logger.info(f"Waiting {seconds_until_midnight} seconds. After midnight we'll accumulate today's stats")
-            time.sleep(seconds_until_midnight + 6) # take some extra seconds to make way for price_writer.py 
+            next_time = datetime(date.today().year,date.today().month, date.today().day,datetime.now().hour,0,0) + timedelta(hours=1)
+            timedelta_until_midnight = next_time - datetime.now()
+            seconds_until_next_time = timedelta_until_midnight.seconds
+            self.logger.info(f"Waiting {seconds_until_next_time} seconds to accumulate next hour's stats")
+            time.sleep(seconds_until_next_time + 5) # take some extra seconds to make way for price_writer.py 
