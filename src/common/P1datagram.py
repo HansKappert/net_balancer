@@ -91,7 +91,7 @@ class P1datagram:
                 elif obis_ref == "1-0:71.7.0":  self.instantaneous_current_L3                  = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:21.7.0":  self.instantaneous_active_power_L1_PlusP       = self._strip_to_decimal_number(obis_value)
                 elif obis_ref == "1-0:41.7.":   self.instantaneous_active_power_L2_PlusP       = self._strip_to_decimal_number(obis_value)
-                elif obis_ref == "1-0:61.7.0":  self.instantaneous_active_power_L3_PlusP       = self._strip_t_strip_to_decimal_numbero_number(obis_value)
+                elif obis_ref == "1-0:61.7.0":  self.instantaneous_active_power_L3_PlusP       = self._strip_to_decimal_number(obis_value)
                 elif obis_ref == "1-0:22.7.0":  self.instantaneous_active_power_L1_MinusP      = self._strip_to_decimal_number(obis_value)
                 elif obis_ref == "1-0:42.7.0":  self.instantaneous_active_power_L2_MinusP      = self._strip_to_decimal_number(obis_value)
                 elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_decimal_number(obis_value)  
