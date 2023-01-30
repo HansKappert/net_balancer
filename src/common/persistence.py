@@ -574,13 +574,19 @@ class persistence:
                     ,2) as profit, 
             round(sum(tesla_cost)  ,2) as tesla_cost, 
             round(max(gas_reading) - min(gas_reading),6)  as gas_consumption
-        FROM stats WHERE tstamp between :from_tstamp and :until_tstamp""",
+        FROM stats 
+        WHERE meter_reading_delivered_by_client_low    > 0 
+        AND   meter_reading_delivered_by_client_normal > 0 
+        AND   meter_reading_delivered_to_client_low    > 0 
+        AND   meter_reading_delivered_to_client_normal > 0 
+        AND   gas_reading > 0
+        AND tstamp between :from_tstamp and :until_tstamp""",
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,
                     "day"          : date_hour.day,
                     "hour"         : date_hour.hour,
                     "from_tstamp"  : from_ts,
-                    "until_tstamp" : until_ts}).fetchall()
+                    "until_tstamp" : until_ts})
         con.commit()
         con.close()
         return result
