@@ -27,7 +27,7 @@ class cum_stats_writer:
                 target_date = datetime(date.today().year,date.today().month, date.today().day,0,0,0) + timedelta(days=last_days)
                 for hour in range(0,24):
                     target_date_hour = target_date + timedelta(hours=hour)
-                    if target_date_hour < datetime.now():
+                    if target_date_hour < datetime.now() - timedelta(hours=1):
                         existing_cum_stats = self.persistence.get_cum_stats_for_date_hour(target_date_hour)
                         if len(existing_cum_stats) == 0:
                             self.persistence.accumulate_date_hour(target_date_hour)
