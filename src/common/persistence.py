@@ -492,18 +492,6 @@ class persistence:
         return result
 
 
-    def get_summarized_euro_history_from_to(self, from_datetime:datetime, to_datetime:datetime):
-        from_ts = time.mktime(from_datetime.timetuple())
-        until_ts = time.mktime(to_datetime.timetuple())
-        
-        con = self.get_db_connection()
-        result = con.execute("SELECT sum(cost), sum(profit), sum(tesla_cost), round(max(gas_reading) - min(gas_reading),6) FROM stats WHERE tstamp between :from_tstamp and :until_tstamp",
-                    {"from_tstamp"  :from_ts,
-                     "until_tstamp" :until_ts}).fetchall()
-        con.close()
-        return result
-
-
     def get_cum_stats_for_date_hour(self, date_hour:datetime):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM cum_stats WHERE year = :year AND month = :month AND day = :day AND hour = :hour",
