@@ -147,15 +147,15 @@ def download_cum_csv_file():
 
 
 
-@app.route('/kwh_history', methods=['GET','POST'])
-def kwh_history():
+@app.route('/kwh_now', methods=['GET','POST'])
+def kwh_now():
     if request.method == 'POST':
         minutes = int(request.form["minutes"])
     else:
         minutes = 60
 
     history = db.get_history(minutes)
-    app.logger.info(f"Page: kwh_history received {len(history)} records from the database.")
+    app.logger.info(f"Page: kwh_now received {len(history)} records from the database.")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['
@@ -175,13 +175,95 @@ def kwh_history():
     productions        =        productions.strip(',') + ']'
     tesla_consumptions = tesla_consumptions.strip(',') + ']'
     
-    return render_template('kwh_history.html', 
+    return render_template('kwh_now.html', 
                             start_datetime_str = datetime_str, 
                             consumptions       = consumptions, 
                             productions        = productions, 
                             tesla_consumptions = tesla_consumptions,
                             minutes            = minutes)
 
+def get_cum_data(datum, today):
+    hour = 0
+    profits         = '['
+    costs           = '['
+    tesla_costs     = '['
+    gas_usages      = '['
+    el_consumptions = '['
+    el_deliveries   = '['
+
+    total_costs     = 0.0
+    total_profits   = 0.0
+    total_tesla     = 0.0
+    total_gas       = 0.0
+    total_el_cons   = 0.0
+    total_el_deliv  = 0.0
+
+    while hour <= 24:
+        c = 0.0
+        p = 0.0
+        t = 0.0
+        g = 0.0
+        elc = 0.0 # electricity consumption
+        eld = 0.0 # electricity delivery
+        has_data_this_hour = False
+
+        if datum <= today:
+            date_hour = datum + timedelta(hours=hour)
+            if date_hour < datetime.now():
+                summarized_data = db.get_cum_stats_for_date_hour(date_hour)
+                if len(summarized_data) == 1:
+                    for row in summarized_data: # typically 1 row.
+                            eld = row[4]  if row[4] else 0.0
+                            elc = row[5]  if row[5] else 0.0
+                            c   = row[9]  if row[9] else 0.0
+                            p   = row[10] if row[10] else 0.0
+                            t   = row[11] if row[11] else 0.0
+                            g   = row[12] if row[12] else 0.0
+                    app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
+                    has_data_this_hour = True
+        
+        if has_data_this_hour:
+            costs           += '[' + str(hour) + ',' + str(c  ) + '],'
+            profits         += '[' + str(hour) + ',' + str(p  ) + '],'
+            tesla_costs     += '[' + str(hour) + ',' + str(t  ) + '],'
+            el_consumptions += '[' + str(hour) + ',' + str(elc) + '],'
+            el_deliveries   += '[' + str(hour) + ',' + str(eld) + '],'
+            gas_usages      += '[' + str(hour) + ',' + str(g  ) + '],'
+            total_costs     += c
+            total_profits   += p 
+            total_tesla     += t
+            total_gas       += g
+            total_el_cons   += elc
+            total_el_deliv  += eld
+        hour += 1
+    costs           = costs.strip(',')           + ']'
+    profits         = profits.strip(',')         + ']'
+    tesla_costs     = tesla_costs.strip(',')     + ']'
+    gas_usages      = gas_usages.strip(',')      + ']'
+    el_consumptions = el_consumptions.strip(',') + ']'
+    el_deliveries   = el_deliveries.strip(',')   + ']'
+    total_netto   = total_costs - total_tesla
+    total_costs    = f"€{round(total_costs   ,4)}"
+    total_profits  = f"€{round(total_profits ,4)}"
+    total_tesla    = f"€{round(total_tesla   ,4)}"
+    total_netto    = f"€{round(total_netto   ,4)}"
+    total_gas      = f"€{round(total_gas     ,3)}"
+    total_el_cons  =  f"{round(total_el_cons ,3)}"
+    total_el_deliv =  f"{round(total_el_deliv,3)}"
+    return costs,            \
+            profits,         \
+            tesla_costs,     \
+            el_consumptions, \
+            el_deliveries,   \
+            gas_usages,      \
+            datum,           \
+            total_costs,     \
+            total_profits,   \
+            total_tesla,     \
+            total_netto,     \
+            total_gas,       \
+            total_el_cons,   \
+            total_el_deliv
 
 @app.route('/euro_history', methods=['GET','POST'])
 def euro_history():
@@ -196,72 +278,38 @@ def euro_history():
     else:
         datum = today
 
-    hour = 0
-    profits     = '['
-    costs       = '['
-    tesla_costs = '['
-    gas_usages  = '['
-
-    total_costs   = 0.0
-    total_profits = 0.0
-    total_tesla   = 0.0
-    total_gas     = 0.0
-    
-    while hour <= 24:
-        c = 0.0
-        p = 0.0
-        t = 0.0
-        g = 0.0
-        has_data_this_hour = False
-
-        if datum <= today:
-            date_hour = datum + timedelta(hours=hour)
-            if date_hour < datetime.now():
-                summarized_data = db.get_cum_stats_for_date_hour(date_hour)
-                if len(summarized_data) == 1:
-                    for row in summarized_data: # typically 1 row.
-                            c = row[9]  if row[9] else 0.0
-                            p = row[10] if row[10] else 0.0
-                            t = row[11] if row[11] else 0.0
-                            g = row[12] if row[12] else 0.0
-                    app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
-                    has_data_this_hour = True
-        
-        if has_data_this_hour:
-            costs       += '[' + str(hour) + ',' + str(c) + '],'
-            profits     += '[' + str(hour) + ',' + str(p) + '],'
-            tesla_costs += '[' + str(hour) + ',' + str(t) + '],'
-            gas_usages  += '[' + str(hour) + ',' + str(g) + '],'
-            total_costs   = total_costs   + c
-            total_profits = total_profits + p 
-            total_tesla   = total_tesla   + t
-            total_gas     = total_gas     + g
-        hour += 1
-    costs       = costs.strip(',')       + ']'
-    profits     = profits.strip(',')     + ']'
-    tesla_costs = tesla_costs.strip(',') + ']'
-    gas_usages  = gas_usages.strip(',')   + ']'
+    (costs,
+    profits, 
+    tesla_costs,
+    el_consumptions,
+    el_deliveries,
+    gas_usages,
+    datum,
+    total_costs,
+    total_profits,
+    total_tesla,
+    total_netto,
+    total_gas,
+    total_el_cons,
+    total_el_deliv) = get_cum_data(datum, today)
     
     datum = datum.strftime("%Y-%m-%d")
 
-    total_netto   = total_costs - total_tesla
-
-    total_costs   = f"€{round(total_costs  ,4)}"
-    total_profits = f"€{round(total_profits,4)}"
-    total_tesla   = f"€{round(total_tesla  ,4)}"
-    total_netto   = f"€{round(total_netto  ,4)}"
-    total_gas     = f"€{round(total_gas    ,3)}"
     return render_template('euro_history.html', 
-                            costs         = costs, 
-                            profits       = profits, 
-                            tesla_costs   = tesla_costs,
-                            datum         = datum,
-                            total_costs   = total_costs,
-                            total_profits = total_profits,
-                            total_tesla   = total_tesla,
-                            total_netto   = total_netto,
-                            gas_usages    = gas_usages,
-                            total_gas     = total_gas
+                            costs           = costs, 
+                            profits         = profits, 
+                            tesla_costs     = tesla_costs,
+                            el_consumptions = el_consumptions,
+                            el_deliveries   = el_deliveries,
+                            gas_usages      = gas_usages,
+                            datum           = datum,
+                            total_costs     = total_costs,
+                            total_profits   = total_profits,
+                            total_tesla     = total_tesla,
+                            total_netto     = total_netto,
+                            total_gas       = total_gas,
+                            total_el_cons   = total_el_cons,
+                            total_el_deliv  = total_el_deliv
                             )
 
 
