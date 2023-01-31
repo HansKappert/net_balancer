@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block scripts %}
+  {{ super() }}
+  {{ datepicker.loader() }} {# to load jQuery-ui #}
+  {{ datepicker.picker(id=".dp") }}
+{% endblock %}
+{% block content %}
+  <br>
+
+  <div id="placeholder" style="width:100%;height:450px;"></div>
+  <!--[if IE]>
+  <script type="text/javascript" src="path/to/flashcanvas.js"></script>
+  <![endif]-->
+  <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+  <script type="text/javascript">
+  var placeholder = document.getElementById('placeholder');
+  placeholder.setAttribute("style","height:" + (window.innerHeight - 250) * 0.9 + "px");
+  var el_consumptions = {{ el_consumptions }};
+  var el_deliveries   = {{ el_deliveries   }};
+  
+
+  options = {
+    xaxis : {
+      title : "Tijd",
+      tickDecimals:0,
+      noTicks:25
+    },
+    yaxis : {
+      title : "KWh",
+      noTicks: Math.round(window.innerHeight / 40),
+      min: 0
+    },
+    legend: {
+      position: "ne",
+    },
+    title : "Kosten en opbrengst uitgezet tegen de tijd",
+    HtmlText : false
+  };
+
+  Flotr.draw(
+      placeholder,
+      [ {data : el_consumptions   , label : 'Verbruik'      , color: "#0000FF"}, 
+        {data : el_deliveries    , label : 'Teruglevering' , color: "#FFFF00"} ],
+    options
+  );
+    
+  function refresh() {
+    document.besturing.submit();  
+  }
+
+  $(function() {
+        $(".dtpick")
+        .datepicker(
+          {  
+              dateFormat:"yy-mm-dd",
+              firstDay: 1 // Start with Monday     
+          },
+          {
+          onSelect: function(dateText) {
+          console.log("Selected date: " + dateText + "; input's current value: " + this.value);
+        $(this).change();
+    }
+  })
+  .on("change", function() {
+    console.log("Got change event from field");
+    document.besturing.submit();
+  });
+  });
+  
+</script>
+
+<form name="besturing" method="post" class="verticalform">
+  <input name="datum" type="text" class="dtpick" value="{{ datum }}"  size=10></input>
+  <input name="go"    type="submit" value="eerder" class="btn btn-primary">
+  <input name="go"    type="submit" value="later"  class="btn btn-primary"> 
+</form><br>
+
+<table>Totaal:<br>
+  <tr><td>Kosten:       </td><td>{{total_costs}}  </td><td width="30"></td> <td>Verbruikt:</td><td>{{total_el_cons}}  KWh</td> </tr>
+  <tr><td>Opbrengst:    </td><td>{{total_profits}}</td><td width="30"></td> <td>Opgewekt: </td><td>{{total_el_deliv}} KWh</td> </tr>
+  <tr><td>Tesla kosten: </td><td>{{total_tesla}}  </td> </tr>
+  <tr><td>Eigen verbruik (zonder Tesla):</td><td>{{total_netto}}</td></tr>
+</table>
+
+<div class="form-group"></div>
+<br>
+
+{% endblock %}

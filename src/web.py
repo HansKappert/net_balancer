@@ -313,6 +313,54 @@ def euro_history():
                             )
 
 
+@app.route('/kwh_history', methods=['GET','POST'])
+def kwh_history():
+    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    if request.method == 'POST':
+        datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
+        if "go" in request.form:
+            if request.form["go"] == "eerder":
+                datum = datum + timedelta(days=-1)
+            if request.form["go"] == "later":
+                datum = datum + timedelta(days=1)
+    else:
+        datum = today
+
+    (costs,
+    profits, 
+    tesla_costs,
+    el_consumptions,
+    el_deliveries,
+    gas_usages,
+    datum,
+    total_costs,
+    total_profits,
+    total_tesla,
+    total_netto,
+    total_gas,
+    total_el_cons,
+    total_el_deliv) = get_cum_data(datum, today)
+    
+    datum = datum.strftime("%Y-%m-%d")
+
+    return render_template('kwh_history.html', 
+                            costs           = costs, 
+                            profits         = profits, 
+                            tesla_costs     = tesla_costs,
+                            el_consumptions = el_consumptions,
+                            el_deliveries   = el_deliveries,
+                            gas_usages      = gas_usages,
+                            datum           = datum,
+                            total_costs     = total_costs,
+                            total_profits   = total_profits,
+                            total_tesla     = total_tesla,
+                            total_netto     = total_netto,
+                            total_gas       = total_gas,
+                            total_el_cons   = total_el_cons,
+                            total_el_deliv  = total_el_deliv
+                            )
+
+
 @app.route('/gas_usage_history', methods=['GET','POST'])
 def gas_usage_history():
     today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
