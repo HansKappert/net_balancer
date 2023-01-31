@@ -207,7 +207,7 @@ def euro_history():
     total_tesla   = 0.0
     total_gas     = 0.0
     
-    while hour <= 23:
+    while hour <= 24:
         c = 0.0
         p = 0.0
         t = 0.0
@@ -283,7 +283,7 @@ def gas_usage_history():
 
     total_gas     = 0.0
     
-    while hour <= 23:
+    while hour <= 24:
         g = 0.0
         has_data_this_hour = False
 
