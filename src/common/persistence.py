@@ -146,6 +146,10 @@ class persistence:
             cur.execute("CREATE TABLE prices(tstamp INTEGER, price REAL)")
             con.commit()
 
+        cur.execute("update cum_stats set current_consumption = -1 * current_consumption where current_consumption < 0")
+        cur.execute("update     stats set current_consumption = -1 * current_consumption where current_consumption < 0")
+        con.commit()
+
         con.close()
 
 
