@@ -30,6 +30,7 @@ class cum_stats_writer:
                 if len(existing_cum_stats) == 0:
                     self.persistence.accumulate_date_hour(target_date_hour)
 
+            self.persistence.vacuum()
             next_time = datetime(date.today().year,date.today().month, date.today().day,datetime.now().hour,0,0) + timedelta(hours=1)
             timedelta_until_midnight = next_time - datetime.now()
             seconds_until_next_time = timedelta_until_midnight.seconds

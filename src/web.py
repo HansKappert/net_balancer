@@ -210,22 +210,28 @@ def get_cum_data(datum, today):
         elt = 0.0 # electricity consumption for tesla
         has_data_this_hour = False
 
+        prev_hour = datetime.now() - timedelta(hours=1)
         if datum <= today:
             date_hour = datum + timedelta(hours=hour)
-            if date_hour < datetime.now():
+            if date_hour > datetime.now():
+                break
+            if date_hour < prev_hour:
                 summarized_data = db.get_cum_stats_for_date_hour(date_hour)
-                if len(summarized_data) == 1:
-                    for row in summarized_data: # typically 1 row.
-                            eld = row[4]  if row[4] else 0.0
-                            elc = row[5]  if row[5] else 0.0
-                            elt = row[6]  if row[6] else 0.0
-                            c   = row[9]  if row[9] else 0.0
-                            p   = row[10] if row[10] else 0.0
-                            t   = row[11] if row[11] else 0.0
-                            g   = row[12] if row[12] else 0.0
-                    #app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
-                    has_data_this_hour = True
-        
+            else:
+                summarized_data = db.get_stats_for_date_hour(date_hour)
+            
+            if len(summarized_data) == 1:
+                for row in summarized_data: # typically 1 row.
+                        eld = row[4]  if row[4] else 0.0
+                        elc = row[5]  if row[5] else 0.0
+                        elt = row[6]  if row[6] else 0.0
+                        c   = row[9]  if row[9] else 0.0
+                        p   = row[10] if row[10] else 0.0
+                        t   = row[11] if row[11] else 0.0
+                        g   = row[12] if row[12] else 0.0
+                #app.logger.debug(f"hour {hour} : costs {str(c)}, profits {str(p)}, tesla_costs {str(t)}, gas {str(g)}")
+                has_data_this_hour = True
+
         if has_data_this_hour:
             costs                 += '[' + str(hour) + ',' + str(c  ) + '],'
             profits               += '[' + str(hour) + ',' + str(p  ) + '],'
@@ -278,7 +284,9 @@ def get_cum_data(datum, today):
 
 @app.route('/euro_history', methods=['GET','POST'])
 def euro_history():
-    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+#    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    now = datetime.now()
+    today = datetime(now.year, now.month, now.day, 0,0,0)
     if request.method == 'POST':
         datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
         if "go" in request.form:
@@ -330,7 +338,9 @@ def euro_history():
 
 @app.route('/kwh_history', methods=['GET','POST'])
 def kwh_history():
-    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    #    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    now = datetime.now()
+    today = datetime(now.year, now.month, now.day, 0,0,0)
     if request.method == 'POST':
         datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
         if "go" in request.form:

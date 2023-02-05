@@ -1,12 +1,45 @@
 import sqlite3
 import logging
 import time
+from pytz                             import timezone
 from datetime                         import date, datetime, timedelta
 from common.database_logging_handler  import database_logging_handler
 
 
 class persistence:
     DBNAME = 'energy_mediator.db'
+
+    stats_collect_qry = """
+    SELECT :year, :month, :day, :hour, 
+            round((max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
+                  (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
+                  ,3) as current_production,
+            round((max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
+                  (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
+                  ,3) as current_consumption,        
+            round(sum(tesla_consumption)/1000.0/360.0, 6) as tesla_consumption, 
+            round(avg(cost_price)  ,2) as cost_price, 
+            round(avg(profit_price),2) as profit_price, 
+            round(avg(cost_price) * (
+                                (max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
+                                (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
+                              )
+                    ,2) as cost, 
+            round(avg(cost_price) * (
+                                (max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
+                                (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
+                              )
+                    ,2) as profit, 
+            round(sum(tesla_cost)  ,2) as tesla_cost, 
+            round(max(gas_reading) - min(gas_reading),6)  as gas_consumption
+        FROM stats 
+        WHERE meter_reading_delivered_by_client_low    > 0 
+        AND   meter_reading_delivered_by_client_normal > 0 
+        AND   meter_reading_delivered_to_client_low    > 0 
+        AND   meter_reading_delivered_to_client_normal > 0 
+        AND   gas_reading > 0
+        AND tstamp between :from_tstamp and :until_tstamp"""
+
     def __init__(self) -> None:
         con = self.get_db_connection()
         cur = con.cursor()
@@ -152,6 +185,11 @@ class persistence:
 
         con.close()
 
+    def vacuum(self):
+        con = self.get_db_connection()
+        con.execute("VACUUM")
+        con.commit()        
+        con.close()
 
     def get_db_connection(self):
         conn = sqlite3.connect(persistence.DBNAME, timeout=60)
@@ -263,7 +301,6 @@ class persistence:
         con.commit()
         con.close()
 
-
     # consumer price_percentage
     def get_tesla_price_percentage(self):
         con = self.get_db_connection()
@@ -275,7 +312,6 @@ class persistence:
         result = con.execute("UPDATE tesla SET price_percentage = :value",{"value":value})
         con.commit()
         con.close()
-
 
     # consumer charge_until
     def get_tesla_charge_until(self):
@@ -306,7 +342,6 @@ class persistence:
         con.close()
 
 
-
     #  log retention
     def get_log_retention(self):
         con = self.get_db_connection()
@@ -318,7 +353,6 @@ class persistence:
         result = con.execute("UPDATE settings SET log_retention_days = :value ",{"value":value})
         con.commit()
         con.close()
-
 
     #  stats retention
     def get_stats_retention(self):
@@ -332,7 +366,6 @@ class persistence:
         result = con.execute("UPDATE settings SET stats_retention_days = :value ",{"value":value})
         con.commit()
         con.close()
-
 
     def get_log_lines(self):
         con = self.get_db_connection()
@@ -374,7 +407,6 @@ class persistence:
         result = con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
         con.commit()
         con.close()
-
 
     def write_statistics(self, 
                         when, 
@@ -486,7 +518,6 @@ class persistence:
         con.close()
         return result
 
-
     def get_history(self, minutes):
         con = self.get_db_connection()
         dt = datetime.now() - timedelta(minutes=minutes)
@@ -495,7 +526,28 @@ class persistence:
         con.close()
         return result
 
+    def get_stats_for_date_hour(self, date_hour:datetime):
 
+        # datehour contains a local time, but no timezone info. 
+        # we must add the CET timezone info in order to do correct conversion to the timestamps
+        amsterdam = timezone('Europe/Amsterdam')
+        date_hour = date_hour.astimezone(amsterdam)
+        from_ts = time.mktime(date_hour.timetuple())
+        until_ts = time.mktime(datetime.now().timetuple())
+        
+        con = self.get_db_connection()
+        result = con.execute(self.stats_collect_qry
+                ,
+                    {"year"        : date_hour.year,
+                    "month"        : date_hour.month,
+                    "day"          : date_hour.day,
+                    "hour"         : date_hour.hour,
+                    "from_tstamp"  : from_ts,
+                    "until_tstamp" : until_ts}).fetchall()
+        
+        con.close()
+        return result
+    
     def get_cum_stats_for_date_hour(self, date_hour:datetime):
         con = self.get_db_connection()
         result = con.execute("SELECT * FROM cum_stats WHERE year = :year AND month = :month AND day = :day AND hour = :hour",
@@ -527,6 +579,7 @@ class persistence:
         con.close()
         return result
 
+    
     def accumulate_date_hour(self, date_hour:datetime):
         from_ts = time.mktime(date_hour.timetuple())
         until_dt = date_hour + timedelta(hours=1)
@@ -543,36 +596,8 @@ class persistence:
                  cost,               
                  profit,               
                  tesla_cost    , 
-                 gas_consumption) 
-        SELECT :year, :month, :day, :hour, 
-            round((max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
-                  (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
-                  ,3) as current_production,
-            round((max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
-                  (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
-                  ,3) as current_consumption,        
-            round(sum(tesla_consumption)/1000.0/360.0, 6) as tesla_consumption, 
-            round(avg(cost_price)  ,2) as cost_price, 
-            round(avg(profit_price),2) as profit_price, 
-            round(avg(cost_price) * (
-                                (max(meter_reading_delivered_to_client_low   ) - min(meter_reading_delivered_to_client_low   )) +
-                                (max(meter_reading_delivered_to_client_normal) - min(meter_reading_delivered_to_client_normal))
-                              )
-                    ,2) as cost, 
-            round(avg(cost_price) * (
-                                (max(meter_reading_delivered_by_client_low   ) - min(meter_reading_delivered_by_client_low   )) +
-                                (max(meter_reading_delivered_by_client_normal) - min(meter_reading_delivered_by_client_normal))
-                              )
-                    ,2) as profit, 
-            round(sum(tesla_cost)  ,2) as tesla_cost, 
-            round(max(gas_reading) - min(gas_reading),6)  as gas_consumption
-        FROM stats 
-        WHERE meter_reading_delivered_by_client_low    > 0 
-        AND   meter_reading_delivered_by_client_normal > 0 
-        AND   meter_reading_delivered_to_client_low    > 0 
-        AND   meter_reading_delivered_to_client_normal > 0 
-        AND   gas_reading > 0
-        AND tstamp between :from_tstamp and :until_tstamp""",
+                 gas_consumption) """ + self.stats_collect_qry
+                ,
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,
                     "day"          : date_hour.day,
