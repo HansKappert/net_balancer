@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+   <br>
+
+    <div id="placeholder" style="width:100%;height:450px;"></div>
+    <!--[if IE]>
+    <script type="text/javascript" src="path/to/flashcanvas.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+    <script type="text/javascript">
+      function interval_decrease() {
+        minutes_el = document.getElementById("minutes");
+        minutes = parseInt(minutes_el.value);
+        if (minutes > 1) {
+          if (minutes > 1)
+            stepsize =  1;
+          if (minutes > 10)
+            stepsize =  10;
+          if (minutes > 30)
+            stepsize =  30;
+          if (minutes > 60)
+            stepsize = 60;
+          minutes_el.value = parseInt(minutes_el.value) - stepsize;          
+        }
+      }
+      function interval_increase() {
+        minutes_el = document.getElementById("minutes");
+        minutes = parseInt(minutes_el.value);
+        stepsize =  1;        
+        if (minutes >= 10)
+          stepsize =  10;
+        if (minutes >= 30)
+          stepsize =  30;
+        if (minutes >= 60)
+          stepsize = 60;
+        minutes_el.value = parseInt(minutes_el.value) + stepsize;
+      }
+      function padTo2Digits(num) {
+        return num.toString().padStart(2, '0');
+      }
+      function formatDate(date) {
+        return (
+          [
+            padTo2Digits(date.getHours()),
+            padTo2Digits(date.getMinutes()),
+            padTo2Digits(date.getSeconds()),
+          ].join(':')
+        );
+        return (
+          [
+            date.getFullYear(),
+            padTo2Digits(date.getMonth() + 1),
+            padTo2Digits(date.getDate()),
+          ].join('-') +
+          ' ' +
+          [
+            padTo2Digits(date.getHours()),
+            padTo2Digits(date.getMinutes()),
+            padTo2Digits(date.getSeconds()),
+          ].join(':')
+        );
+      }
+
+      var placeholder = document.getElementById('placeholder');
+      var consumptions = {{ consumptions|safe }};
+      var productions = {{ productions|safe }};
+      var tesla_consumptions = {{ tesla_consumptions|safe }};
+      placeholder.setAttribute("style","height:" + (window.innerHeight - 120) * 0.9 + "px");
+
+      /* multiply by 1000 to convert seconds into milliseconds */
+      for (i = 0; i < consumptions.length; i++) {
+        consumptions[i][0]       = 1000 * consumptions[i][0];
+        productions[i][0]        = 1000 * productions[i][0];
+        tesla_consumptions[i][0] = 1000 * tesla_consumptions[i][0];
+      }
+      
+      options = {
+        xaxis : {
+          labelsAngle : 45, 
+          title : "Tijd",
+          mode : 'Time',
+          timeMode : 'local',
+          noTicks: 10,
+          tickFormatter: function (x) { return formatDate(new Date(parseInt(x)));   }          
+        },
+        yaxis : {
+          minorTicks : [1,3],
+          title : "Watt"
+        },
+        legend: {
+          position: "sw",
+        },
+        selection : {
+          mode : 'x'
+        },
+        title : "Balans en gebruikers uitgezet tegen de tijd",
+        HtmlText : false
+      };
+
+        Flotr.draw(
+          placeholder,
+          [ {data : consumptions      , label : 'Netto verbruik'  , color: "#0000FF"}, 
+            {data : productions       , label : 'Energie opwek'   , color: "#FFFF00"},
+            {data : tesla_consumptions, label : 'Tesla consumptie', color: "#FF0000"} ],
+          options
+        );
+        
+      function refresh() {
+        document.besturing.submit();  
+      }
+
+      setInterval(refresh, 10000);   
+    </script>
+   <form name="besturing" method="post">
+    <span style="display:inline-block;margin-left:17px;padding:12px;padding-bottom:14px;border:2px solid rgb(165, 163, 163)">Toon <input id="minutes" name="minutes" size="4" readonly value="{{ request.form['hours'] or minutes }}"> minuten&nbsp;
+    
+    <button type="submit" class="btn btn-primary" onclick="interval_decrease()">&nbsp;-&nbsp;</button>
+    <button type="submit" class="btn btn-primary" onclick="interval_increase()">&nbsp;+&nbsp;</button>
+  </span>
+   <div class="form-group"></div>
+  </form>
+
+<br>
+
+{% endblock %}

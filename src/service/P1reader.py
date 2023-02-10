@@ -22,6 +22,11 @@ class P1reader(P1data_reader):
         self.ser.timeout=20
         self.ser.port=port
 
+        self.logger = logging.getLogger(__name__)
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+
     def read_data(self):
         data = []
         p1_teller=0
@@ -32,7 +37,7 @@ class P1reader(P1data_reader):
             self.ser.open()
         except Exception as e:
             err = "Error while opening serial device {}: {}".format(self.ser.name, e)
-            logging.error(err)
+            self.logger.error(err)
             return data, err
 
 
@@ -41,10 +46,10 @@ class P1reader(P1data_reader):
         #Read 1 line
             try:
                 p1_raw = self.ser.readline()
-                logging.debug(p1_raw)
+                self.logger.debug(p1_raw)
             except:
                 err = ("Cannot read serial port %s. Incomplete data frame returned." % self.ser.name)
-                logging.error(err) 
+                self.logger.error(err) 
                 return data_frame, err
             #p1_str=str(p1_raw)
             p1_str=str(p1_raw, "utf-8")
@@ -59,7 +64,7 @@ class P1reader(P1data_reader):
             self.ser.close()
         except:
             err = ("Cannot close serial port %s." % self.ser.name)
-            logging.error(err)    
+            self.logger.error(err)    
 
         return data_frame, err
     

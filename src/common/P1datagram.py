@@ -44,6 +44,10 @@ class P1datagram:
         string_value = string_value.strip(')').strip('*kWh').strip('*kW').strip('*A').replace(".","")
         return int(string_value)
 
+    def _strip_to_decimal_number(self, string_value):
+        string_value = string_value.strip(')').strip('*kWh').strip('*kW').strip('*A')
+        return float(string_value)
+
     def _strip_gas_meter_value(self, string_value):
         string_value = string_value.strip('*m3)')
         gas_metering = float(string_value)
@@ -65,10 +69,10 @@ class P1datagram:
                 if obis_ref == "0-0:96.1.1":    self.equipment_identifier                      = self._strip_to_number(obis_value)
                 elif obis_ref == "1-3:0.2.8":   self.version_info_p1_output                    = self._strip_to_number(obis_value)
                 elif obis_ref == "0-0:1.0.0":   self.datetime_stamp                            = self._strip_to_date(obis_value)
-                elif obis_ref == "1-0:1.8.1":   self.meter_reading_delivered_to_client_low     = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:1.8.2":   self.meter_reading_delivered_to_client_normal  = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:2.8.1":   self.meter_reading_delivered_by_client_low     = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:2.8.2":   self.meter_reading_delivered_by_client_normal  = self._strip_to_number(obis_value)
+                elif obis_ref == "1-0:1.8.1":   self.meter_reading_delivered_to_client_low     = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:1.8.2":   self.meter_reading_delivered_to_client_normal  = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:2.8.1":   self.meter_reading_delivered_by_client_low     = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:2.8.2":   self.meter_reading_delivered_by_client_normal  = self._strip_to_decimal_number(obis_value)
                 elif obis_ref == "0-0:96.14.0": self.tarif_indicator_electricity               = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:2.7.0":   self.actual_electricity_power_received         = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:1.7.0":   self.actual_electricity_power_delivered        = self._strip_to_number(obis_value)
@@ -85,12 +89,12 @@ class P1datagram:
                 elif obis_ref == "1-0:31.7.0":  self.instantaneous_current_L1                  = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:51.7.0":  self.instantaneous_current_L2                  = self._strip_to_number(obis_value)
                 elif obis_ref == "1-0:71.7.0":  self.instantaneous_current_L3                  = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:21.7.0":  self.instantaneous_active_power_L1_PlusP       = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:41.7.":   self.instantaneous_active_power_L2_PlusP       = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:61.7.0":  self.instantaneous_active_power_L3_PlusP       = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:22.7.0":  self.instantaneous_active_power_L1_MinusP      = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:42.7.0":  self.instantaneous_active_power_L2_MinusP      = self._strip_to_number(obis_value)
-                elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_number(obis_value)  
+                elif obis_ref == "1-0:21.7.0":  self.instantaneous_active_power_L1_PlusP       = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:41.7.":   self.instantaneous_active_power_L2_PlusP       = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:61.7.0":  self.instantaneous_active_power_L3_PlusP       = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:22.7.0":  self.instantaneous_active_power_L1_MinusP      = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:42.7.0":  self.instantaneous_active_power_L2_MinusP      = self._strip_to_decimal_number(obis_value)
+                elif obis_ref == "1-0:62.7.0":  self.instantaneous_active_power_L3_MinusP      = self._strip_to_decimal_number(obis_value)  
             elif len(pieces) == 3:
                 obis_ref = pieces[0]
                 obis_value = pieces[2]

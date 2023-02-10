@@ -26,30 +26,35 @@ class stats_writer:
 
     def write_stats(self):
         when = datetime.now()
-        current_price_kwh = self.persistence.get_price_at_datetime(when)
+        current_price_kwh                            = self.persistence.get_price_at_datetime(when)
         if current_price_kwh is not None:
-            current_price_kwm = current_price_kwh / 60   # price in euro
-            current_price_kw10s = current_price_kwm / 6
-            current_price_w10s  = current_price_kw10s / 1000
-            consumption       = self.data_model.current_consumption
-            tesla_consumption = self.data_model.get_consumer("Tesla").consumption_power_now
-            production        = self.data_model.current_production
-            gas_reading       = self.data_model.current_gas_reading
-            cost              = consumption       * current_price_w10s
-            profit            = production        * current_price_w10s
-            tesla_cost        = tesla_consumption * current_price_w10s
-            self.logger.debug(f"KWh price={current_price_kwh}, consumption={consumption} cost={cost} tesla_cost={tesla_cost} gas_reading={gas_reading}")
+            current_price_kwm                        = current_price_kwh / 60   # price in euro
+            current_price_kw10s                      = current_price_kwm / 6
+            current_price_w10s                       = current_price_kw10s / 1000
+            tesla_consumption                        = self.data_model.get_consumer("Tesla").consumption_power_now
+            tesla_cost                               = tesla_consumption * current_price_w10s
+            consumption                              = self.data_model.current_consumption
+            tesla_consumption                        = self.data_model.get_consumer("Tesla").consumption_power_now
+            production                               = self.data_model.current_production
+            gas_reading                              = self.data_model.current_gas_reading
+            meter_reading_delivered_to_client_low    = self.data_model.meter_reading_delivered_to_client_low
+            meter_reading_delivered_to_client_normal = self.data_model.meter_reading_delivered_to_client_normal
+            meter_reading_delivered_by_client_low    = self.data_model.meter_reading_delivered_by_client_low
+            meter_reading_delivered_by_client_normal = self.data_model.meter_reading_delivered_by_client_normal
+            
+            self.logger.debug(f"KWh price={current_price_kwh}, consumption={consumption} tesla_cost={tesla_cost} gas_reading={gas_reading} el_low={meter_reading_delivered_to_client_low} el_normal={meter_reading_delivered_to_client_normal} el_delivered_low={meter_reading_delivered_by_client_low} el_delivered_normal={meter_reading_delivered_by_client_normal}")
             self.persistence.write_statistics(
                                     when,
                                     production,
-                                    -1 * consumption,
-                                    tesla_consumption,
-                                    current_price_kwh,
-                                    current_price_kwh,
-                                    cost,
-                                    profit,
+                                    consumption,
+                                    tesla_consumption,                                    
+                                    current_price_kwh,                                    
                                     tesla_cost,
-                                    gas_reading
+                                    gas_reading,
+                                    meter_reading_delivered_to_client_low,
+                                    meter_reading_delivered_to_client_normal,
+                                    meter_reading_delivered_by_client_low,
+                                    meter_reading_delivered_by_client_normal
                                     )
         else:
             self.logger.info("Geen prijsinformatie bekend voor dit tijdstip.")
