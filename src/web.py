@@ -248,27 +248,29 @@ def get_cum_data(datum, today):
             total_el_deliv        += eld
             total_el_cons_tesla   += elt
         hour += 1
-    costs                = costs.strip(',')           + ']'
-    profits              = profits.strip(',')         + ']'
-    tesla_costs          = tesla_costs.strip(',')     + ']'
-    gas_usages           = gas_usages.strip(',')      + ']'
-    el_consumptions      = el_consumptions.strip(',') + ']'
-    el_deliveries        = el_deliveries.strip(',')   + ']'
-    total_netto          = total_costs - total_tesla - total_profits
-    total_el_netto       = total_el_cons - total_el_cons_tesla - total_el_deliv
-    total_costs          = f"€{round(total_costs        ,4)}"
-    total_profits        = f"€{round(total_profits      ,4)}"
-    total_tesla          = f"€{round(total_tesla        ,4)}"
-    total_netto          = f"€{round(total_netto        ,4)}"
-    total_gas            = f"€{round(total_gas          ,3)}"
-    total_el_cons        = f"{round(total_el_cons       ,3)}"
-    total_el_cons_tesla  = f"{round(total_el_cons_tesla ,3)}"
-    total_el_deliv       = f"{round(total_el_deliv      ,3)}"
-    total_el_netto       = f"{round(total_el_netto      ,3)}"
+    costs                 = costs.strip(',')           + ']'
+    profits               = profits.strip(',')         + ']'
+    tesla_costs           = tesla_costs.strip(',')     + ']'
+    gas_usages            = gas_usages.strip(',')      + ']'
+    el_consumptions       = el_consumptions.strip(',') + ']'
+    el_consumptions_tesla = el_consumptions_tesla.strip(',') + ']'
+    el_deliveries         = el_deliveries.strip(',')   + ']'
+    total_netto           = total_costs - total_tesla - total_profits
+    total_el_netto        = total_el_cons - total_el_cons_tesla - total_el_deliv
+    total_costs           = f"€{round(total_costs        ,4)}"
+    total_profits         = f"€{round(total_profits      ,4)}"
+    total_tesla           = f"€{round(total_tesla        ,4)}"
+    total_netto           = f"€{round(total_netto        ,4)}"
+    total_gas             = f"€{round(total_gas          ,3)}"
+    total_el_cons         = f"{round(total_el_cons       ,3)}"
+    total_el_cons_tesla   = f"{round(total_el_cons_tesla ,3)}"
+    total_el_deliv        = f"{round(total_el_deliv      ,3)}"
+    total_el_netto        = f"{round(total_el_netto      ,3)}"
     return costs,            \
             profits,         \
             tesla_costs,     \
             el_consumptions, \
+            el_consumptions_tesla, \
             el_deliveries,   \
             gas_usages,      \
             datum,           \
@@ -301,6 +303,7 @@ def euro_history():
     profits, 
     tesla_costs,
     el_consumptions,
+    el_consumptions_tesla,
     el_deliveries,
     gas_usages,
     datum,
@@ -317,22 +320,23 @@ def euro_history():
     datum = datum.strftime("%Y-%m-%d")
 
     return render_template('euro_history.html', 
-                            costs               = costs, 
-                            profits             = profits, 
-                            tesla_costs         = tesla_costs,
-                            el_consumptions     = el_consumptions,
-                            el_deliveries       = el_deliveries,
-                            gas_usages          = gas_usages,
-                            datum               = datum,
-                            total_costs         = total_costs,
-                            total_profits       = total_profits,
-                            total_tesla         = total_tesla,
-                            total_netto         = total_netto,
-                            total_gas           = total_gas,
-                            total_el_cons       = total_el_cons,
-                            total_el_deliv      = total_el_deliv,
-                            total_el_cons_tesla = total_el_cons_tesla,
-                            total_el_netto      = total_el_netto
+                            costs                 = costs, 
+                            profits               = profits, 
+                            tesla_costs           = tesla_costs,
+                            el_consumptions       = el_consumptions,
+                            el_consumptions_tesla = el_consumptions_tesla,
+                            el_deliveries         = el_deliveries,
+                            gas_usages            = gas_usages,
+                            datum                 = datum,
+                            total_costs           = total_costs,
+                            total_profits         = total_profits,
+                            total_tesla           = total_tesla,
+                            total_netto           = total_netto,
+                            total_gas             = total_gas,
+                            total_el_cons         = total_el_cons,
+                            total_el_deliv        = total_el_deliv,
+                            total_el_cons_tesla   = total_el_cons_tesla,
+                            total_el_netto        = total_el_netto
                             )
 
 
@@ -355,6 +359,7 @@ def kwh_history():
     profits, 
     tesla_costs,
     el_consumptions,
+    el_consumptions_tesla,
     el_deliveries,
     gas_usages,
     datum,
@@ -371,22 +376,23 @@ def kwh_history():
     datum = datum.strftime("%Y-%m-%d")
 
     return render_template('kwh_history.html', 
-                            costs               = costs, 
-                            profits             = profits, 
-                            tesla_costs         = tesla_costs,
-                            el_consumptions     = el_consumptions,
-                            el_deliveries       = el_deliveries,
-                            gas_usages          = gas_usages,
-                            datum               = datum,
-                            total_costs         = total_costs,
-                            total_profits       = total_profits,
-                            total_tesla         = total_tesla,
-                            total_netto         = total_netto,
-                            total_gas           = total_gas,
-                            total_el_cons       = total_el_cons,
-                            total_el_deliv      = total_el_deliv,
-                            total_el_cons_tesla = total_el_cons_tesla,
-                            total_el_netto      = total_el_netto
+                            costs                 = costs, 
+                            profits               = profits, 
+                            tesla_costs           = tesla_costs,
+                            el_consumptions       = el_consumptions,
+                            el_consumptions_tesla = el_consumptions_tesla,
+                            el_deliveries         = el_deliveries,
+                            gas_usages            = gas_usages,
+                            datum                 = datum,
+                            total_costs           = total_costs,
+                            total_profits         = total_profits,
+                            total_tesla           = total_tesla,
+                            total_netto           = total_netto,
+                            total_gas             = total_gas,
+                            total_el_cons         = total_el_cons,
+                            total_el_deliv        = total_el_deliv,
+                            total_el_cons_tesla   = total_el_cons_tesla,
+                            total_el_netto        = total_el_netto
                             )
 
 

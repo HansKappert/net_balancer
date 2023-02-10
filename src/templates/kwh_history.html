@@ -15,8 +15,9 @@
   <script type="text/javascript">
   var placeholder = document.getElementById('placeholder');
   placeholder.setAttribute("style","height:" + (window.innerHeight - 250) * 0.9 + "px");
-  var el_consumptions = {{ el_consumptions }};
-  var el_deliveries   = {{ el_deliveries   }};
+  var el_consumptions       = {{ el_consumptions       }};
+  var el_deliveries         = {{ el_deliveries         }};
+  var el_consumptions_tesla = {{ el_consumptions_tesla }};
   
 
   options = {
@@ -39,8 +40,9 @@
 
   Flotr.draw(
       placeholder,
-      [ {data : el_consumptions   , label : 'Verbruik'      , color: "#0000FF"}, 
-        {data : el_deliveries    , label : 'Teruglevering' , color: "#FFFF00"} ],
+      [ {data : el_consumptions      , label : 'Verbruik'      , color: "#0000FF"}, 
+        {data : el_deliveries        , label : 'Teruglevering' , color: "#FFFF00"},
+        {data : el_consumptions_tesla, label : 'Tesla verbruik', color: "#FF0000"} ],
     options
   );
     
