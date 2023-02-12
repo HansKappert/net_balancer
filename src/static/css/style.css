@@ -77,3 +77,6 @@ body {
   .logline_tr {
     border-bottom: #ddd 1pt solid ;
   }
+  td {
+    font-size: small;
+  }
