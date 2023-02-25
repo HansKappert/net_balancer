@@ -262,10 +262,10 @@ def get_cum_data(datum, today):
     total_tesla           = f"{total_tesla:.2f}"
     total_netto           = f"{total_netto:.2f}"
     total_gas             = f"{total_gas:.3f}"
-    total_el_cons         = f"{total_el_cons:.3f}"
-    total_el_cons_tesla   = f"{total_el_cons_tesla:.3f}"
-    total_el_deliv        = f"{total_el_deliv:.3f}"
-    total_el_netto        = f"{total_el_netto:.3f}"
+    total_el_cons         = f"{total_el_cons:.1f}"
+    total_el_cons_tesla   = f"{total_el_cons_tesla:.1f}"
+    total_el_deliv        = f"{total_el_deliv:.1f}"
+    total_el_netto        = f"{total_el_netto:.1f}"
     return costs,            \
             profits,         \
             tesla_costs,     \

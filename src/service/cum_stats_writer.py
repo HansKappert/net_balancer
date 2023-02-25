@@ -23,7 +23,7 @@ class cum_stats_writer:
 
     def start(self):
         while True:
-            for last_hour in range(-48,0):
+            for last_hour in range(-24,0):
                 target_date_hour = datetime(date.today().year,date.today().month, date.today().day,datetime.now().hour,0,0) + timedelta(hours=last_hour)
                 
                 existing_cum_stats = self.persistence.get_cum_stats_for_date_hour(target_date_hour)
