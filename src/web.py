@@ -398,7 +398,9 @@ def kwh_history():
 
 @app.route('/gas_usage_history', methods=['GET','POST'])
 def gas_usage_history():
-    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    #    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    now = datetime.now()
+    today = datetime(now.year, now.month, now.day, 0,0,0)
     if request.method == 'POST':
         datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
         if "go" in request.form:
@@ -409,39 +411,33 @@ def gas_usage_history():
     else:
         datum = today
 
-    hour = 0
-    gas_usages   = '['
-
-    total_gas     = 0.0
-    
-    while hour <= 24:
-        g = 0.0
-        has_data_this_hour = False
-
-        if datum <= today:
-            date_hour = datum + timedelta(hours=hour)
-            if date_hour < datetime.now():
-                summarized_data = db.get_cum_stats_for_date_hour(date_hour)
-                if len(summarized_data) == 1:
-                    for row in summarized_data: # typically 1 row.
-                            g = row[12] if row[12] else 0.0
-                    app.logger.debug(f"gas {str(g)}")
-                    has_data_this_hour = True
-        
-        if has_data_this_hour:
-            gas_usages   += '[' + str(hour) + ',' + str(g) + '],'
-            total_gas     = total_gas     + g
-        hour += 1
-    gas_usages   = gas_usages.strip(',')   + ']'
+    (costs,
+    profits, 
+    tesla_costs,
+    el_consumptions,
+    el_consumptions_tesla,
+    el_deliveries,
+    gas_usages,
+    datum,
+    total_costs,
+    total_profits,
+    total_tesla,
+    total_netto,
+    total_gas,
+    total_el_cons,
+    total_el_deliv,
+    total_el_cons_tesla,
+    total_el_netto) = get_cum_data(datum, today)
     
     datum = datum.strftime("%Y-%m-%d")
 
-    total_gas   = f"{round(total_gas  ,4)}m3"
     return render_template('gas_usage_history.html', 
-                            datum         = datum,
-                            gas_usages    = gas_usages,
-                            total_gas     = total_gas
+                                datum         = datum,
+                                gas_usages    = gas_usages,
+                                total_gas     = total_gas
                             )
+    
+    
 
 
 @app.route('/prices', methods=['GET','POST'])
