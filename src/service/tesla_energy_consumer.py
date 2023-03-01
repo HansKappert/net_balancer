@@ -160,7 +160,7 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
-        if surplus_power and surplus_power < max_power_consumption:
+        if surplus_power and surplus_power <= max_power_consumption:
             return True
         return False
 
