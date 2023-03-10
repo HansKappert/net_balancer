@@ -306,7 +306,11 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT price_percentage FROM tesla").fetchone()
         con.close()
-        return int(result[0])
+        if result[0]:
+            return int(result[0])
+        else:
+            return 0
+        
     def set_tesla_price_percentage(self, value):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET price_percentage = :value",{"value":value})
