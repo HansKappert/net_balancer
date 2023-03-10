@@ -306,7 +306,7 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT price_percentage FROM tesla").fetchone()
         con.close()
-        if result[0]:
+        if result:
             return int(result[0])
         else:
             return 0
