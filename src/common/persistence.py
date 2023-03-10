@@ -152,7 +152,7 @@ class persistence:
         #    print(f'{f[0]} {f[1]}')
         if len(result) == 0:
             self.logger.debug ("Creating table cum_stats")
-            cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_consumption REAL")
+            cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_consumption REAL)")
             con.commit()
         if len(result) == 12:
             self.logger.debug ("Adding column gas_consumption") 
