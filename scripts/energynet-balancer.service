@@ -1,0 +1,15 @@
+[Unit]
+Description=Background progress for energynet balancer
+After=network.target
+
+[Service]
+User=pi
+Type=simple
+Restart=always
+WorkingDirectory=/home/pi/net_balancer-main/src
+Environment="TESLA_USER=hans.kappert@hetconsultancyhuis.nl"
+ExecStart=/home/pi/venv/bin/python3 mediation_service.py -d=/dev/ttyUSB0 -l=i
+
+[Install]
+WantedBy=multi-user.target
+

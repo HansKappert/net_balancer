@@ -1,0 +1,16 @@
+[Unit]
+Description=Background progress for energynet balancer web site
+After=network.target
+
+[Service]
+User=pi
+Type=simple
+Restart=always
+WorkingDirectory=/home/pi/net_balancer-main/src
+Environment="TESLA_USER=hans.kappert@hetconsultancyhuis.nl"
+Environment="FLASK_APP=/home/pi/net_balancer-main/src/web.py"
+ExecStart=/home/pi/venv/bin/python3 /home/pi/net_balancer-main/src/web.py
+
+[Install]
+WantedBy=multi-user.target
+
