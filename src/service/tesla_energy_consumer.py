@@ -18,6 +18,7 @@ class tesla_energy_consumer(energy_consumer):
         self._consumption_amps_now = 0
         self.charge_state = {}
         self.drive_state = {}
+        self.email = ""
         self._est_battery_range = 0
         self._price_percentage = db.get_tesla_price_percentage()
         
@@ -32,8 +33,9 @@ class tesla_energy_consumer(energy_consumer):
         self.logger.addHandler(log_handler)
 
     def initialize(self, **kwargs):
-        if kwargs['email']:
+        if kwargs and kwargs['email']:
             self.email = kwargs['email']
+        if self.email:
             try:
                 self.tesla = Tesla(self.email)
                 self.tesla.captcha_solver = self.solve_captcha
