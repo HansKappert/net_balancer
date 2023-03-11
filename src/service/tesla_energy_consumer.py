@@ -326,7 +326,10 @@ class tesla_energy_consumer(energy_consumer):
     @property
     def battery_level(self):
         self.__update_vehicle_data()
-        return int(self.charge_state['battery_level'])
+        if 'battery_level' in self.charge_state:
+            return int(self.charge_state['battery_level'])
+        else:
+            return 0
 
     @property
     def est_battery_range(self):
