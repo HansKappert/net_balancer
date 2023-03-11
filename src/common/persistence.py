@@ -59,7 +59,7 @@ class persistence:
         self.logger.debug ("Database connected")
 
         result = cur.execute("PRAGMA table_info(settings)").fetchall()
-        if (result == None):
+        if (len(result) == 0):
             self.logger.debug ("Creating table settings")
             cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
             cur.execute("INSERT INTO  settings VALUES (40,40)")
@@ -105,7 +105,7 @@ class persistence:
         if (result == None):
             self.logger.debug ("Creating table tesla")
             cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL, balance_above INTEGER, price_percentage INTEGER)")
-            cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0)")
+            cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0, 30, 80)")
             con.commit()
         else:
             result = cur.execute("PRAGMA table_info(tesla)").fetchall()
@@ -294,7 +294,10 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT balance_above FROM tesla").fetchone()
         con.close()
-        return int(result[0])
+        if result:
+            return int(result[0])
+        else:
+            return 0
     def set_tesla_balance_above(self, value):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET balance_above = :value",{"value":value})
@@ -322,7 +325,11 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT charge_until FROM tesla").fetchone()
         con.close()
-        return int(result[0])
+        if result:
+            return int(result[0])
+        else:
+            return 0
+        
     def set_tesla_charge_until(self, value):
         con = self.get_db_connection()
         result = con.execute("UPDATE tesla SET charge_until = :value",{"value":value})
@@ -334,7 +341,10 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT balance FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
         con.close()
-        return int(result[0])
+        if result:
+            return int(result[0])
+        else:
+            return 0
     def set_consumer_balance(self, consumer_name, value):
         con = self.get_db_connection()  
         result = con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
@@ -351,7 +361,10 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT log_retention_days FROM settings").fetchone()
         con.close()
-        return int(result[0])
+        if result:
+            return int(result[0])
+        else:
+            return 0
     def set_log_retention(self, value):
         con = self.get_db_connection()  
         result = con.execute("UPDATE settings SET log_retention_days = :value ",{"value":value})
@@ -394,6 +407,7 @@ class persistence:
         if result:
             return (result[0],result[1])
         else:
+            self.logger.debug("No home location set.")
             return (0,0)
 
     def set_tesla_home_coords(self, home_latitude, home_longitude):
@@ -407,7 +421,11 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()
         con.close()
-        return (result[0],result[1])
+        if result:
+            return (result[0],result[1])
+        else:
+            self.logger.debug("Current location unknown.")
+            return (0,0)
 
     def set_tesla_current_coords(self, current_latitude, current_longitude):
         con = self.get_db_connection()

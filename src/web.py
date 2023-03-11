@@ -464,10 +464,11 @@ def prices():
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
     ddatum = datum.strftime("%Y-%m-%d")
+    avg    = round(total/len(price_history),2) if len(price_history)>0 else 0
     return render_template('prices.html', 
                             datum=ddatum, 
                             prices = prices, 
-                            avg= round(total/len(price_history),2) 
+                            avg= avg 
                             )
   
 
