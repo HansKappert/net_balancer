@@ -34,16 +34,18 @@ class tesla_energy_consumer(energy_consumer):
     def initialize(self, **kwargs):
         if kwargs['email']:
             self.email = kwargs['email']
-        self.tesla = Tesla(self.email)
-        self.tesla.captcha_solver = self.solve_captcha
-        self.tesla.fetch_token()
-        vehicles = self.tesla.vehicle_list()
-        if len(vehicles) > 0:
-            self.vehicle = vehicles[0]
-            self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
-            return True
-        else:
-            return False
+            try:
+                self.tesla = Tesla(self.email)
+                self.tesla.captcha_solver = self.solve_captcha
+                self.tesla.fetch_token()
+                vehicles = self.tesla.vehicle_list()
+                if len(vehicles) > 0:
+                    self.vehicle = vehicles[0]
+                    self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
+                    return True
+            except (Exception) as e:
+                self.logger.debug(f"Error during initializing Tesla energy consumer: {e}")            
+        return False
 
     def solve_captcha(self, svg):
         with open('captcha.svg', 'wb') as f:
