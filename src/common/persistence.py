@@ -391,7 +391,10 @@ class persistence:
         con = self.get_db_connection()
         result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
         con.close()
-        return (result[0],result[1])
+        if result:
+            return (result[0],result[1])
+        else:
+            return (0,0)
 
     def set_tesla_home_coords(self, home_latitude, home_longitude):
         con = self.get_db_connection()
