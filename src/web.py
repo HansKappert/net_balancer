@@ -20,15 +20,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
 
 db = persistence()
-data_model = model(db)
-tesla = tesla_energy_consumer(db)
-
-tesla_user = os.environ["TESLA_USER"]
-try:
-    tesla.initialize(email=tesla_user)
-except Exception as e:
-    logging.exception(e)
-data_model.add_consumer(tesla)
 
 mylogger = logging.getLogger(__name__)
 
@@ -45,6 +36,16 @@ dblog_handler.setLevel(logging.INFO)
 for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
+
+data_model = model(db)
+tesla = tesla_energy_consumer(db)
+
+tesla_user = os.environ["TESLA_USER"]
+try:
+    tesla.initialize(email=tesla_user)
+    data_model.add_consumer(tesla)
+except Exception as e:
+    logging.exception(e)
 
 
 mylogger.info("Web app ready to receive requests")
@@ -522,12 +523,16 @@ def consumer_tesla():
 
 @app.route('/data/get', methods=['GET'])
 def get_data():
+    if data_model.get_consumer("Tesla"):
+        charging_tesla_amp  = data_model.get_consumer("Tesla").consumption_amps_now
+        charging_tesla_watt = data_model.get_consumer("Tesla").consumption_power_now
+        
     json_text = jsonify(
         {'surplus': data_model.surplus},
-        {'current_consumption':data_model.current_consumption},
-        {'current_production': data_model.current_production},
-        {'charging_tesla_amp':data_model.get_consumer("Tesla").consumption_amps_now},
-        {'charging_tesla_watt':data_model.get_consumer("Tesla").consumption_power_now}
+        {'current_consumption' : data_model.current_consumption},
+        {'current_production'  : data_model.current_production},
+        {'charging_tesla_amp'  : charging_tesla_amp},
+        {'charging_tesla_watt' : charging_tesla_watt}
         )
     return json_text
 
