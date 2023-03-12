@@ -20,15 +20,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HeelLekkerbeLangrijk'
 
 db = persistence()
-data_model = model(db)
-tesla = tesla_energy_consumer(db)
-
-tesla_user = os.environ["TESLA_USER"]
-try:
-    tesla.initialize(email=tesla_user)
-except Exception as e:
-    logging.exception(e)
-data_model.add_consumer(tesla)
 
 mylogger = logging.getLogger(__name__)
 
@@ -45,6 +36,16 @@ dblog_handler.setLevel(logging.INFO)
 for logger in (    app.logger,    mylogger):
     logger.addHandler(streamlog_handler)
     logger.addHandler(dblog_handler)
+
+data_model = model(db)
+tesla = tesla_energy_consumer(db)
+
+tesla_user = os.environ["TESLA_USER"]
+try:
+    tesla.initialize(email=tesla_user)
+    data_model.add_consumer(tesla)
+except Exception as e:
+    logging.exception(e)
 
 
 mylogger.info("Web app ready to receive requests")
@@ -257,15 +258,15 @@ def get_cum_data(datum, today):
     el_deliveries         = el_deliveries.strip(',')   + ']'
     total_netto           = total_costs - total_tesla - total_profits
     total_el_netto        = total_el_cons - total_el_cons_tesla - total_el_deliv
-    total_costs           = f"€{round(total_costs        ,4)}"
-    total_profits         = f"€{round(total_profits      ,4)}"
-    total_tesla           = f"€{round(total_tesla        ,4)}"
-    total_netto           = f"€{round(total_netto        ,4)}"
-    total_gas             = f"€{round(total_gas          ,3)}"
-    total_el_cons         = f"{round(total_el_cons       ,3)}"
-    total_el_cons_tesla   = f"{round(total_el_cons_tesla ,3)}"
-    total_el_deliv        = f"{round(total_el_deliv      ,3)}"
-    total_el_netto        = f"{round(total_el_netto      ,3)}"
+    total_costs           = f"{total_costs:.2f}"
+    total_profits         = f"{total_profits:.2f}"
+    total_tesla           = f"{total_tesla:.2f}"
+    total_netto           = f"{total_netto:.2f}"
+    total_gas             = f"{total_gas:.3f}"
+    total_el_cons         = f"{total_el_cons:.1f}"
+    total_el_cons_tesla   = f"{total_el_cons_tesla:.1f}"
+    total_el_deliv        = f"{total_el_deliv:.1f}"
+    total_el_netto        = f"{total_el_netto:.1f}"
     return costs,            \
             profits,         \
             tesla_costs,     \
@@ -398,7 +399,9 @@ def kwh_history():
 
 @app.route('/gas_usage_history', methods=['GET','POST'])
 def gas_usage_history():
-    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    #    today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+    now = datetime.now()
+    today = datetime(now.year, now.month, now.day, 0,0,0)
     if request.method == 'POST':
         datum = datetime.strptime(request.form["datum"],"%Y-%m-%d")
         if "go" in request.form:
@@ -409,39 +412,33 @@ def gas_usage_history():
     else:
         datum = today
 
-    hour = 0
-    gas_usages   = '['
-
-    total_gas     = 0.0
-    
-    while hour <= 24:
-        g = 0.0
-        has_data_this_hour = False
-
-        if datum <= today:
-            date_hour = datum + timedelta(hours=hour)
-            if date_hour < datetime.now():
-                summarized_data = db.get_cum_stats_for_date_hour(date_hour)
-                if len(summarized_data) == 1:
-                    for row in summarized_data: # typically 1 row.
-                            g = row[12] if row[12] else 0.0
-                    app.logger.debug(f"gas {str(g)}")
-                    has_data_this_hour = True
-        
-        if has_data_this_hour:
-            gas_usages   += '[' + str(hour) + ',' + str(g) + '],'
-            total_gas     = total_gas     + g
-        hour += 1
-    gas_usages   = gas_usages.strip(',')   + ']'
+    (costs,
+    profits, 
+    tesla_costs,
+    el_consumptions,
+    el_consumptions_tesla,
+    el_deliveries,
+    gas_usages,
+    datum,
+    total_costs,
+    total_profits,
+    total_tesla,
+    total_netto,
+    total_gas,
+    total_el_cons,
+    total_el_deliv,
+    total_el_cons_tesla,
+    total_el_netto) = get_cum_data(datum, today)
     
     datum = datum.strftime("%Y-%m-%d")
 
-    total_gas   = f"{round(total_gas  ,4)}m3"
     return render_template('gas_usage_history.html', 
-                            datum         = datum,
-                            gas_usages    = gas_usages,
-                            total_gas     = total_gas
+                                datum         = datum,
+                                gas_usages    = gas_usages,
+                                total_gas     = total_gas
                             )
+    
+    
 
 
 @app.route('/prices', methods=['GET','POST'])
@@ -467,10 +464,11 @@ def prices():
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
     ddatum = datum.strftime("%Y-%m-%d")
+    avg    = round(total/len(price_history),2) if len(price_history)>0 else 0
     return render_template('prices.html', 
                             datum=ddatum, 
                             prices = prices, 
-                            avg= round(total/len(price_history),2) 
+                            avg= avg 
                             )
   
 
@@ -526,12 +524,16 @@ def consumer_tesla():
 
 @app.route('/data/get', methods=['GET'])
 def get_data():
+    if data_model.get_consumer("Tesla"):
+        charging_tesla_amp  = data_model.get_consumer("Tesla").consumption_amps_now
+        charging_tesla_watt = data_model.get_consumer("Tesla").consumption_power_now
+        
     json_text = jsonify(
         {'surplus': data_model.surplus},
-        {'current_consumption':data_model.current_consumption},
-        {'current_production': data_model.current_production},
-        {'charging_tesla_amp':data_model.get_consumer("Tesla").consumption_amps_now},
-        {'charging_tesla_watt':data_model.get_consumer("Tesla").consumption_power_now}
+        {'current_consumption' : data_model.current_consumption},
+        {'current_production'  : data_model.current_production},
+        {'charging_tesla_amp'  : charging_tesla_amp},
+        {'charging_tesla_watt' : charging_tesla_watt}
         )
     return json_text
 

@@ -18,6 +18,7 @@ class tesla_energy_consumer(energy_consumer):
         self._consumption_amps_now = 0
         self.charge_state = {}
         self.drive_state = {}
+        self.email = ""
         self._est_battery_range = 0
         self._price_percentage = db.get_tesla_price_percentage()
         
@@ -32,18 +33,21 @@ class tesla_energy_consumer(energy_consumer):
         self.logger.addHandler(log_handler)
 
     def initialize(self, **kwargs):
-        if kwargs['email']:
+        if kwargs and kwargs['email']:
             self.email = kwargs['email']
-        self.tesla = Tesla(self.email)
-        self.tesla.captcha_solver = self.solve_captcha
-        self.tesla.fetch_token()
-        vehicles = self.tesla.vehicle_list()
-        if len(vehicles) > 0:
-            self.vehicle = vehicles[0]
-            self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
-            return True
-        else:
-            return False
+        if self.email:
+            try:
+                self.tesla = Tesla(self.email)
+                self.tesla.captcha_solver = self.solve_captcha
+                self.tesla.fetch_token()
+                vehicles = self.tesla.vehicle_list()
+                if len(vehicles) > 0:
+                    self.vehicle = vehicles[0]
+                    self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
+                    return True
+            except (Exception) as e:
+                self.logger.debug(f"Error during initializing Tesla energy consumer: {e}")            
+        return False
 
     def solve_captcha(self, svg):
         with open('captcha.svg', 'wb') as f:
@@ -160,7 +164,7 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
-        if surplus_power < max_power_consumption:
+        if surplus_power and surplus_power <= max_power_consumption:
             return True
         return False
 
@@ -322,7 +326,10 @@ class tesla_energy_consumer(energy_consumer):
     @property
     def battery_level(self):
         self.__update_vehicle_data()
-        return int(self.charge_state['battery_level'])
+        if 'battery_level' in self.charge_state:
+            return int(self.charge_state['battery_level'])
+        else:
+            return 0
 
     @property
     def est_battery_range(self):

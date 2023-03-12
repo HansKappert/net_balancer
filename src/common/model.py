@@ -69,12 +69,19 @@ class model:
             return None
         mn= min(subset)
         for i in subset:
-            if i < -1500 and i<0 and mn > i*4:
+            if i < -1500 and i<0 and mn > i*4: # dit doen we om de spikes er uit te halen.
                 continue
             b.append(i) 
         
+        if len(b) == 0 and len(subset) == periods:  
+            # dit is als de auto nog volle bak aan het laden is, dan zijn alle waarden uit de subset onder de -1500
+            # In dat geval kan wel het gemiddelde van subset worden genomen.
+            for i in subset:
+                b.append(i) 
+
         if len(b) < 3:
             self.logger.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
+
             return None
         av = sum(b)/len(b)
 
