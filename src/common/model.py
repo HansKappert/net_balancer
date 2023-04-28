@@ -203,3 +203,15 @@ class model:
             if hour == datetime.now().hour:
                 current_price = row[1]
         return current_price, round(total/24,2)    
+    
+
+
+    @property
+    def mediation_service_status(self):
+        return self.persistence.get_mediation_service_status()
+
+    @mediation_service_status.setter
+    def mediation_service_status(self,value):
+        self.persistence.set_mediation_service_status(value)
+
+    

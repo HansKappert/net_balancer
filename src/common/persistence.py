@@ -41,8 +41,8 @@ class persistence:
         AND tstamp between :from_tstamp and :until_tstamp"""
 
     def __init__(self) -> None:
-        con = self.get_db_connection()
-        cur = con.cursor()
+        db_con = self.get_db_connection()
+        cur = db_con.cursor()
 
         self.logger = logging.getLogger(__name__)
         
@@ -63,14 +63,14 @@ class persistence:
             self.logger.debug ("Creating table settings")
             cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
             cur.execute("INSERT INTO  settings VALUES (40,40)")
-            con.commit()
+            db_con.commit()
         else:
             for field in result:
                 if field[1] == "surplus_delay_theshold":
                     cur.execute("DROP TABLE settings")
                     cur.execute("CREATE TABLE settings (log_retention_days INTEGER, stats_retention_days INTEGER);")
                     cur.execute("INSERT INTO  settings VALUES (40,40)")
-                    con.commit()
+                    db_con.commit()
                     
     
         result = cur.execute("PRAGMA table_info(readings)").fetchall()
@@ -87,45 +87,48 @@ class persistence:
                 meter_reading_delivered_to_client_low REAL, 
                 meter_reading_delivered_to_client_normal REAL)""") 
             cur.execute("INSERT INTO  readings VALUES (0,0,0,0,0,0,0,0)")
-            con.commit()
+            db_con.commit()
 
         result = cur.execute("PRAGMA table_info(consumer)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table consumer")
             cur.execute("CREATE TABLE consumer(name TEXT, consumption_max INTEGER, consumption_now INTEGER, balance BOOLEAN NOT NULL CHECK (balance IN (0, 1)), disabled BOOLEAN NOT NULL CHECK (disabled IN (0, 1)))")
             cur.execute("INSERT INTO  consumer VALUES ('Tesla', 3680, 0, 1, 0)")
-            con.commit()
+            db_con.commit()
         else:
             result = cur.execute("PRAGMA table_info(consumer)").fetchall()
             if (result[3][1] == 'override'):
                 cur.execute("ALTER TABLE consumer RENAME COLUMN override TO balance")
-                con.commit()
+                db_con.commit()
 
         result = cur.execute("PRAGMA table_info(tesla)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table tesla")
-            cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL, balance_above INTEGER, price_percentage INTEGER)")
-            cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0, 30, 80)")
-            con.commit()
+            cur.execute("CREATE TABLE tesla(charge_until INTEGER, home_latitude REAL, home_longitude REAL, current_latitude REAL, current_longitude REAL, balance_above INTEGER, price_percentage INTEGER, status TEXT)")
+            cur.execute("INSERT INTO  tesla VALUES (80, 0.0, 0.0, 0.0, 0.0, 30, 80, '')")
+            db_con.commit()
         else:
             result = cur.execute("PRAGMA table_info(tesla)").fetchall()
             if (len(result) == 5):
                 cur.execute("ALTER TABLE tesla ADD COLUMN balance_above INTEGER")
-                con.commit()
+                db_con.commit()
                 cur.execute("UPDATE tesla SET balance_above = 50")
-                con.commit()
+                db_con.commit()
             result = cur.execute("PRAGMA table_info(tesla)").fetchall()
             if (len(result) == 6):
                 cur.execute("ALTER TABLE tesla ADD COLUMN price_percentage INTEGER")
-                con.commit()
+                db_con.commit()
                 cur.execute("UPDATE tesla SET price_percentage = 50")
-                con.commit()
+                db_con.commit()
+            if (len(result) == 7):
+                cur.execute("ALTER TABLE tesla ADD COLUMN status TEXT")
+                db_con.commit()
 
         result = cur.execute("PRAGMA table_info(stats)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table stats")
             cur.execute("CREATE TABLE stats(tstamp INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_reading REAL, meter_reading_delivered_to_client_low REAL, meter_reading_delivered_to_client_normal REAL, meter_reading_delivered_by_client_low REAL, meter_reading_delivered_by_client_normal REAL)")
-            con.commit()
+            db_con.commit()
         else:
             results = cur.execute("PRAGMA table_info(stats)").fetchall()
             for result in results:
@@ -145,7 +148,7 @@ class persistence:
                 cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_to_client_normal REAL")
                 cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_by_client_low    REAL")
                 cur.execute("ALTER TABLE stats ADD COLUMN meter_reading_delivered_by_client_normal REAL")
-            con.commit()
+            db_con.commit()
 
         result = cur.execute("PRAGMA table_info(cum_stats)").fetchall()
         # for f in result:
@@ -153,43 +156,50 @@ class persistence:
         if len(result) == 0:
             self.logger.debug ("Creating table cum_stats")
             cur.execute("CREATE TABLE cum_stats(year INTEGER, month INTEGER, day INTEGER, hour INTEGER, current_production INTEGER, current_consumption INTEGER, tesla_consumption INTEGER, cost_price REAL, profit_price REAL, cost REAL, profit REAL, tesla_cost REAL, gas_consumption REAL)")
-            con.commit()
+            db_con.commit()
         if len(result) == 12:
             self.logger.debug ("Adding column gas_consumption") 
             cur.execute("ALTER TABLE cum_stats ADD COLUMN gas_consumption REAL")
-            con.commit()
+            db_con.commit()
         
 
         result = cur.execute("PRAGMA table_info(event)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table event")
             cur.execute("CREATE TABLE event(log_date, levelname, source, message, occurrences)")
-            con.commit()
+            db_con.commit()
 
 
         result = cur.execute("PRAGMA index_info(last_event)").fetchone()
         if (result == None):
             self.logger.debug ("Creating index last_event")
             cur.execute("create index last_event on event (log_date);")
-            con.commit()
+            db_con.commit()
 
         result = cur.execute("PRAGMA table_info(prices)").fetchone()
         if (result == None):
             self.logger.debug ("Creating table prices")
             cur.execute("CREATE TABLE prices(tstamp INTEGER, price REAL)")
-            con.commit()
+            db_con.commit()
 
+        result = cur.execute("PRAGMA table_info(mediation_service)").fetchone()
+        if (result == None):
+            self.logger.debug ("Creating table mediation_service")
+            cur.execute("CREATE TABLE mediation_service(status TEXT)")
+            cur.execute("INSERT INTO mediation_service VALUES('')")
+            db_con.commit()
+        
         cur.execute("update cum_stats set current_consumption = -1 * current_consumption where current_consumption < 0")
         cur.execute("update     stats set current_consumption = -1 * current_consumption where current_consumption < 0")
-        con.commit()
+        db_con.commit()
 
-        con.close()
+        db_con.close()
 
     def vacuum(self):
-        con = self.get_db_connection()
-        con.execute("VACUUM")
-        con.commit()        
-        con.close()
+        db_con = self.get_db_connection()
+        db_con.execute("VACUUM")
+        db_con.commit()        
+        db_con.close()
 
     def get_db_connection(self):
         conn = sqlite3.connect(persistence.DBNAME, timeout=60)
@@ -197,27 +207,27 @@ class persistence:
         return conn
 
     def log_event(self, levelname:str, source:str, message:str):
-        con = self.get_db_connection()
-        result = con.execute("SELECT log_date, message FROM event ORDER BY log_date DESC").fetchone()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT log_date, message FROM event ORDER BY log_date DESC").fetchone()
         log_date = datetime.now()
         if not result == None and result[1] == message:
-                result = con.execute("UPDATE event SET log_date = :new_log_date, occurrences = occurrences + 1 WHERE log_date = :old_log_date",{"new_log_date": log_date, "old_log_date": result[0]})
+                result = db_con.execute("UPDATE event SET log_date = :new_log_date, occurrences = occurrences + 1 WHERE log_date = :old_log_date",{"new_log_date": log_date, "old_log_date": result[0]})
         else:
-            result = con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
-        con.commit()
-        con.close()
+            result = db_con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
+        db_con.commit()
+        db_con.close()
 
     def __get_reading_column_value(self, column_name):
-        con = self.get_db_connection()
-        result = con.execute("SELECT " + column_name + " FROM readings").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT " + column_name + " FROM readings").fetchone()
+        db_con.close()
         return result[0]
     
     def __set_reading_column_value(self, column_name, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE readings SET " + column_name + " = :value",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE readings SET " + column_name + " = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
     
     def get_surplus(self):
         return self.__get_reading_column_value("surplus")
@@ -261,149 +271,182 @@ class persistence:
         self.__set_reading_column_value("meter_reading_delivered_to_client_normal", value)
 
 
+   
+
+    #  mediation service status
+    def get_mediation_service_status(self):
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT status FROM mediation_service").fetchone()
+        db_con.close()
+        return result[0]
+    def set_mediation_service_status(self, value):
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE mediation_service SET status = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
+
+
+
+
     #  consumer consumption_max
     def get_consumer_consumption_max(self, consumer_name):
-        con = self.get_db_connection()
-        result = con.execute("SELECT consumption_max FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT consumption_max FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        db_con.close()
         if result == None:
             return 0
         return int(result[0])
     def set_consumer_consumption_max(self, consumer_name, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE consumer SET consumption_max = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE consumer SET consumption_max = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        db_con.commit()
+        db_con.close()
 
     # consumer consumption_now
     def get_consumer_consumption_now(self, consumer_name):
-        con = self.get_db_connection()
-        result = con.execute("SELECT consumption_now FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT consumption_now FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        db_con.close()
         if result == None:
             return 0
         return int(result[0])
     def set_consumer_consumption_now(self, consumer_name, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE consumer SET consumption_now = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE consumer SET consumption_now = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        db_con.commit()
+        db_con.close()
 
     # consumer balance_above
     def get_tesla_balance_above(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT balance_above FROM tesla").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT balance_above FROM tesla").fetchone()
+        db_con.close()
         if result:
             return int(result[0])
         else:
             return 0
     def set_tesla_balance_above(self, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE tesla SET balance_above = :value",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE tesla SET balance_above = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
 
     # consumer price_percentage
     def get_tesla_price_percentage(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT price_percentage FROM tesla").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT price_percentage FROM tesla").fetchone()
+        db_con.close()
         if result:
             return int(result[0])
         else:
             return 0
         
     def set_tesla_price_percentage(self, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE tesla SET price_percentage = :value",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE tesla SET price_percentage = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
 
     # consumer charge_until
     def get_tesla_charge_until(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT charge_until FROM tesla").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT charge_until FROM tesla").fetchone()
+        db_con.close()
         if result:
             return int(result[0])
         else:
             return 0
         
     def set_tesla_charge_until(self, value):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE tesla SET charge_until = :value",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE tesla SET charge_until = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
 
     #  consumer balance
     def get_consumer_balance(self, consumer_name):
-        con = self.get_db_connection()
-        result = con.execute("SELECT balance FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT balance FROM consumer WHERE name = :consumer_name",{"consumer_name":consumer_name}).fetchone()
+        db_con.close()
         if result:
             return int(result[0])
         else:
             return 0
     def set_consumer_balance(self, consumer_name, value):
-        con = self.get_db_connection()  
-        result = con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+        db_con = self.get_db_connection()  
+        result = db_con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
         if (result == None):
             print("update of consumer setting successful")
         else:
             print("update of consumer setting failed")
-        con.commit()
-        con.close()
+        db_con.commit()
+        db_con.close()
 
+    #  consumer balance
+    def get_consumer_status(self, consumer_name):
+        db_con = self.get_db_connection()
+        if consumer_name == 'Tesla':
+            result = db_con.execute("SELECT status FROM tesla").fetchone()
+            db_con.close()
+            return result[0]
+        else:
+            return ''
+    def set_consumer_status(self, consumer_name, value):
+        db_con = self.get_db_connection() 
+        if consumer_name == 'Tesla':
+            db_con.execute("UPDATE tesla SET status = :value",{"value":value})
+        db_con.commit()
+        db_con.close()
+        
 
     #  log retention
     def get_log_retention(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT log_retention_days FROM settings").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT log_retention_days FROM settings").fetchone()
+        db_con.close()
         if result:
             return int(result[0])
         else:
             return 0
     def set_log_retention(self, value):
-        con = self.get_db_connection()  
-        result = con.execute("UPDATE settings SET log_retention_days = :value ",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()  
+        result = db_con.execute("UPDATE settings SET log_retention_days = :value ",{"value":value})
+        db_con.commit()
+        db_con.close()
 
     #  stats retention
     def get_stats_retention(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT stats_retention_days FROM settings").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT stats_retention_days FROM settings").fetchone()
+        db_con.close()
         return int(result[0])
 
     def set_stats_retention(self, value):
-        con = self.get_db_connection()  
-        result = con.execute("UPDATE settings SET stats_retention_days = :value ",{"value":value})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()  
+        result = db_con.execute("UPDATE settings SET stats_retention_days = :value ",{"value":value})
+        db_con.commit()
+        db_con.close()
 
     def get_log_lines(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT * FROM event ORDER BY log_date DESC").fetchall()
+        db_con.close()
         return result
 
     def remove_old_log_lines(self):
-        con = self.get_db_connection()
-        result = con.execute("select log_retention_days from settings").fetchone()
+        db_con = self.get_db_connection()
+        result = db_con.execute("select log_retention_days from settings").fetchone()
         log_retention_hours = int(result[0])
-        result = con.execute("DELETE FROM event WHERE log_date < datetime('now', '-{} hours')".format(log_retention_hours))
-        con.commit()
-        con.close()
+        result = db_con.execute("DELETE FROM event WHERE log_date < datetime('now', '-{} hours')".format(log_retention_hours))
+        db_con.commit()
+        db_con.close()
         return result
 
     # tesla home_coords
     def get_tesla_home_coords(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT home_latitude, home_longitude FROM tesla").fetchone()
+        db_con.close()
         if result:
             return (result[0],result[1])
         else:
@@ -411,16 +454,16 @@ class persistence:
             return (0,0)
 
     def set_tesla_home_coords(self, home_latitude, home_longitude):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE tesla SET home_latitude = :home_latitude, home_longitude = :home_longitude",{"home_latitude":home_latitude,"home_longitude":home_longitude})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE tesla SET home_latitude = :home_latitude, home_longitude = :home_longitude",{"home_latitude":home_latitude,"home_longitude":home_longitude})
+        db_con.commit()
+        db_con.close()
 
     # tesla current_coords
     def get_tesla_current_coords(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT current_latitude, current_longitude FROM tesla").fetchone()
+        db_con.close()
         if result:
             return (result[0],result[1])
         else:
@@ -428,10 +471,10 @@ class persistence:
             return (0,0)
 
     def set_tesla_current_coords(self, current_latitude, current_longitude):
-        con = self.get_db_connection()
-        result = con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
-        con.commit()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("UPDATE tesla SET current_latitude = :current_latitude, current_longitude = :current_longitude",{"current_latitude":current_latitude,"current_longitude":current_longitude})
+        db_con.commit()
+        db_con.close()
 
     def write_statistics(self, 
                         when, 
@@ -446,9 +489,9 @@ class persistence:
                         meter_reading_delivered_by_client_low    = 0,
                         meter_reading_delivered_by_client_normal = 0
                         ):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         tstamp = time.mktime(when.timetuple())
-        result = con.execute("""
+        result = db_con.execute("""
         INSERT INTO stats 
         (        
             tstamp, 
@@ -491,30 +534,30 @@ class persistence:
             "meter_reading_delivered_by_client_low"    : meter_reading_delivered_by_client_normal,
             "meter_reading_delivered_by_client_normal" : meter_reading_delivered_by_client_low
             })
-        con.commit()
+        db_con.commit()
          
         stats_retention_days = self.get_stats_retention()
         dt = datetime.now() - timedelta(days=stats_retention_days)
         unix_ts = time.mktime(dt.timetuple())
-        result = con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
-        con.commit()
-        con.close()
+        result = db_con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
+        db_con.commit()
+        db_con.close()
 
     def write_prices(self, when: datetime, price: float):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         unix_ts = time.mktime(when.timetuple())
-        result = con.execute("INSERT INTO prices VALUES (:tstamp, :price)",
+        result = db_con.execute("INSERT INTO prices VALUES (:tstamp, :price)",
                                                        {"tstamp" : unix_ts, 
                                                         "price"  : price})
-        con.commit()
-        con.close()
+        db_con.commit()
+        db_con.close()
 
     def get_price_at_datetime(self, when: date):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         try:
             unix_ts = time.mktime(when.timetuple())
-            result = con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
-            con.close()
+            result = db_con.execute("SELECT price FROM prices WHERE tstamp = (SELECT MAX(tstamp) FROM prices WHERE tstamp <= :tstamp)",{"tstamp":unix_ts}).fetchone()
+            db_con.close()
             if result:
                 return result[0]
             return None
@@ -523,32 +566,32 @@ class persistence:
             return None
 
     def get_historical_prices(self, minutes):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
-        result = con.execute("SELECT * FROM prices WHERE tstamp >= :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
-        con.close()
+        result = db_con.execute("SELECT * FROM prices WHERE tstamp >= :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
+        db_con.close()
         return result
 
     def get_day_prices(self, from_dt:datetime):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         today = datetime(from_dt.year,from_dt.month,from_dt.day,0,0,0)
         from_ts = time.mktime(today.timetuple())
         until_dt = today + timedelta(hours=23)
         until_ts = time.mktime(until_dt.timetuple())
         
-        result = con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp",
+        result = db_con.execute("SELECT * FROM prices WHERE tstamp between :from_tstamp and :to_tstamp ORDER BY tstamp",
                     {"from_tstamp":from_ts,
                      "to_tstamp"  :until_ts}).fetchall()
-        con.close()
+        db_con.close()
         return result
 
     def get_history(self, minutes):
-        con = self.get_db_connection()
+        db_con = self.get_db_connection()
         dt = datetime.now() - timedelta(minutes=minutes)
         unix_ts = time.mktime(dt.timetuple())
-        result = con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
-        con.close()
+        result = db_con.execute("SELECT * FROM stats WHERE tstamp > :tstamp ORDER BY tstamp",{"tstamp":unix_ts}).fetchall()
+        db_con.close()
         return result
 
     def get_stats_for_date_hour(self, date_hour:datetime):
@@ -560,8 +603,8 @@ class persistence:
         from_ts = time.mktime(date_hour.timetuple())
         until_ts = time.mktime(datetime.now().timetuple())
         
-        con = self.get_db_connection()
-        result = con.execute(self.stats_collect_qry
+        db_con = self.get_db_connection()
+        result = db_con.execute(self.stats_collect_qry
                 ,
                     {"year"        : date_hour.year,
                     "month"        : date_hour.month,
@@ -570,38 +613,37 @@ class persistence:
                     "from_tstamp"  : from_ts,
                     "until_tstamp" : until_ts}).fetchall()
         
-        con.close()
+        db_con.close()
         return result
-    
     def get_cum_stats_for_date_hour(self, date_hour:datetime):
-        con = self.get_db_connection()
-        result = con.execute("SELECT * FROM cum_stats WHERE year = :year AND month = :month AND day = :day AND hour = :hour",
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT * FROM cum_stats WHERE year = :year AND month = :month AND day = :day AND hour = :hour",
                     {"year":date_hour.year,
                     "month":date_hour.month,
                     "day":date_hour.day,
                     "hour":date_hour.hour}).fetchall()
-        con.close()
+        db_con.close()
         return result
 
     def get_cum_stats_for_month(self, year: int, month: int):
-        con = self.get_db_connection()
-        result = con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month, day ORDER BY year, month, day",
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month, day ORDER BY year, month, day",
                     {"year":year,
                     "month":month}).fetchall()
-        con.close()
+        db_con.close()
         return result
 
     def get_cum_stats_for_year(self, year: int):
-        con = self.get_db_connection()
-        result = con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month ORDER BY year, month",
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT year, month, day, SUM(current_production), SUM(current_consumption), SUM(tesla_consumption), AVG(cost_price), AVG(profit_price), SUM(cost), SUM(profit), SUM(tesla_cost), SUM(gas_consumption) FROM cum_stats WHERE year = :year AND month = :month AND day = :day GROUP BY year, month ORDER BY year, month",
                     {"year":date.year}).fetchall()
-        con.close()
+        db_con.close()
         return result
 
     def get_cum_stats(self):
-        con = self.get_db_connection()
-        result = con.execute("SELECT * FROM cum_stats ORDER BY year, month, day, hour").fetchall()
-        con.close()
+        db_con = self.get_db_connection()
+        result = db_con.execute("SELECT * FROM cum_stats ORDER BY year, month, day, hour").fetchall()
+        db_con.close()
         return result
 
     
@@ -610,8 +652,8 @@ class persistence:
         until_dt = date_hour + timedelta(hours=1)
         until_ts = time.mktime(until_dt.timetuple())
         
-        con = self.get_db_connection()
-        result = con.execute("""INSERT INTO cum_stats
+        db_con = self.get_db_connection()
+        result = db_con.execute("""INSERT INTO cum_stats
                  (year,  month,  day,  hour,           
                  current_production,                            
                  current_consumption,                            
@@ -629,7 +671,7 @@ class persistence:
                     "hour"         : date_hour.hour,
                     "from_tstamp"  : from_ts,
                     "until_tstamp" : until_ts})
-        con.commit()
-        con.close()
+        db_con.commit()
+        db_con.close()
         return result
 

@@ -21,7 +21,7 @@ class tesla_energy_consumer(energy_consumer):
         self.email = ""
         self._est_battery_range = 0
         self._price_percentage = db.get_tesla_price_percentage()
-        
+        self._status = ""
         self.logger = logging.getLogger(__name__)
         
         log_handler = logging.StreamHandler()
@@ -133,6 +133,24 @@ class tesla_energy_consumer(energy_consumer):
         except Exception as e:
             self.logger.error(e)
 
+    def balance(self, current_hour_price,average_price, average_surplus):
+
+        price_percentage = self.price_percentage
+        if current_hour_price < average_price * (price_percentage/100):
+            self.logger.info(f"Price this hour ({current_hour_price}) is below {price_percentage}% of today's average ({average_price}), so consume at maximum")
+            self.status = f"Uurprijs ({current_hour_price}) is lager dan {price_percentage}% van daggemiddelde ({average_price}), dus maximaal consumeren" 
+            max_consumption_power = self.max_consumption_power
+            if self.can_consume_this_surplus(max_consumption_power):
+                self.start_consuming(max_consumption_power)
+        else:
+            self.logger.info(f"Price this hour ({current_hour_price}) is above {price_percentage}% of today's average ({average_price}), so balance ")
+            self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
+            if average_surplus: # if there is some plus or minus surplus
+                # potential improvement is to lower the av_surplus with the amount given to the consumer, and try to give the remainder to other consumers
+                # self.logger.info("Average surplus: " + str(av_surplus))
+                if self.can_consume_this_surplus(average_surplus):
+                    if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
+                        self.data_model.reset_average_surplus()
     def can_consume_this_surplus(self, surplus_power):
         """
         Function that returs true if the consumer is able to serve (consume the given)
@@ -147,7 +165,8 @@ class tesla_energy_consumer(energy_consumer):
             return False
 
         if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
-            self.logger.info("Tesla is opgeladen tot het opgegeven maximum")
+            self.logger.info(f"Tesla is opgeladen tot het opgegeven maximum ({self.charge_state['charge_limit_soc']})")
+            self.status = f"Tot max ({self.charge_state['charge_limit_soc']})% opgeladen"
             return False
         
         # old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
@@ -162,6 +181,7 @@ class tesla_energy_consumer(energy_consumer):
             max_current_consumption = self.power_to_current(max_power_consumption)
             self.__set_charge_current(max_current_consumption)
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
+            self.status = f"Snelladen tot {self.balance_above}%. Nu {curr_level}%)"
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
         if surplus_power and surplus_power <= max_power_consumption:
@@ -207,6 +227,15 @@ class tesla_energy_consumer(energy_consumer):
     def name(self):
         return self._name
     
+    @property
+    def status(self):
+        self._status = self.persistence.get_consumer_status(self._name)
+        return self._status
+    @status.setter
+    def status(self,value):
+        self._status = value
+        self.persistence.set_consumer_status(self._name, value)
+        
     @property
     def max_consumption_power(self):
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)
@@ -288,10 +317,12 @@ class tesla_energy_consumer(energy_consumer):
         
         if not self.is_at_home:
             self.logger.info("Kan niet laden want de Tesla is niet op de thuislokatie")
+            self.status = "Niet thuis"
             return False 
 
         if  self.is_disconnected:
             self.logger.info("Kan niet laden want de Tesla is niet aangesloten")
+            self.status = "Niet aangesloten"
             return False
 
         return True, ""
@@ -301,7 +332,7 @@ class tesla_energy_consumer(energy_consumer):
     def is_disconnected(self):
         self.__update_vehicle_data()  
         if self.charge_state['charging_state'] == "Disconnected":
-            self.logger.debug("Charging state is {}".format(self.vehicle['charge_state']['charging_state']))   
+            self.logger.debug(f"Charging state is {self.vehicle['charge_state']['charging_state']}")   
             return True
         return False
 
@@ -320,6 +351,7 @@ class tesla_energy_consumer(energy_consumer):
         
         if not self.is_at_home:
             self.logger.info("Will not stop because car is not at home")
+            self.status = "Niet thuis"
             return True
         return False
 

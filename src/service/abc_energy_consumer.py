@@ -27,19 +27,9 @@ class energy_consumer(ABC):
     def name(self):
         pass
 
-    # @property
-    # def current_consumption_current(self):
-    #     pass
-    # @property
-    # def current_consumption_power(self):
-    #     pass
-
-    # @property
-    # def max_consumption_power(self):
-    #     pass
-    # @max_consumption_power.setter
-    # def max_consumption_power(self,value):
-    #     pass
+    @property 
+    def status(self):
+        pass
 
 
     @property
