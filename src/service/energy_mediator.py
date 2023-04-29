@@ -45,7 +45,7 @@ class mediator:
                 current_hour_price, average_price = self.data_model.get_current_and_average_price()
                 consumer.balance(current_hour_price,average_price, average_surplus)
             else:
-                self.status = "Balanceren is uitgeschakeld"
+                consumer.status = "Balanceren is uitgeschakeld"
             
             if not exiting_active_consumers:
                 self.data_model.mediation_service_status = "Alle consumers staan uit mbt balanceren."
