@@ -159,6 +159,7 @@ class tesla_energy_consumer(energy_consumer):
         """
         if self.balance_activated == False:
             self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
+            self.status = "Balanceren is uitgeschakeld"
             return False
 
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
