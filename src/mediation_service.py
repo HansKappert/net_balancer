@@ -72,7 +72,8 @@ if __name__ == "__main__":
         except Exception as e:
             logger.exception(e)
         data_model.add_consumer(tesla)
-
+    else:
+        print("Please set TESLA_USER environment variable")
     logger.debug ("Data model created")
 
     # Start some background processes
