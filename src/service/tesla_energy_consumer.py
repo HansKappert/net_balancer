@@ -23,6 +23,7 @@ class tesla_energy_consumer(energy_consumer):
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
         self.logger = logging.getLogger(__name__)
+        self.vehicle = None
         
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
