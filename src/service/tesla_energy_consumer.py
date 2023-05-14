@@ -44,10 +44,10 @@ class tesla_energy_consumer(energy_consumer):
                 vehicles = self.tesla.vehicle_list()
                 if len(vehicles) > 0:
                     self.vehicle = vehicles[0]
-                    self.logger.debug("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
+                    self.logger.info("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
                     return True
             except (Exception) as e:
-                self.logger.debug(f"Error during initializing Tesla energy consumer: {e}")            
+                self.logger.info(f"Error during initializing Tesla energy consumer: {e}")            
         return False
 
     def solve_captcha(self, svg):

@@ -53,15 +53,15 @@ if __name__ == "__main__":
     log_handler.setLevel(logging.INFO)
     logger.addHandler(log_handler)
 
-    logger.debug ("Device name  : " + args.device_name)
+    logger.info ("Device name  : " + args.device_name)
 
     if args.device_name == "stub":
         current_data_supplier = P1reader_stub("none")
     else:
         current_data_supplier = P1reader(port=args.device_name)
-    logger.debug ("Data supplier reader is setup")
+    logger.info ("Data supplier reader is setup")
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 6)
-    logger.debug ("Energy producer is setup")
+    logger.info ("Energy producer is setup")
 
     if "TESLA_USER" in os.environ:
         tesla = tesla_energy_consumer(db)
@@ -70,35 +70,36 @@ if __name__ == "__main__":
         try:
             tesla.initialize(email=tesla_user)
         except Exception as e:
+            print(e)
             logger.exception(e)
         data_model.add_consumer(tesla)
     else:
-        print("Please set TESLA_USER environment variable")
+        logger.warn("Please set TESLA_USER environment variable")
     logger.debug ("Data model created")
 
     # Start some background processes
     cleaner = eventlog_cleaner(db)
     th = threading.Thread(target=cleaner.start, daemon=True)
     th.start()
-    logger.debug ("Eventlog table cleaner is setup")
+    logger.info ("Eventlog table cleaner is setup")
 
     priceswriter = prices_writer(db)
     th = threading.Thread(target=priceswriter.start, daemon=True)
     th.start()
-    logger.debug ("Prices writer is setup")
+    logger.info ("Prices writer is setup")
 
     statswriter = stats_writer(data_model,db)
     th = threading.Thread(target=statswriter.start, daemon=True)
     th.start()
-    logger.debug ("Stats writer is setup")
+    logger.info ("Stats writer is setup")
 
     cum_statswriter = cum_stats_writer(db)
     th = threading.Thread(target=cum_statswriter.start, daemon=True)
     th.start()
-    logger.debug ("Cum_stats writer is setup")
+    logger.info ("Cum_stats writer is setup")
 
-    logger.debug ("Energy consumer is setup")
+    logger.info ("Energy consumer is setup")
     energy_mediator = mediator(data_model) # a list of consumers is part of this data model
-    logger.debug ("Mediator is created. Starting mediation")
+    logger.info ("Mediator is created. Starting mediation")
     energy_mediator.mediate(producer=producer)
 
