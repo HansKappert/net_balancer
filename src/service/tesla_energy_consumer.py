@@ -66,6 +66,8 @@ class tesla_energy_consumer(energy_consumer):
         except:
             self.initialize()
         try:
+            if not self.vehicle:
+                return
             if self.vehicle['state'] == 'asleep':
                 self.vehicle.sync_wake_up()
         
