@@ -44,7 +44,7 @@ class tesla_energy_consumer(energy_consumer):
                 vehicles = self.tesla.vehicle_list()
                 if len(vehicles) > 0:
                     self.vehicle = vehicles[0]
-                    self.logger.info("Initialization succesful. NR of vehicles = {}.".format(vehicles.count))
+                    self.logger.info("Initialization succesful. NR of vehicles = {}. We're using the first".format(len(vehicles)))
                     return True
             except (Exception) as e:
                 self.logger.info(f"Error during initializing Tesla energy consumer: {e}")            
