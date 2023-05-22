@@ -8,5 +8,6 @@ class eventlog_cleaner:
 
     def start(self):
         while True:
-            time.sleep(36000) # don't start immediately. Give other processes some time to do more urgent stuff
+            # sleep for 30 seconds
+            time.sleep(30) # don't start immediately. Give other processes some time to do more urgent stuff
             self.persistence.remove_old_log_lines()
