@@ -36,24 +36,19 @@ class mediator:
         started. But an electric vehicle that is charging might be able to deal with 
         a bit less power.
         """
-        av_surplus = self.data_model.average_surplus(6)
+        self.data_model.mediation_service_status = ""
+        average_surplus = self.data_model.average_surplus(6)
+        exiting_active_consumers = False
         for consumer in self.data_model.consumers:
             if consumer.balance_activated:
-                current, average = self.data_model.get_current_and_average_price()
-                price_percentage = consumer.price_percentage
-                if current < average * (price_percentage/100):
-                    self.logger.info(f"Price this hour ({current}) is below {price_percentage}% of today's average ({average}), so consume at maximum")
-                    max_consumption_power = consumer.max_consumption_power
-                    if consumer.can_consume_this_surplus(max_consumption_power):
-                        consumer.start_consuming(max_consumption_power)
-                else:
-                    self.logger.info(f"Price this hour ({current}) is above {price_percentage}% of today's average ({average}), so balance ")
-                    if av_surplus: # if there is some plus or minus surplus
-                        # potential improvement is to lower the av_surplus with the amount given to the consumer, and try to give the remainder to other consumers
-                        # self.logger.info("Average surplus: " + str(av_surplus))
-                        if consumer.can_consume_this_surplus(av_surplus):
-                            if consumer.start_consuming(av_surplus): # returns true if something has changed in energy consumption
-                                self.data_model.reset_average_surplus()
+                exiting_active_consumers = True
+                current_hour_price, average_price = self.data_model.get_current_and_average_price()
+                consumer.balance(current_hour_price,average_price, average_surplus)
+            else:
+                consumer.status = "Balanceren is uitgeschakeld"
+            
+            if not exiting_active_consumers:
+                self.data_model.mediation_service_status = "Alle consumers staan uit mbt balanceren."
 
             
 

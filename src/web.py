@@ -525,15 +525,18 @@ def consumer_tesla():
 @app.route('/data/get', methods=['GET'])
 def get_data():
     if data_model.get_consumer("Tesla"):
-        charging_tesla_amp  = data_model.get_consumer("Tesla").consumption_amps_now
-        charging_tesla_watt = data_model.get_consumer("Tesla").consumption_power_now
-        
+        charging_tesla_amp    = data_model.get_consumer("Tesla").consumption_amps_now
+        charging_tesla_watt   = data_model.get_consumer("Tesla").consumption_power_now
+        charging_tesla_status = data_model.get_consumer("Tesla").status
+    
     json_text = jsonify(
         {'surplus': data_model.surplus},
-        {'current_consumption' : data_model.current_consumption},
-        {'current_production'  : data_model.current_production},
-        {'charging_tesla_amp'  : charging_tesla_amp},
-        {'charging_tesla_watt' : charging_tesla_watt}
+        {'current_consumption'   : data_model.current_consumption},
+        {'current_production'    : data_model.current_production},
+        {'charging_tesla_amp'    : charging_tesla_amp},
+        {'charging_tesla_watt'   : charging_tesla_watt},
+        {'charging_tesla_status' : charging_tesla_status}
+        
         )
     return json_text
 
