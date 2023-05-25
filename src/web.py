@@ -471,11 +471,18 @@ def prices():
                             avg= avg 
                             )
   
-
+@app.route('/tesla_forecast', methods=['GET'])
+def tesla_forecast():
+    forecasts = data_model.get_consumer("Tesla").get_forecasted_battery_level()
+    fc = []
+    for idx,forecast in enumerate(forecasts):
+        fc.append([idx,forecasts[forecast]])
+    return render_template('tesla_forecast.html', forecasts=fc)
+        
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():
     if request.method == 'POST':
-        data_model._consumers[0].max_consumption_power = int(request.form['max_consumption_power'])
+        data_model.get_consumer("Tesla").max_consumption_power = int(request.form['max_consumption_power'])
         tesla.balance_above     = int(request.form['balance_above'])
         tesla.charge_until      = int(request.form['charge_until'])
         tesla.price_percentage  = int(request.form['price_percentage'])

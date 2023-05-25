@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
 import logging
 from service.abc_energy_consumer        import energy_consumer
 from teslapy                            import Tesla
@@ -137,6 +138,56 @@ class tesla_energy_consumer(energy_consumer):
             return old_charging_current != new_charging_current
         except Exception as e:
             self.logger.error(e)
+
+    def get_forecasted_battery_level(self):
+        self.__update_vehicle_data()
+        charge_rate = self.charge_state['charge_rate']
+        now = datetime.now()
+        estimation_dict = {}
+        
+        # under which percentage of the average price should we charge at full speed?
+        price_percentage = self.price_percentage
+
+        # calculate for the rest of today
+        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+        prices = self.persistence.get_day_prices(datum)
+        total = 0
+        for row in prices:
+            total += row[1]  # price
+        average_price = round(total/24,2) 
+        current_surplus = self.persistence.get_surplus()
+        max_consumption_power = self.max_consumption_power
+
+        for row in prices:
+            dt = datetime.fromtimestamp(int(row[0]))
+            hour = dt.hour  
+            hours_price = row[1]
+                
+            if hour == datetime.now().hour:  
+                time_in_1_hour = now + timedelta(hours=1)
+                next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
+                timedelta_to_next_hour = next_hour - now
+
+                if hours_price < price_percentage * average_price:
+                    battery_level_at_next_hour = self.battery_level + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
+                else:
+                    if self.battery_level < self.balance_above:
+                        battery_level_at_next_hour = math.min(self.battery_level + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
+                    else:
+                        battery_level_at_next_hour = battery_level_at_next_hour + round(25 * (current_surplus/max_consumption_power),2)
+                
+                estimation_dict[next_hour] = battery_level_at_next_hour
+            if hour > datetime.now().hour:
+                next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
+                if hours_price < price_percentage * average_price:
+                    # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
+                    battery_level_at_next_hour = battery_level_at_next_hour + 25
+                else:
+                    battery_level_at_next_hour = battery_level_at_next_hour + round(25 * (current_surplus/max_consumption_power),2)
+                    
+                estimation_dict[next_hour] = battery_level_at_next_hour
+        return estimation_dict
+        
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
