@@ -7,15 +7,20 @@ import time
 import logging
 import threading
 import webbrowser
+import multiprocessing
 import geopy.geocoders  # 1.14.0 or higher required
 from geopy.geocoders import Nominatim
 from geopy.exc import *
 try:
-    from selenium import webdriver  # 3.13.0 or higher required
+    import webview  # Optional pywebview 3.0 or higher
+except ImportError:
+    webview = None
+try:
+    from selenium import webdriver  # Optional selenium 3.13.0 or higher
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.support.ui import WebDriverWait
 except ImportError:
-    webdriver = None  # Optional import
+    webdriver = None
 try:
     from Tkinter import *
     from tkSimpleDialog import *
@@ -84,7 +89,7 @@ class ControlDialog(Dialog):
 class ChargingDialog(Dialog):
     """ Display dialog box to get scheduled charging parameters """
 
-    def __init__ (self, master, title='Scheduled charging'):
+    def __init__(self, master, title='Scheduled charging'):
         Dialog.__init__(self, master, title)
 
     def body(self, master):
@@ -103,7 +108,7 @@ class ChargingDialog(Dialog):
 class DepartureDialog(Dialog):
     """ Display dialog box to get scheduled departure parameters """
 
-    def __init__ (self, master, title='Scheduled departure'):
+    def __init__(self, master, title='Scheduled departure'):
         Dialog.__init__(self, master, title)
 
     def body(self, master):
@@ -142,6 +147,76 @@ class DepartureDialog(Dialog):
                        'off_peak_charging_enabled': self.off_peak.get(),
                        'off_peak_charging_weekdays_only': self.off_peak_weekdays.get(),
                        'end_off_peak_time': int(end[0]) * 60 + int(end[1])}
+
+class ChargeHistoryDialog(Dialog):
+    """ Display dialog box with charging history graph """
+
+    def __init__(self, master, data):
+        self.data = data
+        Dialog.__init__(self, master, title='Charging History')
+
+    def body(self, master):
+        if not isinstance(self.data, dict):
+            return
+        Label(master, text=self.data['screen_title'],
+              font=('TkTextFont', 12)).pack()
+        Label(master, text=self.data['total_charged']['title'],
+              anchor=W).pack(fill=X)
+        text = '%s %s' % (self.data['total_charged']['value'],
+                          self.data['total_charged']['after_adornment'])
+        Label(master, text=text, anchor=W,
+              font=('TkTextFont', 12, 'bold')).pack(fill=X)
+        # Draw graph
+        canvas = Canvas(master, width=440, height=410)
+        scale = self.data['charging_history_graph']['y_range_max'] / 320
+        for y in self.data['charging_history_graph']['horizontal_grid_lines']:
+            y_scaled = 335 - y / scale
+            canvas.create_line(5, y_scaled, 403, y_scaled, dash=(2, 2))
+        for x in self.data['charging_history_graph']['vertical_grid_lines']:
+            canvas.create_line(14 + x * 13, 15, 14 + x * 13, 335, dash=(2, 2))
+        for label in self.data['charging_history_graph']['x_labels']:
+            canvas.create_text(14 + label['raw_value'] * 13, 335,
+                               text=label['value'], anchor=NE)
+        for label in self.data['charging_history_graph']['y_labels']:
+            text = label['value'] + '\n' + label.get('after_adornment', '')
+            canvas.create_text(408, 335 - label.get('raw_value', 0) / scale,
+                               text=text.strip(), anchor=W)
+        # Stacked bars
+        x = 8
+        for point in self.data['charging_history_graph']['data_points']:
+            y = 335
+            for idx, value in enumerate(point['values']):
+                if idx == 0:
+                    if value.get('raw_value', 0) <= 0:
+                        canvas.create_line(x, y, x, y - 2, width=7)
+                    continue
+                color = {1: 'blue', 2: 'red', 3: 'grey'}.get(idx)
+                y_new = y - value.get('raw_value', 0) / scale
+                canvas.create_line(x, y, x, y_new, width=7, fill=color)
+                y = y_new - 1
+            x += 13
+        # Breakdown
+        x = 5
+        for idx, key in enumerate(self.data['total_charged_breakdown']):
+            color = {'home': 'blue', 'super_charger': 'red',
+                     'other': 'grey'}.get(key)
+            canvas.create_oval(10 + idx * 165, 370, 20 + idx * 165, 380,
+                               fill=color, outline=color)
+            item = self.data['total_charged_breakdown'][key]
+            text = '%s%s\n%s' % (item['value'], item['after_adornment'],
+                                 item['sub_title'])
+            canvas.create_text(25 + idx * 165, 375, text=text, anchor=W)
+            x_new = x + item.get('raw_value', 0) * 4.1
+            canvas.create_line(x, 400, x_new, 400, width=7, fill=color)
+            x = x_new + 1
+        canvas.pack()
+
+    def buttonbox(self):
+        box = Frame(self)
+        w = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
+        w.pack(side=LEFT, padx=5, pady=5)
+        self.bind("<Return>", self.ok)
+        box.pack()
 
 class StatusBar(Frame):
     """ Status bar widget with transient and permanent status messages """
@@ -194,9 +269,6 @@ class Dashboard(Frame):
         left.pack(side=LEFT, padx=5)
         right = Frame(self)
         right.pack(side=LEFT, padx=5)
-        # Vehicle image on right frame
-        self.vehicle_image = Label(right)
-        self.vehicle_image.pack()
         # Climate state on left frame
         self.layout(left, 'Climate State',
                     [('outside_temp', 'Outside Temperature:'),
@@ -233,6 +305,10 @@ class Dashboard(Frame):
                      ('sentry_mode', 'Sentry Mode:'),
                      ('valet_mode', 'Valet Mode:'),
                      ('valet_pin', 'Valet Pin Set:'),
+                     ('tmps_fl', 'TMPS Front Left:'),
+                     ('tmps_fr', 'TMPS Front Right:'),
+                     ('tmps_rl', 'TMPS Rear Left:'),
+                     ('tmps_rr', 'TMPS Rear Right:'),
                      ('sw_update', 'Software Update:'),
                      ('sw_duration', 'Expected Duration:'),
                      ('update_ver', 'Update Version:'),
@@ -274,16 +350,19 @@ class Dashboard(Frame):
                      ('off_peak_end_time', 'Off Peak End Time:'),
                      ('preconditioning', 'Preconditioning:'),
                      ('preconditioning_times', 'Preconditioning Times:')])
-        # Vehicle config on left frame
-        self.layout(left, 'Vehicle Config',
+        # Vehicle config on right frame
+        self.layout(right, 'Vehicle Config',
                     [('car_type', 'Car Type:'),
+                     ('trim_badging', 'Trim Badging:'),
+                     ('air_suspension', 'Has Air Suspension:'),
                      ('exterior_color', 'Exterior Color:'),
                      ('wheel_type', 'Wheel Type:'),
                      ('spoiler_type', 'Spoiler Type:'),
                      ('roof_color', 'Roof Color:'),
                      ('charge_port_type', 'Charge Port Type:')])
         # Service on left frame
-        self.layout(left, 'Service', [('next_appt', 'Next appointment:')])
+        self.layout(left, 'Service', [('next_appt', 'Next appointment:'),
+                                      ('in_service', 'In service:')])
 
     def layout(self, master, text, labels):
         """ Group four columns of widgets from list of tupels """
@@ -319,18 +398,18 @@ class Dashboard(Frame):
         self.odometer.text(app.vehicle.dist_units(ve['odometer']))
         self.car_version.text(ve['car_version'])
         self.locked.text(str(ve['locked']))
-        door = ['Closed', 'Open']
-        self.df.text(door[bool(ve['df'])])
-        self.pf.text(door[bool(ve['pf'])])
-        self.dr.text(door[bool(ve['dr'])])
-        self.pr.text(door[bool(ve['pr'])])
+        door = {0: 'Closed', 1: 'Open'}
+        self.df.text(door.get(ve['df']))
+        self.pf.text(door.get(ve['pf']))
+        self.dr.text(door.get(ve['dr']))
+        self.pr.text(door.get(ve['pr']))
         window = {0: 'Closed', 1: 'Venting', 2: 'Open'}
         self.fd.text(window.get(ve.get('fd_window')))
         self.fp.text(window.get(ve.get('fp_window')))
         self.rd.text(window.get(ve.get('rd_window')))
         self.rp.text(window.get(ve.get('rp_window')))
-        self.ft.text(door[bool(ve['ft'])])
-        self.rt.text(door[bool(ve['rt'])])
+        self.ft.text(door.get(ve['ft']))
+        self.rt.text(door.get(ve['rt']))
         self.remote_start.text(str(ve['remote_start']))
         self.user_present.text(str(ve['is_user_present']))
         self.speed_limit.text(str(ve['speed_limit_mode']['active']))
@@ -340,6 +419,10 @@ class Dashboard(Frame):
         self.sentry_mode.text(str(ve.get('sentry_mode')))
         self.valet_mode.text(str(ve['valet_mode']))
         self.valet_pin.text(str(not 'valet_pin_needed' in ve))
+        self.tmps_fl.text(ve.get('tpms_pressure_fl'))
+        self.tmps_fr.text(ve.get('tpms_pressure_fr'))
+        self.tmps_rl.text(ve.get('tpms_pressure_rl'))
+        self.tmps_rr.text(ve.get('tpms_pressure_rr'))
         status = ve['software_update']['status'] or 'unavailable'
         wt = ve['software_update'].get('warning_time_remaining_ms', 0) / 1000
         status += ' in {:02.0f}:{:02.0f}'.format(*divmod(wt, 60)) if wt else ''
@@ -406,6 +489,8 @@ class Dashboard(Frame):
         self.preconditioning_times.text(ch.get('preconditioning_times'))
         # Vehicle config
         self.car_type.text(co['car_type'])
+        self.trim_badging.text(co.get('trim_badging'))
+        self.air_suspension.text(str(co['has_air_suspension']))
         self.exterior_color.text(co['exterior_color'])
         self.wheel_type.text(co['wheel_type'])
         self.spoiler_type.text(co['spoiler_type'])
@@ -415,9 +500,24 @@ class Dashboard(Frame):
     @staticmethod
     def _heading_to_str(deg):
         """ Convert heading in degrees to a direction string """
-        lst = ['NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW',
-               'WSW', 'W', 'WNW', 'NW', 'NNW', 'N']
-        return lst[int(abs((deg - 11.25) % 360) / 22.5)]
+        return ['NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW',
+                'NNW', 'N'][int(abs((deg - 11.25) % 360) / 22.5)]
+
+def show_webview(url):
+    """ Shows the SSO page in a webview and returns the redirected URL """
+    result = ['']
+    window = webview.create_window('Login', url)
+    def on_loaded():
+        result[0] = window.get_current_url()
+        if 'void/callback' in result[0].split('?')[0]:
+            window.destroy()
+    try:
+        window.events.loaded += on_loaded
+    except AttributeError:
+        window.loaded += on_loaded
+    webview.start()  # Blocks the main thread until webview is closed
+    return result[0]
 
 class App(Tk):
     """ Main application class """
@@ -430,14 +530,15 @@ class App(Tk):
         menu = Menu(self)
         app_menu = Menu(menu, tearoff=0)
         app_menu.add_command(label='Login', command=self.login)
+        app_menu.add_command(label='Logout', command=self.logout)
         app_menu.add_separator()
         app_menu.add_command(label='Exit', command=self.save_and_quit)
         menu.add_cascade(label='App', menu=app_menu)
         self.vehicle_menu = Menu(menu, tearoff=0)
-        self.vehicle_menu.add_command(label='Show option codes', state=DISABLED,
-                                      command=self.option_codes)
         self.vehicle_menu.add_command(label='Decode VIN', state=DISABLED,
                                       command=self.decode_vin)
+        self.vehicle_menu.add_command(label='Charge history', state=DISABLED,
+                                      command=self.charge_history)
         self.vehicle_menu.add_separator()
         menu.add_cascade(label='Vehicle', menu=self.vehicle_menu)
         self.cmd_menu = Menu(menu, tearoff=0)
@@ -458,7 +559,7 @@ class App(Tk):
         self.cmd_menu.add_command(label='Actuate trunk', state=DISABLED,
                                   command=lambda: self.actuate_trunk('rear'))
         self.cmd_menu.add_command(label='Remote start drive', state=DISABLED,
-                                  command=self.remote_start_drive)
+                                  command=lambda: self.cmd('REMOTE_START'))
         self.cmd_menu.add_command(label='Set charge limit', state=DISABLED,
                                   command=self.set_charge_limit)
         self.cmd_menu.add_command(label='Open/close charge port', state=DISABLED,
@@ -499,17 +600,23 @@ class App(Tk):
         self.debug = BooleanVar()
         opt_menu.add_checkbutton(label='Console debugging', variable=self.debug,
                                  command=self.apply_settings)
-        self.verify = BooleanVar()
-        self.verify.set(1)
+        self.verify = BooleanVar(value=1)
         opt_menu.add_checkbutton(label='Verify SSL', variable=self.verify,
                                  command=self.apply_settings)
-        opt_menu.add_command(label='Proxy URL', command=self.set_proxy)
+        opt_menu.add_command(label='Set proxy URL', command=self.set_proxy)
+        opt_menu.add_command(label='Set SSO base URL', command=self.set_sso_url)
         web_menu = Menu(menu, tearoff=0)
         opt_menu.add_cascade(label='Web browser', menu=web_menu,
                              state=NORMAL if webdriver else DISABLED)
         self.browser = IntVar()
-        for v, l in enumerate(('Chrome', 'Edge', 'Firefox', 'Opera', 'Safari')):
-            web_menu.add_radiobutton(label=l, value=v, variable=self.browser)
+        web_menu.add_radiobutton(label='Chrome', value=0, variable=self.browser)
+        web_menu.add_radiobutton(label='Opera', value=1, variable=self.browser)
+        if webdriver and hasattr(webdriver.edge, 'options'):
+            web_menu.add_radiobutton(label='Edge', value=2, variable=self.browser)
+        self.selenium = BooleanVar()
+        opt_menu.add_checkbutton(label='Use selenium', variable=self.selenium,
+                                 state=NORMAL if webdriver else DISABLED,
+                                 command=self.apply_settings)
         menu.add_cascade(label='Options', menu=opt_menu)
         help_menu = Menu(menu, tearoff=0)
         help_menu.add_command(label='About', command=self.about)
@@ -524,14 +631,15 @@ class App(Tk):
         self.status.text('Not logged in')
         # Read config
         config = RawConfigParser()
-        self.email = ''
-        self.proxy = ''
+        self.email, self.proxy, self.sso_url = '', '', ''
         try:
             config.read('gui.ini')
             self.email = config.get('app', 'email')
             self.verify.set(config.get('app', 'verify'))
             self.proxy = config.get('app', 'proxy')
+            self.sso_url = config.get('app', 'sso_url')
             self.browser.set(config.get('app', 'browser'))
+            self.selenium.set(config.get('app', 'selenium'))
             self.auto_refresh.set(config.get('display', 'auto_refresh'))
             self.debug.set(config.get('display', 'debug'))
         except (NoSectionError, NoOptionError, ParsingError):
@@ -548,30 +656,38 @@ class App(Tk):
 
     def custom_auth(self, url):
         """ Automated or manual authentication """
-        if webdriver:
-            with [webdriver.Chrome, webdriver.Edge,
-                  webdriver.Firefox, webdriver.Opera,
-                  webdriver.Safari][self.browser.get()]() as browser:
+        # Use pywebview if available and selenium not selected
+        if webview and not self.selenium.get():
+            return pool.apply(show_webview, (url, ))  # Run in separate process
+        # Use selenium if available and selected
+        if webdriver and self.selenium.get():
+            options = [webdriver.chrome, webdriver.opera,
+                       webdriver.edge][self.browser.get()].options.Options()
+            options.add_argument('--disable-blink-features=AutomationControlled')
+            with [webdriver.Chrome, webdriver.Opera,
+                  webdriver.Edge][self.browser.get()](options=options) as browser:
                 browser.get(url)
                 wait = WebDriverWait(browser, 300)
                 wait.until(EC.url_contains('void/callback'))
                 return browser.current_url
-        # Manual authentication
+        # Fallback to manual authentication
         webbrowser.open(url)
         # Ask user for callback URL in new dialog
-        result = ['not_set']
+        result = [None]
+        event = threading.Event()
         def show_dialog():
-            """ Inner function to show dialog """
+            """ Inner function to show dialog from main thread """
             result[0] = askstring('Login', 'URL after authentication:')
+            event.set()  # Signal completion
         self.after_idle(show_dialog)  # Start from main thread
-        while result[0] == 'not_set':
-            time.sleep(0.1)  # Block login thread until passcode is entered
+        event.wait()  # Block login thread until URL is entered
         return result[0]
 
     def login(self):
         """ Display login dialog and start new thread to get vehicle list """
-        prompt = 'Email:' if webdriver else 'Use browser to login.\n' \
-                 'Page Not Found will be shown at success.\n\nEmail:'
+        prompt = 'Email:' if (webdriver and self.selenium.get()) or \
+                 (webview and not self.selenium.get()) else 'Use browser' \
+                 ' to login.\nPage Not Found will be shown at success.\n\nEmail:'
         result = askstring('Login', prompt, initialvalue=self.email)
         if result:
             self.email = result
@@ -580,7 +696,7 @@ class App(Tk):
                                   status_forcelist=(500, 502, 503, 504))
             tesla = teslapy.Tesla(self.email, authenticator=self.custom_auth,
                                   verify=self.verify.get(), proxy=self.proxy,
-                                  retry=retry)
+                                  retry=retry, sso_base_url=self.sso_url)
             # Create and start login thread. Check thread status after 100 ms
             self.login_thread = LoginThread(tesla)
             self.login_thread.start()
@@ -595,7 +711,7 @@ class App(Tk):
             self.status.text(self.login_thread.exception)
         else:
             # Remove vehicles from menu
-            self.vehicle_menu.delete(3, END)
+            self.vehicle_menu.delete(4, END)
             # Add to menu and select first vehicle
             self.selected = IntVar(value=0)
             for i, vehicle in enumerate(self.login_thread.vehicles):
@@ -604,7 +720,7 @@ class App(Tk):
                                                   variable=self.selected,
                                                   command=self.select)
             if self.login_thread.vehicles:
-                # Enable show option codes and wake up command
+                # Enable decode VIN, charge history and wake up command
                 for i in range(0, 2):
                     self.vehicle_menu.entryconfig(i, state=NORMAL)
                 self.cmd_menu.entryconfig(0, state=NORMAL)
@@ -612,13 +728,36 @@ class App(Tk):
             else:
                 self.status.text('No vehicles')
 
+    def logout(self):
+        """ Sign out and redraw dashboard """
+        if not hasattr(self, 'login_thread'):
+            return
+        # Use pywebview if available and selenium not selected
+        if webview and not self.selenium.get():
+            # Run in separate process
+            pool.apply(show_webview, (self.login_thread.tesla.logout(), ))
+        # Do not sign out if selenium is available and selected
+        self.login_thread.tesla.logout(not (webdriver and self.selenium.get()))
+        if hasattr(self, 'vehicle'):
+            del self.vehicle
+        # Redraw dashboard
+        self.dashboard.pack_forget()
+        self.dashboard = Dashboard(self)
+        self.dashboard.pack(pady=5, fill=X)
+        # Remove vehicles from menu
+        self.vehicle_menu.delete(4, END)
+        # Disable commands
+        for i in range(0, 3):
+            self.vehicle_menu.entryconfig(i, state=DISABLED)
+        for i in range(0, self.cmd_menu.index(END) + 1):
+            self.cmd_menu.entryconfig(i, state=DISABLED)
+        for i in range(0, self.media_menu.index(END) + 1):
+            self.media_menu.entryconfig(i, state=DISABLED)
+        self.status.text('Not logged in')
+
     def select(self):
         """ Select vehicle and start new thread to get vehicle image """
         self.vehicle = self.login_thread.vehicles[self.selected.get()]
-        # Create and start image thread. Check thread status after 100 ms
-        self.image_thread = ImageThread(self.vehicle)
-        self.image_thread.start()
-        self.after(100, self.process_select)
         # Create and start service thread. Check thread status after 100 ms
         self.service_thread = ServiceThread(self.vehicle)
         self.service_thread.start()
@@ -627,18 +766,6 @@ class App(Tk):
         if not hasattr(self, 'status_thread'):
             self.update_status()
         self.update_dashboard()
-
-    def process_select(self):
-        """ Waits for thread to finish and displays vehicle image """
-        if self.image_thread.is_alive():
-            # Check again after 100 ms
-            self.after(100, self.process_select)
-        elif self.image_thread.exception:
-            # Handle errors
-            self.status.text(self.image_thread.exception)
-        else:
-            # Display vehicle image
-            self.dashboard.vehicle_image.config(image=self.image_thread.photo)
 
     def process_service(self):
         """ Waits for thread to finish and displays service data """
@@ -658,6 +785,7 @@ class App(Tk):
         """ Display vehicle state """
         self.status.text('%s is %s' % (self.vehicle['display_name'],
                                        self.vehicle['state']))
+        self.dashboard.in_service.text(str(self.vehicle['in_service']))
         # Enable/disable commands
         state = NORMAL if self.vehicle['state'] == 'online' else DISABLED
         for i in range(1, self.cmd_menu.index(END) + 1):
@@ -765,13 +893,6 @@ class App(Tk):
                         [{'text': 'Tesla Owner API Python GUI by Tim Dorssers'},
                          {'text': 'Tcl/Tk toolkit version %s' % TkVersion}])
 
-    def option_codes(self):
-        """ Show vehicle option codes in a dialog """
-        table = []
-        for i, item in enumerate(self.vehicle.option_code_list()):
-            table.append(dict(text=item, row=i // 2, column=i % 2, sticky=W))
-        LabelGridDialog(self, 'Option codes', table)
-
     def decode_vin(self):
         """ Show decoded vin in a dialog """
         table = []
@@ -814,6 +935,23 @@ class App(Tk):
                 table.append(dict(text=text, row=r, column=2, sticky=W))
                 r += 1
             LabelGridDialog(self, 'Nearby Charging Sites', table)
+
+    def charge_history(self):
+        """ Creates a new thread to get charging history """
+        self.status.text('Please wait...')
+        self.charge_history_thread = ChargeHistoryThread(self.vehicle)
+        self.charge_history_thread.start()
+        self.after(100, self.process_charge_history)
+        
+    def process_charge_history(self):
+        """ Waits for thread to finish and displays history in a dialog box """
+        if self.charge_history_thread.is_alive():
+            self.after(100, self.process_charge_history)
+        elif self.charge_history_thread.exception:
+            self.status.text(self.charge_history_thread.exception)
+        else:
+            self.show_status()
+            ChargeHistoryDialog(self, self.charge_history_thread.result)
 
     def cmd(self, name, **kwargs):
         """ Creates a new thread to command vehicle """
@@ -858,13 +996,6 @@ class App(Tk):
     def actuate_trunk(self, which_trunk):
         """ Actuate trunk or frunk """
         self.cmd('ACTUATE_TRUNK', which_trunk=which_trunk)
-
-    def remote_start_drive(self):
-        """ Trigger remote start drive """
-        if self.password:
-            self.cmd('REMOTE_START', password=self.password)
-        else:
-            self.status.text('Password required')
 
     def set_charge_limit(self):
         """ Set charging limit """
@@ -957,6 +1088,11 @@ class App(Tk):
         temp = askstring('Set', 'Proxy URL', initialvalue=self.proxy)
         self.proxy = '' if temp is None else temp
 
+    def set_sso_url(self):
+        """ Set SSO service base URL """
+        temp = askstring('Set', 'SSO service base URL', initialvalue=self.sso_url)
+        self.sso_url = '' if temp is None else temp
+
     def save_and_quit(self):
         """ Save settings to file and quit app """
         config = RawConfigParser()
@@ -966,7 +1102,9 @@ class App(Tk):
             config.set('app', 'email', self.email)
             config.set('app', 'proxy', self.proxy)
             config.set('app', 'verify', self.verify.get())
+            config.set('app', 'sso_url', self.sso_url)
             config.set('app', 'browser', self.browser.get())
+            config.set('app', 'selenium', self.selenium.get())
             config.set('display', 'auto_refresh', self.auto_refresh.get())
             config.set('display', 'debug', self.debug.get())
             with open('gui.ini', 'w') as configfile:
@@ -1012,7 +1150,7 @@ class UpdateThread(threading.Thread):
                     osm = Nominatim(user_agent='TeslaPy',
                                     proxies=self.vehicle.tesla.proxies)
                     self.location = osm.reverse(coords).address
-                except GeocoderTimedOut:
+                except (GeocoderTimedOut, GeocoderUnavailable):
                     UpdateThread._coords = None  # Force lookup
                 except GeopyError as e:
                     UpdateThread._coords = None
@@ -1035,30 +1173,6 @@ class WakeUpThread(threading.Thread):
             self.vehicle.sync_wake_up()
         except (teslapy.VehicleError, teslapy.RequestException) as e:
             self.exception = e
-
-class ImageThread(threading.Thread):
-    """ Compose vehicle image """
-
-    def __init__(self, vehicle):
-        threading.Thread.__init__(self)
-        self.vehicle = vehicle
-        self.exception = None
-        self.photo = None
-
-    def run(self):
-        try:
-            response = self.vehicle.compose_image(size=300)
-        except teslapy.RequestException as e:
-            self.exception = e
-        else:
-            # Tk 8.6 has native PNG support, older Tk require PIL
-            try:
-                import base64
-                self.photo = PhotoImage(data=base64.b64encode(response))
-            except TclError:
-                from PIL import Image, ImageTk
-                import io
-                self.photo = ImageTk.PhotoImage(Image.open(io.BytesIO(response)))
 
 class LoginThread(threading.Thread):
     """ Authenticate and retrieve vehicle list """
@@ -1136,7 +1250,23 @@ class ServiceThread(threading.Thread):
         except (teslapy.RequestException, ValueError) as e:
             self.exception = e
 
+class ChargeHistoryThread(threading.Thread):
+    """ Retrieve charging history """
+
+    def __init__(self, vehicle):
+        threading.Thread.__init__(self)
+        self.vehicle = vehicle
+        self.exception = None
+        self.result = None
+
+    def run(self):
+        try:
+            self.result = self.vehicle.get_charge_history()
+        except (teslapy.RequestException, ValueError) as e:
+            self.exception = e
+
 if __name__ == "__main__":
+    pool = multiprocessing.Pool(1)
     app = App()
     app.mainloop()
     app.destroy()
