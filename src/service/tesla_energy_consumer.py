@@ -140,7 +140,7 @@ class tesla_energy_consumer(energy_consumer):
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
-        self._block_status_publishing = True
+        self.block_status_publishing = True
         has_taken_surplus = False
         price_percentage = self.price_percentage
         if current_hour_price < average_price * (price_percentage/100):
@@ -159,8 +159,7 @@ class tesla_energy_consumer(energy_consumer):
                     if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
                         self.data_model.reset_average_surplus()
                         has_taken_surplus = True
-        self._block_status_publishing = False
-        self.status = self.status # without the blocking of status publishing, the status gets written to the database, so that the website can show it
+        self.block_status_publishing = False
         return has_taken_surplus
     
     def can_consume_this_surplus(self, surplus_power):
@@ -240,15 +239,26 @@ class tesla_energy_consumer(energy_consumer):
     def name(self):
         return self._name
     
+    #propery for blocking the status publishing
+    @property
+    def block_status_publishing(self):
+        return self._block_status_publishing
+    @block_status_publishing.setter
+    def block_status_publishing(self,value):
+        if value == False:
+            self.persistence.set_consumer_status(self._name, self.status)
+        self._block_status_publishing = value
+
     @property
     def status(self):
-        # self._status = self.persistence.get_consumer_status(self._name)
-        return self._status
+        if self.block_status_publishing:
+            return self._status
+        else:
+            return self.persistence.get_consumer_status(self._name)
     @status.setter
     def status(self,value):
         self._status = value
-        if not self._block_status_publishing:
-            self.persistence.set_consumer_status(self._name, value)
+
         
     @property
     def max_consumption_power(self):
