@@ -21,6 +21,7 @@ class tesla_energy_consumer(energy_consumer):
         self.drive_state = {}
         self.email = ""
         self._est_battery_range = 0
+        self._battery_range = 0
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
         self._old_status = ""
@@ -84,6 +85,8 @@ class tesla_energy_consumer(energy_consumer):
             else: 
                 self._consumption_amps_now = 0
             self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
+            self._battery_range = self.dist_units(self.charge_state['battery_range'])
+            
             self.latitude_current = float(self.drive_state['latitude'])
             self.longitude_current = float(self.drive_state['longitude'])
 
@@ -169,17 +172,17 @@ class tesla_energy_consumer(energy_consumer):
                 timedelta_to_next_hour = next_hour - now
 
                 if hours_price < price_percentage * average_price:
-                    battery_level_at_next_hour = self.battery_level + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
+                    battery_level_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
                 else:
                     if self.battery_level < self.balance_above:
-                        battery_level_at_next_hour = math.min(self.battery_level + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
+                        battery_level_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
                     else:
-                        battery_level_at_next_hour = battery_level_at_next_hour + round(25 * (current_surplus/max_consumption_power),2)
+                        battery_level_at_next_hour = self.battery_range + round(25 * (current_surplus/max_consumption_power),2)
                 
                 estimation_dict[next_hour] = battery_level_at_next_hour
             if hour > datetime.now().hour:
                 next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
-                if hours_price < price_percentage * average_price:
+                if hours_price < price_percentage/100 * average_price:
                     # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
                     battery_level_at_next_hour = battery_level_at_next_hour + 25
                 else:
@@ -310,6 +313,9 @@ class tesla_energy_consumer(energy_consumer):
     def status(self,value):
         self._status = value
 
+    @property
+    def battery_range(self):
+        return float(self._battery_range.split(' ')[0])
         
     @property
     def max_consumption_power(self):
