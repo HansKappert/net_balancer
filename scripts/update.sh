@@ -5,7 +5,7 @@ mv net_balancer-main/src/output/measurements.csv .
 rm -rf net_balancer-main
 curl -L https://github.com/HansKappert/net_balancer/archive/refs/heads/main.zip > latest.zip
 # curl -L https://github.com/HansKappert/net_balancer/archive/refs/heads/dev.zip > latest.zip
-unzip -o latest.zip -d -q .
+unzip -o -q latest.zip -d .
 # If using dev branch, then uncomment the following
 # mv net_balancer-dev net_balancer-main
 rm latest.zip
