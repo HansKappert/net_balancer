@@ -22,6 +22,8 @@ class tesla_energy_consumer(energy_consumer):
         self._est_battery_range = 0
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
+        self._old_status = ""
+        self._block_status_publishing  = False
         self.logger = logging.getLogger(__name__)
         self.vehicle = None
         
@@ -138,6 +140,8 @@ class tesla_energy_consumer(energy_consumer):
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
+        self._block_status_publishing = True
+        has_taken_surplus = False
         price_percentage = self.price_percentage
         if current_hour_price < average_price * (price_percentage/100):
             self.logger.info(f"Price this hour ({current_hour_price}) is below {price_percentage}% of today's average ({average_price}), so consume at maximum")
@@ -154,6 +158,11 @@ class tesla_energy_consumer(energy_consumer):
                 if self.can_consume_this_surplus(average_surplus):
                     if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
                         self.data_model.reset_average_surplus()
+                        has_taken_surplus = True
+        self._block_status_publishing = False
+        self.status = self.status # without the blocking of status publishing, the status gets written to the database, so that the website can show it
+        return has_taken_surplus
+    
     def can_consume_this_surplus(self, surplus_power):
         """
         Function that returs true if the consumer is able to serve (consume the given)
@@ -233,12 +242,13 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def status(self):
-        self._status = self.persistence.get_consumer_status(self._name)
+        # self._status = self.persistence.get_consumer_status(self._name)
         return self._status
     @status.setter
     def status(self,value):
         self._status = value
-        self.persistence.set_consumer_status(self._name, value)
+        if not self._block_status_publishing:
+            self.persistence.set_consumer_status(self._name, value)
         
     @property
     def max_consumption_power(self):
@@ -300,7 +310,11 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def balance_activated(self):
-        return self.persistence.get_consumer_balance(self._name) 
+        is_activated = self.persistence.get_consumer_balance(self._name) 
+        if not is_activated:
+            self.status = "Balanceren is uitgeschakeld"
+        return is_activated
+    
     @balance_activated.setter
     def balance_activated(self,value):
         """
