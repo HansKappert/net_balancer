@@ -518,7 +518,7 @@ def consumer_tesla():
             location_now          = location_now,
             location_home         = location_home,
             battery_level         = battery_level,
-            est_battery_range     = tesla.est_battery_range,
+            battery_range         = tesla.battery_range,
             price_percentage      = price_percentage
         )
 
