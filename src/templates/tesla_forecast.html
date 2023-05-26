@@ -17,11 +17,6 @@ placeholder.setAttribute("style","height:" + (window.innerHeight - 100) * 0.9 + 
 var forecasts = {{ forecasts|safe }};
 
 options_prices = {
-  bars : {
-    show : true,
-    shadowSize : 0,
-    barWidth : 0.8,
-  },            
   xaxis : {
     title : "Tijd",
     tickDecimals:0,
@@ -30,7 +25,8 @@ options_prices = {
   yaxis : {
     title : "Km",
     noTicks: Math.round(window.innerHeight / 40),
-    min: 0
+    min: 0,
+    max:350
   },
   legend: {
     position: "ne",
