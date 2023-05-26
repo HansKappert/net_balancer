@@ -437,7 +437,7 @@ class persistence:
         db_con = self.get_db_connection()
         result = db_con.execute("select log_retention_days from settings").fetchone()
         log_retention_hours = int(result[0])
-        sql = f"DELETE FROM event WHERE log_date < datetime('now', '-{log_retention_hours} hour')"
+        sql = f"DELETE FROM event WHERE log_date < datetime('now', 'localtime', '-{log_retention_hours} hour')"
         result = db_con.execute(sql)
         db_con.commit()
         db_con.close()
