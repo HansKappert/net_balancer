@@ -439,8 +439,6 @@ class persistence:
         log_retention_hours = int(result[0])
         sql = f"DELETE FROM event WHERE log_date < datetime('now', '-{log_retention_hours} hour')"
         result = db_con.execute(sql)
-        if result and result.rowcount:
-            print(f"removed {result.rowcount} old log lines")
         db_con.commit()
         db_con.close()
         return result
