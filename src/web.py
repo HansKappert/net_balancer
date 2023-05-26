@@ -476,7 +476,7 @@ def tesla_forecast():
     forecasts = data_model.get_consumer("Tesla").get_forecasted_battery_level()
     fc = []
     for idx,forecast in enumerate(forecasts):
-        fc.append([idx,forecasts[forecast]])
+        fc.append([forecast.hour,forecasts[forecast]])
     return render_template('tesla_forecast.html', forecasts=fc)
         
 @app.route('/consumer_tesla', methods=['GET','POST'])

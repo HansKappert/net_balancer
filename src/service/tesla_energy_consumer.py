@@ -167,28 +167,30 @@ class tesla_energy_consumer(energy_consumer):
             hours_price = row[1]
                 
             if hour == datetime.now().hour:  
+                this_hour = datetime(now.year, now.month, now.day, now.hour, 0,0)
+                estimation_dict[this_hour] = self.battery_range
                 time_in_1_hour = now + timedelta(hours=1)
                 next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
                 timedelta_to_next_hour = next_hour - now
 
                 if hours_price < price_percentage * average_price:
-                    battery_level_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
+                    battery_range_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
                 else:
                     if self.battery_level < self.balance_above:
-                        battery_level_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
+                        battery_range_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
                     else:
-                        battery_level_at_next_hour = self.battery_range + round(25 * (current_surplus/max_consumption_power),2)
+                        battery_range_at_next_hour = self.battery_range + round(25 * (current_surplus/max_consumption_power),2)
                 
-                estimation_dict[next_hour] = battery_level_at_next_hour
+                estimation_dict[next_hour] = battery_range_at_next_hour
             if hour > datetime.now().hour:
                 next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
                 if hours_price < price_percentage/100 * average_price:
                     # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
-                    battery_level_at_next_hour = battery_level_at_next_hour + 25
+                    battery_range_at_next_hour = battery_range_at_next_hour + 25
                 else:
-                    battery_level_at_next_hour = battery_level_at_next_hour + round(25 * (current_surplus/max_consumption_power),2)
+                    battery_range_at_next_hour = battery_range_at_next_hour + round(25 * (max(current_surplus,0)/max_consumption_power),2)
                     
-                estimation_dict[next_hour] = battery_level_at_next_hour
+                estimation_dict[next_hour] = battery_range_at_next_hour
         return estimation_dict
         
 
