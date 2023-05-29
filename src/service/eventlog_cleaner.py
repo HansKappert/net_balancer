@@ -19,8 +19,8 @@ class eventlog_cleaner:
 
     def start(self):
         while True:
-            # sleep for 30 seconds
-            time.sleep(30) # don't start immediately. Give other processes some time to do more urgent stuff
+            # sleep for 5 minutes
+            time.sleep(300) # don't start immediately. Give other processes some time to do more urgent stuff
             result = self.persistence.remove_old_log_lines()
             if result and result.rowcount:
                 self.logger.info(f"Removed {result.rowcount} lines from eventlog")
