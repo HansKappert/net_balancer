@@ -9,8 +9,8 @@ geopy>=1.20.0
 pytz
 Flask-Datepicker
 Flask-WTF
-certifi = "2022.9.24"
-charset-normalizer = "2.1.1"
-requests = "2.28.1"
-urllib3 = "1.26.12"
-websocket-client = "1.4.1"
+certifi==2022.9.24
+charset-normalizer==2.1.1
+requests==2.28.1
+urllib3==1.26.12
+websocket-client==1.4.1
