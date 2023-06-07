@@ -9,7 +9,7 @@ from common.persistence                 import persistence
 from common.database_logging_handler    import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
-    def __init__(self, db:persistence) -> None:
+    def __init__(self, db:persistence, logger=None) -> None:
         self._last_vehicle_data_update = datetime.now()
         self.persistence = db
         self.is_consuming = False
@@ -26,7 +26,10 @@ class tesla_energy_consumer(energy_consumer):
         self._status = ""
         self._old_status = ""
         self._block_status_publishing  = False
-        self.logger = logging.getLogger(__name__)
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
         self.vehicle = None
         
         log_handler = logging.StreamHandler()
@@ -36,6 +39,7 @@ class tesla_energy_consumer(energy_consumer):
         log_handler = database_logging_handler(self.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
+        
 
     def initialize(self, **kwargs):
         if kwargs and kwargs['email']:
@@ -186,11 +190,11 @@ class tesla_energy_consumer(energy_consumer):
                 next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
                 if hours_price < price_percentage/100 * average_price:
                     # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
-                    logging.info(f"Addition: {addition} for {hour} = 25")
+                    self.logger.info(f"Addition: {addition} for {hour} = 25")
                     battery_range_at_next_hour = battery_range_at_next_hour + 25
                 else:
                     addition = round(25 * (max(current_surplus,0)/max_consumption_power),2)
-                    logging.info(f"Addition: {addition} for {hour} = round(25 * (max({current_surplus},0)/{max_consumption_power}),2)")
+                    self.logger.info(f"Addition: {addition} for {next_hour}h = round(25 * (max({current_surplus},0)/{max_consumption_power}),2)")
                     battery_range_at_next_hour = battery_range_at_next_hour + addition
                     
                 estimation_dict[next_hour] = battery_range_at_next_hour

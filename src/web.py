@@ -23,22 +23,25 @@ db = persistence()
 
 mylogger = logging.getLogger(__name__)
 
+default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.INFO, format=default_format)
+
 app.logger.removeHandler(default_handler)
 
 streamlog_handler = logging.StreamHandler()
 streamlog_handler.setLevel(logging.DEBUG)
-# app.logger.addHandler(streamlog_handler)
+app.logger.addHandler(streamlog_handler)
 
 dblog_handler = database_logging_handler(db)
 dblog_handler.setLevel(logging.INFO)
-# app.logger.addHandler(dblog_handler)
+app.logger.addHandler(dblog_handler)
 
-for logger in (    app.logger,    mylogger):
-    logger.addHandler(streamlog_handler)
-    logger.addHandler(dblog_handler)
+# for logger in (    app.logger,    mylogger):
+#     logger.addHandler(streamlog_handler)
+#     logger.addHandler(dblog_handler)
 
 data_model = model(db)
-tesla = tesla_energy_consumer(db)
+tesla = tesla_energy_consumer(db, logger=app.logger)
 
 tesla_user = os.environ["TESLA_USER"]
 try:
@@ -48,7 +51,7 @@ except Exception as e:
     logging.exception(e)
 
 
-mylogger.info("Web app ready to receive requests")
+app.logger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
@@ -535,7 +538,10 @@ def get_data():
         charging_tesla_amp    = data_model.get_consumer("Tesla").consumption_amps_now
         charging_tesla_watt   = data_model.get_consumer("Tesla").consumption_power_now
         charging_tesla_status = data_model.get_consumer("Tesla").status
-    
+    else:
+        charging_tesla_amp    = 0
+        charging_tesla_watt   = 0
+        charging_tesla_status = 0
     json_text = jsonify(
         {'surplus': data_model.surplus},
         {'current_consumption'   : data_model.current_consumption},
