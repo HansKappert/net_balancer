@@ -186,9 +186,12 @@ class tesla_energy_consumer(energy_consumer):
                 next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
                 if hours_price < price_percentage/100 * average_price:
                     # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
+                    logging.info(f"Addition: {addition} for {hour} = 25")
                     battery_range_at_next_hour = battery_range_at_next_hour + 25
                 else:
-                    battery_range_at_next_hour = battery_range_at_next_hour + round(25 * (max(current_surplus,0)/max_consumption_power),2)
+                    addition = round(25 * (max(current_surplus,0)/max_consumption_power),2)
+                    logging.info(f"Addition: {addition} for {hour} = round(25 * (max({current_surplus},0)/{max_consumption_power}),2)")
+                    battery_range_at_next_hour = battery_range_at_next_hour + addition
                     
                 estimation_dict[next_hour] = battery_range_at_next_hour
         return estimation_dict
