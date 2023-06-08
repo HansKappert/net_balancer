@@ -49,6 +49,7 @@ class mediator:
             # If any was taken, we can leave this loop, and wait for the next mediation call, 
             # at which point there will be updated surpluss data
             if has_taken_surplus:
+                self.data_model.reset_average_surplus()
                 break
             
             if not found_active_consumer:

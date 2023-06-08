@@ -155,7 +155,7 @@ class tesla_energy_consumer(energy_consumer):
     def get_forecasted_battery_level(self):
         self.__update_vehicle_data()
         charge_rate = self.dist_units(self.charge_state['charge_rate'])
-        self.logger.info(f"Charge rate is {charge_rate}")
+        self.logger.info(f"Charge rate is {charge_rate}/h")
         charge_rate = float(charge_rate.split(' ')[0])
         now = datetime.now()
         estimation_dict = {}
@@ -249,7 +249,7 @@ class tesla_energy_consumer(energy_consumer):
             return False
 
         if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
-            self.logger.info(f"Tesla is opgeladen tot het opgegeven maximum ({self.charge_state['charge_limit_soc']})")
+            self.logger.info(f"Tesla is opgeladen tot het opgegeven maximum ({self.charge_state['charge_limit_soc']}%)")
             self.status = f"Tot max ({self.charge_state['charge_limit_soc']})% opgeladen"
             return False
         
