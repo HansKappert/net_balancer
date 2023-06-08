@@ -229,7 +229,6 @@ class tesla_energy_consumer(energy_consumer):
                 # self.logger.info("Average surplus: " + str(av_surplus))
                 if self.can_consume_this_surplus(average_surplus):
                     if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
-                        self.data_model.reset_average_surplus()
                         has_taken_surplus = True
         self.block_status_publishing = False
         return has_taken_surplus
