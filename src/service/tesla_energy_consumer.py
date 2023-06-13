@@ -23,7 +23,7 @@ class tesla_energy_consumer(energy_consumer):
         self.drive_state = {}
         self.email = ""
         self._est_battery_range = 0
-        self._battery_range = 0
+        self._battery_range = ''
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
         self._old_status = ""
