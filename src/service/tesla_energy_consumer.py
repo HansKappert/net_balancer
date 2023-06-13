@@ -154,59 +154,60 @@ class tesla_energy_consumer(energy_consumer):
 
     def get_forecasted_battery_level(self):
         self.__update_vehicle_data()
-        charge_rate = self.dist_units(self.charge_state['charge_rate'])
-        self.logger.info(f"Charge rate is {charge_rate}/h")
-        charge_rate = float(charge_rate.split(' ')[0])
-        now = datetime.now()
         estimation_dict = {}
-        
-        # under which percentage of the average price should we charge at full speed?
-        price_percentage = self.price_percentage
+        if 'charge_rate' in self.charge_state:
+            charge_rate = self.dist_units(self.charge_state['charge_rate'])
+            self.logger.info(f"Charge rate is {charge_rate}/h")
+            charge_rate = float(charge_rate.split(' ')[0])
+            now = datetime.now()
+            
+            # under which percentage of the average price should we charge at full speed?
+            price_percentage = self.price_percentage
 
-        # calculate for the rest of today
-        datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
-        prices = self.persistence.get_day_prices(datum)
-        total = 0
-        for row in prices:
-            total += row[1]  # price
-        average_price = round(total/24,2) 
-        current_surplus = self.persistence.get_surplus()
+            # calculate for the rest of today
+            datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+            prices = self.persistence.get_day_prices(datum)
+            total = 0
+            for row in prices:
+                total += row[1]  # price
+            average_price = round(total/24,2) 
+            current_surplus = self.persistence.get_surplus()
 
-        consumption_amps_now = self.persistence.get_consumer_consumption_now(self._name)
-        
-        for row in prices:
-            dt = datetime.fromtimestamp(int(row[0]))
-            hour = dt.hour  
-            hours_price = row[1]
-                
-            if hour == datetime.now().hour:  
-                this_hour = datetime(now.year, now.month, now.day, now.hour, 0,0)
-                estimation_dict[this_hour] = self.battery_range
-                time_in_1_hour = now + timedelta(hours=1)
-                next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
-                timedelta_to_next_hour = next_hour - now
-
-                if hours_price < price_percentage * average_price:
-                    battery_range_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
-                else:
-                    if self.battery_level < self.balance_above:
-                        battery_range_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
-                    else:
-                        battery_range_at_next_hour = self.battery_range + round(25 * charge_rate,2)
-                
-                estimation_dict[next_hour] = battery_range_at_next_hour
-            if hour > datetime.now().hour:
-                next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
-                if hours_price < price_percentage/100 * average_price:
-                    # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
-                    self.logger.debug(f"Addition: 25km for {next_hour.hour}h")
-                    battery_range_at_next_hour = battery_range_at_next_hour + 25
-                else:
-                    # use current charging power as the basis for estimation                    
-                    self.logger.debug(f"Addition: {charge_rate}km for {next_hour.hour}h")
-                    battery_range_at_next_hour = battery_range_at_next_hour + charge_rate
+            consumption_amps_now = self.persistence.get_consumer_consumption_now(self._name)
+            
+            for row in prices:
+                dt = datetime.fromtimestamp(int(row[0]))
+                hour = dt.hour  
+                hours_price = row[1]
                     
-                estimation_dict[next_hour] = battery_range_at_next_hour
+                if hour == datetime.now().hour:  
+                    this_hour = datetime(now.year, now.month, now.day, now.hour, 0,0)
+                    estimation_dict[this_hour] = self.battery_range
+                    time_in_1_hour = now + timedelta(hours=1)
+                    next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
+                    timedelta_to_next_hour = next_hour - now
+
+                    if hours_price < price_percentage * average_price:
+                        battery_range_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
+                    else:
+                        if self.battery_level < self.balance_above:
+                            battery_range_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
+                        else:
+                            battery_range_at_next_hour = self.battery_range + round(25 * charge_rate,2)
+                    
+                    estimation_dict[next_hour] = battery_range_at_next_hour
+                if hour > datetime.now().hour:
+                    next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
+                    if hours_price < price_percentage/100 * average_price:
+                        # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
+                        self.logger.debug(f"Addition: 25km for {next_hour.hour}h")
+                        battery_range_at_next_hour = battery_range_at_next_hour + 25
+                    else:
+                        # use current charging power as the basis for estimation                    
+                        self.logger.debug(f"Addition: {charge_rate}km for {next_hour.hour}h")
+                        battery_range_at_next_hour = battery_range_at_next_hour + charge_rate
+                        
+                    estimation_dict[next_hour] = battery_range_at_next_hour
         return estimation_dict
         
 
