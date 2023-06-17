@@ -62,29 +62,31 @@ class model:
         we could have also used numpy's average function, but I had difficulties installing numpy on an OrangePi
         """
         ll = ""
-        subset = self._past_surplusses[-periods:]
+        # the list _past_surplusses contains negative values
+        last_n_surplusses = self._past_surplusses[-periods:]
 
-        b = []
-        if len(subset) == 0:
+        usable_surplusses = []
+        if len(last_n_surplusses) == 0:
             return None
-        mn= min(subset)
-        for i in subset:
-            if i < -1500 and i<0 and mn > i*4: # dit doen we om de spikes er uit te halen.
+        mn= min(last_n_surplusses)
+        for i in last_n_surplusses:
+            if i < -800 and i<0 and mn > i*4: # dit doen we om de spikes er uit te halen.
                 continue
-            b.append(i) 
+            usable_surplusses.append(i) 
         
-        if len(b) == 0 and len(subset) == periods:  
-            # dit is als de auto nog volle bak aan het laden is, dan zijn alle waarden uit de subset onder de -1500
-            # In dat geval kan wel het gemiddelde van subset worden genomen.
-            for i in subset:
-                b.append(i) 
+        if len(usable_surplusses) == 0 and len(last_n_surplusses) == periods:  
+            # This can happen if for instance the car is charging at full speed.
+            # All values in last_n_surplusses are below -800
+            # In that case, use the average of the subset.
+            for i in last_n_surplusses:
+                usable_surplusses.append(i) 
 
-        if len(b) < 3:
-            self.logger.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(subset,b))
+        if len(usable_surplusses) < 3:
+            self.logger.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(last_n_surplusses,usable_surplusses))
 
             return None
-        av = sum(b)/len(b)
-
+        av = sum(usable_surplusses)/len(usable_surplusses)
+        self.logger.debug(f"Average surplus: {av}")
         return av
         
     # @property
