@@ -147,11 +147,13 @@ class tesla_energy_consumer(energy_consumer):
                     self.logger.debug("Start command result: " + str(res))
                 except Exception as e:
                     self.logger.exception("Exception when giving the START_CHARGE command:{}".format(e))
-            
+                    return False
             self.__update_vehicle_data()
-            return old_charging_current != new_charging_current
+            return True
         except Exception as e:
             self.logger.error(e)
+            return False
+
 
     def get_forecasted_battery_level(self):
         self.__update_vehicle_data()
@@ -223,6 +225,8 @@ class tesla_energy_consumer(energy_consumer):
             max_consumption_power = self.max_consumption_power
             if self.can_consume_this_surplus(max_consumption_power):
                 self.start_consuming(max_consumption_power)
+            else:
+                self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
         else:
             self.logger.info(f"Price this hour ({current_hour_price}) is above {price_percentage}% of today's average ({average_price}), so balance ")
             self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
