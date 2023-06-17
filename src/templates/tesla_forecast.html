@@ -1,0 +1,50 @@
+<!-- jinja -->
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+
+<div id="placeholder" style="width:100%;height:450px;"></div>
+<!--[if IE]>
+<script type="text/javascript" src="path/to/flashcanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="../static/js/flotr2.min.js"></script>
+<script type="text/javascript">
+  
+var placeholder = document.getElementById('placeholder');
+placeholder.setAttribute("style","height:" + (window.innerHeight - 100) * 0.9 + "px");
+
+var forecasts = {{ forecasts|safe }};
+
+options_prices = {
+  xaxis : {
+    title : "Tijd",
+    tickDecimals:0,
+    noTicks:24
+  },
+  yaxis : {
+    title : "Km",
+    noTicks: Math.round(window.innerHeight / 40),
+    min: 0,
+    max:350
+  },
+  legend: {
+    position: "ne",
+  },
+  title : "Range uitgezet tegen de tijd",
+  HtmlText : false
+};
+
+Flotr.draw(
+  placeholder,
+    [ {data : forecasts        , label : 'Range (Km)' , color: "#0000FF"}, 
+      ],
+      options_prices
+  );
+
+  
+
+</script>
+
+{% endblock %}
+

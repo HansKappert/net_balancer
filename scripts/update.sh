@@ -4,7 +4,10 @@ mv net_balancer-main/src/energy_mediator.db      .
 mv net_balancer-main/src/output/measurements.csv .
 rm -rf net_balancer-main
 curl -L https://github.com/HansKappert/net_balancer/archive/refs/heads/main.zip > latest.zip
-unzip -o latest.zip -d .
+# curl -L https://github.com/HansKappert/net_balancer/archive/refs/heads/dev.zip > latest.zip
+unzip -o -q latest.zip -d .
+# If using dev branch, then uncomment the following
+# mv net_balancer-dev net_balancer-main
 rm latest.zip
 cp cache.json net_balancer-main/src/
 mv energy_mediator.db net_balancer-main/src/

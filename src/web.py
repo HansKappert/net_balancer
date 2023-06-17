@@ -23,22 +23,25 @@ db = persistence()
 
 mylogger = logging.getLogger(__name__)
 
+default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.INFO, format=default_format)
+
 app.logger.removeHandler(default_handler)
 
 streamlog_handler = logging.StreamHandler()
 streamlog_handler.setLevel(logging.DEBUG)
-# app.logger.addHandler(streamlog_handler)
+app.logger.addHandler(streamlog_handler)
 
 dblog_handler = database_logging_handler(db)
 dblog_handler.setLevel(logging.INFO)
-# app.logger.addHandler(dblog_handler)
+app.logger.addHandler(dblog_handler)
 
-for logger in (    app.logger,    mylogger):
-    logger.addHandler(streamlog_handler)
-    logger.addHandler(dblog_handler)
+# for logger in (    app.logger,    mylogger):
+#     logger.addHandler(streamlog_handler)
+#     logger.addHandler(dblog_handler)
 
 data_model = model(db)
-tesla = tesla_energy_consumer(db)
+tesla = tesla_energy_consumer(db, logger=app.logger)
 
 tesla_user = os.environ["TESLA_USER"]
 try:
@@ -48,7 +51,7 @@ except Exception as e:
     logging.exception(e)
 
 
-mylogger.info("Web app ready to receive requests")
+app.logger.info("Web app ready to receive requests")
 ###
 #    Web page routings
 ###
@@ -471,11 +474,18 @@ def prices():
                             avg= avg 
                             )
   
-
+@app.route('/tesla_forecast', methods=['GET'])
+def tesla_forecast():
+    forecasts = data_model.get_consumer("Tesla").get_forecasted_battery_level()
+    fc = []
+    for idx,forecast in enumerate(forecasts):
+        fc.append([24 if forecast.hour == 0 else forecast.hour, forecasts[forecast]])
+    return render_template('tesla_forecast.html', forecasts=fc)
+        
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():
     if request.method == 'POST':
-        data_model._consumers[0].max_consumption_power = int(request.form['max_consumption_power'])
+        data_model.get_consumer("Tesla").max_consumption_power = int(request.form['max_consumption_power'])
         tesla.balance_above     = int(request.form['balance_above'])
         tesla.charge_until      = int(request.form['charge_until'])
         tesla.price_percentage  = int(request.form['price_percentage'])
@@ -511,7 +521,7 @@ def consumer_tesla():
             location_now          = location_now,
             location_home         = location_home,
             battery_level         = battery_level,
-            est_battery_range     = tesla.est_battery_range,
+            battery_range         = tesla.battery_range,
             price_percentage      = price_percentage
         )
 
@@ -528,7 +538,10 @@ def get_data():
         charging_tesla_amp    = data_model.get_consumer("Tesla").consumption_amps_now
         charging_tesla_watt   = data_model.get_consumer("Tesla").consumption_power_now
         charging_tesla_status = data_model.get_consumer("Tesla").status
-    
+    else:
+        charging_tesla_amp    = 0
+        charging_tesla_watt   = 0
+        charging_tesla_status = 0
     json_text = jsonify(
         {'surplus': data_model.surplus},
         {'current_consumption'   : data_model.current_consumption},

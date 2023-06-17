@@ -26,7 +26,7 @@
 
             <br>
             <label for="title">Ook laden als uurprijs onder </label>
-            <input type="number" name="price_percentage"  MIN="5" MAX="100" STEP="1" 
+            <input type="number" name="price_percentage"  MIN="5" MAX="200" STEP="1" 
                 placeholder="Post price_percentage" class="form-control"
                 value="{{ request.form['price_percentage'] or price_percentage }}">
             </input>% ligt van daggemiddelde<br>
@@ -34,7 +34,7 @@
     
             <br>
             <label for="title">Huidig batterijniveau&nbsp;</label> 
-            <div class="boxed">{{battery_level}}% ({{est_battery_range}})</div>
+            <div class="boxed">{{battery_level}}% ({{battery_range}})</div>
             <br>
             <label for="title">Thuis adres</label>
             <div class="boxed">{{location_home }}</div>

@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
 import logging
 from service.abc_energy_consumer        import energy_consumer
 from teslapy                            import Tesla
@@ -8,7 +9,7 @@ from common.persistence                 import persistence
 from common.database_logging_handler    import database_logging_handler
 
 class tesla_energy_consumer(energy_consumer):
-    def __init__(self, db:persistence) -> None:
+    def __init__(self, db:persistence, logger=None) -> None:
         self._last_vehicle_data_update = datetime.now()
         self.persistence = db
         self.is_consuming = False
@@ -16,22 +17,31 @@ class tesla_energy_consumer(energy_consumer):
         self._name = "Tesla"
         self.voltage = 230
         self._consumption_amps_now = 0
+        self._max_power_consumption  = self.persistence.get_consumer_consumption_max(self._name)
+        self._max_current_consumption = self.power_to_current(self._max_power_consumption)
         self.charge_state = {}
         self.drive_state = {}
         self.email = ""
         self._est_battery_range = 0
+        self._battery_range = '0 '
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
-        self.logger = logging.getLogger(__name__)
+        self._old_status = ""
+        self._block_status_publishing  = False
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
         self.vehicle = None
         
-        log_handler = logging.StreamHandler()
-        log_handler.setLevel(logging.DEBUG)
-        self.logger.addHandler(log_handler)
+        # log_handler = logging.StreamHandler()
+        # log_handler.setLevel(logging.DEBUG)
+        # self.logger.addHandler(log_handler)
         
-        log_handler = database_logging_handler(self.persistence)
-        log_handler.setLevel(logging.INFO)
-        self.logger.addHandler(log_handler)
+        # log_handler = database_logging_handler(self.persistence)
+        # log_handler.setLevel(logging.INFO)
+        # self.logger.addHandler(log_handler)
+        
 
     def initialize(self, **kwargs):
         if kwargs and kwargs['email']:
@@ -64,6 +74,7 @@ class tesla_energy_consumer(energy_consumer):
             if self.vehicle is None:
                 self.initialize()
         except:
+            self.logger.exception("Error during vehicle data update")
             self.initialize()
         try:
             if not self.vehicle:
@@ -81,11 +92,17 @@ class tesla_energy_consumer(energy_consumer):
             else: 
                 self._consumption_amps_now = 0
             self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
+            self._battery_range = self.dist_units(self.charge_state['battery_range'])
+            
             self.latitude_current = float(self.drive_state['latitude'])
             self.longitude_current = float(self.drive_state['longitude'])
 
             self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
             self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
+
+            self._max_power_consumption  = self.persistence.get_consumer_consumption_max(self._name)
+            self._max_current_consumption = self.power_to_current(self._max_power_consumption)
+        
         except Exception as e:
             self.logger.error("Error during getting vehicle data: " + str(e))
             return        
@@ -130,14 +147,77 @@ class tesla_energy_consumer(energy_consumer):
                     self.logger.debug("Start command result: " + str(res))
                 except Exception as e:
                     self.logger.exception("Exception when giving the START_CHARGE command:{}".format(e))
-            
+                    return False
             self.__update_vehicle_data()
-            return old_charging_current != new_charging_current
+            return True
         except Exception as e:
             self.logger.error(e)
+            return False
+
+
+    def get_forecasted_battery_level(self):
+        self.__update_vehicle_data()
+        estimation_dict = {}
+        if 'charge_rate' in self.charge_state:
+            charge_rate = self.dist_units(self.charge_state['charge_rate'])
+            self.logger.info(f"Charge rate is {charge_rate}/h")
+            charge_rate = float(charge_rate.split(' ')[0])
+            now = datetime.now()
+            
+            # under which percentage of the average price should we charge at full speed?
+            price_percentage = self.price_percentage
+
+            # calculate for the rest of today
+            datum = datetime.strptime(datetime.today().strftime("%Y-%m-%d"),"%Y-%m-%d")
+            prices = self.persistence.get_day_prices(datum)
+            total = 0
+            for row in prices:
+                total += row[1]  # price
+            average_price = round(total/24,2) 
+            current_surplus = self.persistence.get_surplus()
+
+            consumption_amps_now = self.persistence.get_consumer_consumption_now(self._name)
+            
+            for row in prices:
+                dt = datetime.fromtimestamp(int(row[0]))
+                hour = dt.hour  
+                hours_price = row[1]
+                    
+                if hour == datetime.now().hour:  
+                    this_hour = datetime(now.year, now.month, now.day, now.hour, 0,0)
+                    estimation_dict[this_hour] = self.battery_range
+                    time_in_1_hour = now + timedelta(hours=1)
+                    next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
+                    timedelta_to_next_hour = next_hour - now
+
+                    if hours_price < price_percentage * average_price:
+                        battery_range_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
+                    else:
+                        if self.battery_level < self.balance_above:
+                            battery_range_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
+                        else:
+                            battery_range_at_next_hour = self.battery_range + round(25 * charge_rate,2)
+                    
+                    estimation_dict[next_hour] = battery_range_at_next_hour
+                if hour > datetime.now().hour:
+                    next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
+                    if hours_price < price_percentage/100 * average_price:
+                        # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
+                        self.logger.debug(f"Addition: 25km for {next_hour.hour}h")
+                        battery_range_at_next_hour = battery_range_at_next_hour + 25
+                    else:
+                        # use current charging power as the basis for estimation                    
+                        self.logger.debug(f"Addition: {charge_rate}km for {next_hour.hour}h")
+                        battery_range_at_next_hour = battery_range_at_next_hour + charge_rate
+                    
+                    estimation_dict[next_hour] = battery_range_at_next_hour
+        return estimation_dict
+        
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
+        self.block_status_publishing = True
+        has_taken_surplus = False
         price_percentage = self.price_percentage
         if current_hour_price < average_price * (price_percentage/100):
             self.logger.info(f"Price this hour ({current_hour_price}) is below {price_percentage}% of today's average ({average_price}), so consume at maximum")
@@ -145,15 +225,23 @@ class tesla_energy_consumer(energy_consumer):
             max_consumption_power = self.max_consumption_power
             if self.can_consume_this_surplus(max_consumption_power):
                 self.start_consuming(max_consumption_power)
+            else:
+                self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
         else:
             self.logger.info(f"Price this hour ({current_hour_price}) is above {price_percentage}% of today's average ({average_price}), so balance ")
             self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
+            self.logger.debug(f"Average surplus: {average_surplus}")
             if average_surplus: # if there is some plus or minus surplus
                 # potential improvement is to lower the av_surplus with the amount given to the consumer, and try to give the remainder to other consumers
-                # self.logger.info("Average surplus: " + str(av_surplus))
+                
                 if self.can_consume_this_surplus(average_surplus):
                     if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
-                        self.data_model.reset_average_surplus()
+                        has_taken_surplus = True
+                    else:
+                        self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
+        self.block_status_publishing = False
+        return has_taken_surplus
+    
     def can_consume_this_surplus(self, surplus_power):
         """
         Function that returs true if the consumer is able to serve (consume the given)
@@ -166,29 +254,29 @@ class tesla_energy_consumer(energy_consumer):
             return False
 
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
+            self.logger.debug("Cannot start consuming")
             return False
 
         if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
-            self.logger.info(f"Tesla is opgeladen tot het opgegeven maximum ({self.charge_state['charge_limit_soc']})")
+            self.logger.info(f"Tesla is opgeladen tot het opgegeven maximum ({self.charge_state['charge_limit_soc']}%)")
             self.status = f"Tot max ({self.charge_state['charge_limit_soc']})% opgeladen"
             return False
         
         # old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
 
-        max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
         
         self.__update_vehicle_data() 
 
         # Charge at full speed until battery level exceeds 'balance_above' setting
         curr_level = int(self.charge_state['battery_level'])
         if curr_level < self.balance_above:
-            max_current_consumption = self.power_to_current(max_power_consumption)
+            max_current_consumption = self.power_to_current(self._max_power_consumption)
             self.__set_charge_current(max_current_consumption)
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
-            self.status = f"Snelladen tot {self.balance_above}%. Nu {curr_level}%)"
+            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
-        if surplus_power and surplus_power <= max_power_consumption:
+        if surplus_power and surplus_power <= self._max_power_consumption:
             return True
         return False
 
@@ -231,14 +319,30 @@ class tesla_energy_consumer(energy_consumer):
     def name(self):
         return self._name
     
+    #propery for blocking the status publishing
+    @property
+    def block_status_publishing(self):
+        return self._block_status_publishing
+    @block_status_publishing.setter
+    def block_status_publishing(self,value):
+        if value == False:
+            self.persistence.set_consumer_status(self._name, self.status)
+        self._block_status_publishing = value
+
     @property
     def status(self):
-        self._status = self.persistence.get_consumer_status(self._name)
-        return self._status
+        if self.block_status_publishing:
+            return self._status
+        else:
+            return self.persistence.get_consumer_status(self._name)
     @status.setter
     def status(self,value):
         self._status = value
-        self.persistence.set_consumer_status(self._name, value)
+
+    @property
+    def battery_range(self):
+        self.__update_vehicle_data()
+        return float(self._battery_range.split(' ')[0])
         
     @property
     def max_consumption_power(self):
@@ -300,7 +404,11 @@ class tesla_energy_consumer(energy_consumer):
     
     @property
     def balance_activated(self):
-        return self.persistence.get_consumer_balance(self._name) 
+        is_activated = self.persistence.get_consumer_balance(self._name) 
+        if not is_activated:
+            self.status = "Balanceren is uitgeschakeld"
+        return is_activated
+    
     @balance_activated.setter
     def balance_activated(self,value):
         """
@@ -309,8 +417,7 @@ class tesla_energy_consumer(energy_consumer):
         bijv. Jedlix, of de gebruiker (via zijn Tesla app).
         """
         if value == False:
-            max_power_consumption = self.persistence.get_consumer_consumption_max(self._name)
-            max_current_consumption = self.power_to_current(max_power_consumption)
+            max_current_consumption = self.power_to_current(self._max_power_consumption)
             self.__set_charge_current(max_current_consumption)
             self.logger.info("Balanceren werd uitgeschakeld. Laadstroom op {}A gezet".format(max_current_consumption))
             

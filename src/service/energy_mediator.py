@@ -38,16 +38,24 @@ class mediator:
         """
         self.data_model.mediation_service_status = ""
         average_surplus = self.data_model.average_surplus(6)
-        exiting_active_consumers = False
+        found_active_consumer = False
+        has_taken_surplus = False
         for consumer in self.data_model.consumers:
+            self.logger.debug(f"Consumer {consumer.name} is {'active' if consumer.balance_activated else 'inactive'}.")
             if consumer.balance_activated:
-                exiting_active_consumers = True
+                found_active_consumer = True
                 current_hour_price, average_price = self.data_model.get_current_and_average_price()
-                consumer.balance(current_hour_price,average_price, average_surplus)
-            else:
-                consumer.status = "Balanceren is uitgeschakeld"
+                has_taken_surplus = consumer.balance(current_hour_price, average_price, average_surplus)
+            # At this point there might be a consumer that has taken some (or all) of the surplus power.
+            # If any was taken, we can leave this loop, and wait for the next mediation call, 
+            # at which point there will be updated surpluss data
+            self.logger.debug(f"Consumer {consumer.name} has taken surplus: {has_taken_surplus}.")
+            if has_taken_surplus:
+                self.logger.debug(f"Restting average surplus.")
+                self.data_model.reset_average_surplus()
+                break
             
-            if not exiting_active_consumers:
+            if not found_active_consumer:
                 self.data_model.mediation_service_status = "Alle consumers staan uit mbt balanceren."
 
             
