@@ -209,8 +209,8 @@ class tesla_energy_consumer(energy_consumer):
                         # use current charging power as the basis for estimation                    
                         self.logger.debug(f"Addition: {charge_rate}km for {next_hour.hour}h")
                         battery_range_at_next_hour = battery_range_at_next_hour + charge_rate
-                        
-                    estimation_dict[next_hour] = battery_range_at_next_hour
+                    
+                    estimation_dict[24 if next_hour == 0 else next_hour] = battery_range_at_next_hour
         return estimation_dict
         
 
