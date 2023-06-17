@@ -74,6 +74,7 @@ class tesla_energy_consumer(energy_consumer):
             if self.vehicle is None:
                 self.initialize()
         except:
+            self.logger.exception("Error during vehicle data update")
             self.initialize()
         try:
             if not self.vehicle:
@@ -225,12 +226,15 @@ class tesla_energy_consumer(energy_consumer):
         else:
             self.logger.info(f"Price this hour ({current_hour_price}) is above {price_percentage}% of today's average ({average_price}), so balance ")
             self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
+            self.logger.debug(f"Average surplus: {average_surplus}")
             if average_surplus: # if there is some plus or minus surplus
                 # potential improvement is to lower the av_surplus with the amount given to the consumer, and try to give the remainder to other consumers
-                # self.logger.info("Average surplus: " + str(av_surplus))
+                
                 if self.can_consume_this_surplus(average_surplus):
                     if self.start_consuming(average_surplus): # returns true if something has changed in energy consumption
                         has_taken_surplus = True
+                    else:
+                        self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
         self.block_status_publishing = False
         return has_taken_surplus
     
@@ -246,6 +250,7 @@ class tesla_energy_consumer(energy_consumer):
             return False
 
         if not self.can_start_consuming: # property will call self.__update_vehicle_data()
+            self.logger.debug("Cannot start consuming")
             return False
 
         if int(self.charge_state['battery_level']) >= int(self.charge_state['charge_limit_soc']):
