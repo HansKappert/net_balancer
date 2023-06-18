@@ -139,14 +139,14 @@ class tesla_energy_consumer(energy_consumer):
             try:
                 self.__set_charge_current(new_charging_current)
             except Exception as e:
-                self.logger.exception("Exception during setting of the current:".format(e))
+                self.logger.info("Exception during setting of the current:".format(e))
             
             if  not self.is_consuming:
                 try:
                     res = self.vehicle.command('START_CHARGE')
                     self.logger.debug("Start command result: " + str(res))
                 except Exception as e:
-                    self.logger.exception("Exception when giving the START_CHARGE command:{}".format(e))
+                    self.logger.info("Exception when giving the START_CHARGE command:{}".format(e))
                     return False
             self.__update_vehicle_data()
             return True
