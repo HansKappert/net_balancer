@@ -46,7 +46,7 @@ class P1reader(P1data_reader):
         #Read 1 line
             try:
                 p1_raw = self.ser.readline()
-                self.logger.debug(p1_raw)
+                # self.logger.debug(p1_raw)
             except:
                 err = ("Cannot read serial port %s. Incomplete data frame returned." % self.ser.name)
                 self.logger.error(err) 

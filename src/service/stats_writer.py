@@ -62,9 +62,12 @@ class stats_writer:
     def start(self):
         self.state = "running"
         while self.state == "running":
+            self.logger.info("Writing statistics...")
             self.write_stats()
             time.sleep(10)
+        self.logger.info("Statistics writer ended.")
 
     def stop(self):
+        self.logger.info("Stopping statistics writer.")
         self.state = "stopped"
 
