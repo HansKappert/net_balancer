@@ -11,13 +11,13 @@ class cum_stats_writer:
     def __init__(self, database) -> None:
         self.persistence = database
         self.logger = logging.getLogger(__name__)
-        log_handler = logging.StreamHandler()
-        log_handler.setLevel(logging.DEBUG)
-        self.logger.addHandler(log_handler)
+        # log_handler = logging.StreamHandler()
+        # log_handler.setLevel(logging.DEBUG)
+        # self.logger.addHandler(log_handler)
         
-        log_handler = database_logging_handler(self.persistence)
-        log_handler.setLevel(logging.INFO)
-        self.logger.addHandler(log_handler)
+        # log_handler = database_logging_handler(self.persistence)
+        # log_handler.setLevel(logging.INFO)
+        # self.logger.addHandler(log_handler)
 
         pass
 
