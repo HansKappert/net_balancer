@@ -23,7 +23,6 @@ class model:
         self._consumers = []
         self.logger = logging.getLogger(__name__)
 
-        
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)

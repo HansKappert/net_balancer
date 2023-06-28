@@ -17,12 +17,14 @@ class energy_producer:
         self.sleep_time = sleep_time
         self.data_model = data_model
         self.logger = logging.getLogger(__name__)
-        # log_handler = logging.StreamHandler()
-        # log_handler.setLevel(logging.DEBUG)
-        # self.logger.addHandler(log_handler)
-        # log_handler = database_logging_handler(data_model.persistence)
-        # log_handler.setLevel(logging.INFO)
-        # self.logger.addHandler(log_handler)
+
+        log_handler = logging.StreamHandler()
+        log_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(log_handler)
+
+        log_handler = database_logging_handler(data_model.persistence)
+        log_handler.setLevel(logging.INFO)
+        self.logger.addHandler(log_handler)
 
         if not os.path.isdir(self.DATA_DUMP_FOLDER_NAME):
            os.makedirs(self.DATA_DUMP_FOLDER_NAME)

@@ -32,6 +32,14 @@ class tesla_energy_consumer(energy_consumer):
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
+            log_handler = logging.StreamHandler()
+            log_handler.setLevel(logging.DEBUG)
+            self.logger.addHandler(log_handler)
+
+            log_handler = database_logging_handler(self.persistence)
+            log_handler.setLevel(logging.INFO)
+            self.logger.addHandler(log_handler)
+
         self.vehicle = None
         
         
