@@ -23,9 +23,11 @@ class P1reader(P1data_reader):
         self.ser.port=port
 
         self.logger = logging.getLogger(__name__)
+
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
+
 
     def read_data(self):
         data = []
@@ -43,19 +45,18 @@ class P1reader(P1data_reader):
 
         while p1_teller < 36:
             p1_line=''
-        #Read 1 line
+            #Read 1 line
             try:
                 p1_raw = self.ser.readline()
-                self.logger.debug(p1_raw)
+                # self.logger.debug(p1_raw)
             except:
                 err = ("Cannot read serial port %s. Incomplete data frame returned." % self.ser.name)
                 self.logger.error(err) 
                 return data_frame, err
-            #p1_str=str(p1_raw)
+            
             p1_str=str(p1_raw, "utf-8")
             p1_line=p1_str.strip()
             data_frame.append(p1_line)
-            #print (p1_line)
             p1_teller = p1_teller +1
 
         

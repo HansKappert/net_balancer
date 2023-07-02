@@ -14,15 +14,17 @@ class stats_writer:
         self.persistence = persistence
         self.state = "stopped"        
         self.logger = logging.getLogger(__name__)
-        
+
         log_handler = logging.StreamHandler()
         log_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(log_handler)
-        
+
         log_handler = database_logging_handler(self.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
 
+
+        
 
     def write_stats(self):
         when = datetime.now()
@@ -62,9 +64,12 @@ class stats_writer:
     def start(self):
         self.state = "running"
         while self.state == "running":
+            self.logger.debug("Writing statistics...")
             self.write_stats()
             time.sleep(10)
+        self.logger.debug("Statistics writer ended.")
 
     def stop(self):
+        self.logger.debug("Stopping statistics writer.")
         self.state = "stopped"
 

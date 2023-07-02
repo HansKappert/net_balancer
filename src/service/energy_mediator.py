@@ -51,7 +51,7 @@ class mediator:
             # at which point there will be updated surpluss data
             self.logger.debug(f"Consumer {consumer.name} has taken surplus: {has_taken_surplus}.")
             if has_taken_surplus:
-                self.logger.debug(f"Restting average surplus.")
+                self.logger.debug(f"Resetting average surplus.")
                 self.data_model.reset_average_surplus()
                 break
             

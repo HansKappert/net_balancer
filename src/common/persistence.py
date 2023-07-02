@@ -490,59 +490,63 @@ class persistence:
                         meter_reading_delivered_by_client_low    = 0,
                         meter_reading_delivered_by_client_normal = 0
                         ):
-        db_con = self.get_db_connection()
-        tstamp = time.mktime(when.timetuple())
-        result = db_con.execute("""
-        INSERT INTO stats 
-        (        
-            tstamp, 
-            current_production, 
-            current_consumption, 
-            tesla_consumption, 
-            cost_price, 
-            profit_price,            
-            tesla_cost, 
-            gas_reading, 
-            meter_reading_delivered_to_client_low, 
-            meter_reading_delivered_to_client_normal, 
-            meter_reading_delivered_by_client_low, 
-            meter_reading_delivered_by_client_normal
-        )
-        VALUES (
-            :tstamp, 
-            :current_production, 
-            :current_consumption, 
-            :tesla_consumption, 
-            :cost_price, 
-            :profit_price,  
-            :tesla_cost, 
-            :gas_reading,
-            :meter_reading_delivered_to_client_low,
-            :meter_reading_delivered_to_client_normal,
-            :meter_reading_delivered_by_client_low,
-            :meter_reading_delivered_by_client_normal
-        )""",
-            {"tstamp"            : tstamp, 
-            "current_production" : current_production, 
-            "current_consumption": current_consumption, 
-            "tesla_consumption"  : tesla_consumption,
-            "cost_price"         : price, 
-            "profit_price"       : price, 
-            "tesla_cost"         : tesla_cost,
-            "gas_reading"        : gas_reading,
-            "meter_reading_delivered_to_client_low"    : meter_reading_delivered_to_client_low,
-            "meter_reading_delivered_to_client_normal" : meter_reading_delivered_to_client_normal,
-            "meter_reading_delivered_by_client_low"    : meter_reading_delivered_by_client_normal,
-            "meter_reading_delivered_by_client_normal" : meter_reading_delivered_by_client_low
-            })
-        db_con.commit()
-         
-        stats_retention_days = self.get_stats_retention()
-        dt = datetime.now() - timedelta(days=stats_retention_days)
-        unix_ts = time.mktime(dt.timetuple())
-        result = db_con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
-        db_con.commit()
-        db_con.close()
+        try:
+            db_con = self.get_db_connection()
+            tstamp = time.mktime(when.timetuple())
+            result = db_con.execute("""
+            INSERT INTO stats 
+            (        
+                tstamp, 
+                current_production, 
+                current_consumption, 
+                tesla_consumption, 
+                cost_price, 
+                profit_price,            
+                tesla_cost, 
+                gas_reading, 
+                meter_reading_delivered_to_client_low, 
+                meter_reading_delivered_to_client_normal, 
+                meter_reading_delivered_by_client_low, 
+                meter_reading_delivered_by_client_normal
+            )
+            VALUES (
+                :tstamp, 
+                :current_production, 
+                :current_consumption, 
+                :tesla_consumption, 
+                :cost_price, 
+                :profit_price,  
+                :tesla_cost, 
+                :gas_reading,
+                :meter_reading_delivered_to_client_low,
+                :meter_reading_delivered_to_client_normal,
+                :meter_reading_delivered_by_client_low,
+                :meter_reading_delivered_by_client_normal
+            )""",
+                {"tstamp"            : tstamp, 
+                "current_production" : current_production, 
+                "current_consumption": current_consumption, 
+                "tesla_consumption"  : tesla_consumption,
+                "cost_price"         : price, 
+                "profit_price"       : price, 
+                "tesla_cost"         : tesla_cost,
+                "gas_reading"        : gas_reading,
+                "meter_reading_delivered_to_client_low"    : meter_reading_delivered_to_client_low,
+                "meter_reading_delivered_to_client_normal" : meter_reading_delivered_to_client_normal,
+                "meter_reading_delivered_by_client_low"    : meter_reading_delivered_by_client_normal,
+                "meter_reading_delivered_by_client_normal" : meter_reading_delivered_by_client_low
+                })
+            db_con.commit()
+            
+            stats_retention_days = self.get_stats_retention()
+            dt = datetime.now() - timedelta(days=stats_retention_days)
+            unix_ts = time.mktime(dt.timetuple())
+            result = db_con.execute("DELETE FROM stats WHERE tstamp < :tstamp",{"tstamp":unix_ts})
+            db_con.commit()
+            db_con.close()
+        except Exception as e:
+            self.logger.exception(e)
+                
 
     def write_prices(self, when: datetime, price: float):
         db_con = self.get_db_connection()

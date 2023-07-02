@@ -60,6 +60,7 @@ if __name__ == "__main__":
     else:
         current_data_supplier = P1reader(port=args.device_name)
     logger.info ("Data supplier reader is setup")
+    
     producer = energy_producer(current_reader=current_data_supplier, data_model = data_model, sleep_time = 10)
     logger.info ("Energy producer is setup")
 
