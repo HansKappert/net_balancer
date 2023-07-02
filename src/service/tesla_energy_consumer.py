@@ -192,7 +192,7 @@ class tesla_energy_consumer(energy_consumer):
                     next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, time_in_1_hour.hour, 0,0)
                     timedelta_to_next_hour = next_hour - now
 
-                    if hours_price < self.average_price(average_price,price_percentage):
+                    if hours_price < self.charge_below_price(average_price, price_percentage):
                         battery_range_at_next_hour = self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2)
                     else:
                         if self.battery_level < self.balance_above:
@@ -203,7 +203,7 @@ class tesla_energy_consumer(energy_consumer):
                     estimation_dict[next_hour] = battery_range_at_next_hour
                 if hour > datetime.now().hour:
                     next_hour = datetime(time_in_1_hour.year, time_in_1_hour.month, time_in_1_hour.day, hour, 0,0) + timedelta(hours=1)
-                    if hours_price < self.charge_below_price(average_price,price_percentage):
+                    if hours_price < self.charge_below_price(average_price, price_percentage):
                         # We assume 1 hours of full speed loading, which is 25 km/h. How to calc this 25?
                         self.logger.debug(f"Addition: 25km for {next_hour.hour}h")
                         battery_range_at_next_hour = battery_range_at_next_hour + 25
@@ -223,7 +223,7 @@ class tesla_energy_consumer(energy_consumer):
         self.block_status_publishing = True
         has_taken_surplus = False
         price_percentage = self.price_percentage
-        if current_hour_price < self.charge_below_price(price_percentage, average_price):
+        if current_hour_price < self.charge_below_price(average_price, price_percentage):
             self.logger.info(f"Price this hour ({current_hour_price}) is below {price_percentage}% of today's average ({average_price}), so consume at maximum")
             self.status = f"Uurprijs ({current_hour_price}) is lager dan {price_percentage}% van daggemiddelde ({average_price}), dus maximaal consumeren" 
             max_consumption_power = self.max_consumption_power
