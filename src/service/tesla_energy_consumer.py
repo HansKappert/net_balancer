@@ -198,7 +198,7 @@ class tesla_energy_consumer(energy_consumer):
                         if self.battery_level < self.balance_above:
                             battery_range_at_next_hour = math.min(self.battery_range + round(charge_rate * timedelta_to_next_hour.seconds/3600,2), self.balance_above)
                         else:
-                            battery_range_at_next_hour = self.battery_range + round(25 * charge_rate,2)
+                            battery_range_at_next_hour = self.battery_range + round(charge_rate,2)
                     
                     estimation_dict[next_hour] = battery_range_at_next_hour
                 if hour > datetime.now().hour:
