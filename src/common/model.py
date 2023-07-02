@@ -81,7 +81,7 @@ class model:
                 usable_surplusses.append(i) 
 
         if len(usable_surplusses) < 3:
-            self.logger.info("Te weinig bruikbare surplusdata elementen uit {}: {}".format(last_n_surplusses,usable_surplusses))
+            self.logger.debug("Not enough usable data in {}. Usable elements are {}".format(last_n_surplusses,usable_surplusses))
 
             return None
         av = sum(usable_surplusses)/len(usable_surplusses)
