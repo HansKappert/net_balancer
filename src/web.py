@@ -159,7 +159,7 @@ def kwh_now():
         minutes = 60
 
     history = db.get_history(minutes)
-    app.logger.info(f"Page: kwh_now received {len(history)} records from the database.")
+    app.logger.debug(f"Page: kwh_now received {len(history)} records from the database.")
     productions        = '['
     consumptions       = '['
     tesla_consumptions = '['

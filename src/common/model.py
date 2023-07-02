@@ -82,8 +82,8 @@ class model:
 
         if len(usable_surplusses) < 3:
             self.logger.debug("Not enough usable data in {}. Usable elements are {}".format(last_n_surplusses,usable_surplusses))
-
             return None
+        
         av = sum(usable_surplusses)/len(usable_surplusses)
         self.logger.debug(f"Average surplus: {av}")
         return av
