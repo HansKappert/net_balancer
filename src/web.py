@@ -458,20 +458,27 @@ def prices():
 
     price_history = db.get_day_prices(datum)
     total = 0
+    max_price = -10000
+    min_price = 10000
     prices = '['
     if len(price_history) > 0:
         for row in price_history:
             dt = datetime.fromtimestamp(int(row[0]))
             hour = dt.hour        
             total += row[1]
+            min_price = min(min_price,row[1])
+            max_price = min(max_price,row[1])
             prices += f'[{hour},{row[1]}],'
     prices = prices.strip(',') + ']'
     ddatum = datum.strftime("%Y-%m-%d")
     avg    = round(total/len(price_history),2) if len(price_history)>0 else 0
+    min_price = min(min_price,0)
     return render_template('prices.html', 
                             datum=ddatum, 
                             prices = prices, 
-                            avg= avg 
+                            avg= avg,
+                            min_price=min_price,
+                            max_price=max_price
                             )
   
 @app.route('/tesla_forecast', methods=['GET'])
