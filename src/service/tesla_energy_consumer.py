@@ -216,7 +216,7 @@ class tesla_energy_consumer(energy_consumer):
         return estimation_dict
 
     def charge_below_price(self, average_price, price_percentage):
-        return average_price - (price_percentage/100 * abs(average_price))
+        return round(average_price - ((100-price_percentage)/100 * abs(average_price)),2)
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
