@@ -51,7 +51,7 @@ class energy_producer:
         if datagram.meter_reading_delivered_to_client_low:
             data_model.meter_reading_delivered_to_client_normal = datagram.meter_reading_delivered_to_client_normal
 
-        self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
+#TODO        self.logger.info("Smart meter data: Consuming {}W, Producing {}W. Surplus is {}".format(data_model.current_consumption,data_model.current_production,data_model.surplus))
         self.write_datagram_to_file(datagram, False)
 
     def write_datagram_to_file(self, dg : P1datagram, header : bool):

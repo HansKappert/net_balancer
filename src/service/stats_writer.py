@@ -44,7 +44,7 @@ class stats_writer:
             meter_reading_delivered_by_client_low    = self.data_model.meter_reading_delivered_by_client_low
             meter_reading_delivered_by_client_normal = self.data_model.meter_reading_delivered_by_client_normal
             
-            self.logger.debug(f"KWh price={current_price_kwh}, consumption={consumption} tesla_cost={tesla_cost} gas_reading={gas_reading} el_low={meter_reading_delivered_to_client_low} el_normal={meter_reading_delivered_to_client_normal} el_delivered_low={meter_reading_delivered_by_client_low} el_delivered_normal={meter_reading_delivered_by_client_normal}")
+            self.logger.info(f"KWh price={current_price_kwh}, consumption={consumption} tesla_cost={tesla_cost} gas_reading={gas_reading} el_low={meter_reading_delivered_to_client_low} el_normal={meter_reading_delivered_to_client_normal} el_delivered_low={meter_reading_delivered_by_client_low} el_delivered_normal={meter_reading_delivered_by_client_normal}")
             self.persistence.write_statistics(
                                     when,
                                     production,
