@@ -137,7 +137,7 @@ class tesla_energy_consumer(energy_consumer):
             old_charging_current = 0 if self.charge_state['charger_actual_current'] is None else self.charge_state['charger_actual_current']
             # calculate what the new charging current needs to be. 
             new_charging_current = self.calc_new_charge_current(old_charging_current, surplus_power)
-#TODO            self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
+            self.logger.info("Actual charging current: {}, New charging current: {}".format(old_charging_current,new_charging_current))
             try:
                 self.__set_charge_current(new_charging_current)
             except Exception as e:
@@ -225,7 +225,7 @@ class tesla_energy_consumer(energy_consumer):
         price_percentage = self.price_percentage
         charge_below_price = self.charge_below_price(average_price, price_percentage)
         if current_hour_price < charge_below_price:
-#TODO            self.logger.info(f"Price this hour ({current_hour_price}) is below {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so consume at maximum")
+            self.logger.info(f"Price this hour ({current_hour_price}) is below {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so consume at maximum")
             self.status = f"Uurprijs ({current_hour_price}) is lager dan {price_percentage}% van daggemiddelde ({average_price}), dus maximaal consumeren" 
             max_consumption_power = self.max_consumption_power
             if self.can_consume_this_surplus(max_consumption_power):
@@ -233,7 +233,7 @@ class tesla_energy_consumer(energy_consumer):
             else:
                 self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
         else:
-#TODO            self.logger.info(f"Price this hour ({current_hour_price}) is above {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so balance ")
+            self.logger.info(f"Price this hour ({current_hour_price}) is above {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so balance ")
             self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
             self.logger.debug(f"Average surplus: {average_surplus}")
             if average_surplus: # if there is some plus or minus surplus

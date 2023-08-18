@@ -207,16 +207,19 @@ class persistence:
         return conn
 
     def log_event(self, levelname:str, source:str, message:str):
-        db_con = self.get_db_connection()
-        result = db_con.execute("SELECT log_date, message FROM event ORDER BY log_date DESC").fetchone()
-        log_date = datetime.now()
-        if not result == None and result[1] == message:
-                result = db_con.execute("UPDATE event SET log_date = :new_log_date, occurrences = occurrences + 1 WHERE log_date = :old_log_date",{"new_log_date": log_date, "old_log_date": result[0]})
-        else:
-            result = db_con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
-        db_con.commit()
-        db_con.close()
-
+        try:
+            db_con = self.get_db_connection()
+            result = db_con.execute("SELECT log_date, message FROM event ORDER BY log_date DESC").fetchone()
+            log_date = datetime.now()
+            if not result == None and result[1] == message:
+                    result = db_con.execute("UPDATE event SET log_date = :new_log_date, occurrences = occurrences + 1 WHERE log_date = :old_log_date",{"new_log_date": log_date, "old_log_date": result[0]})
+            else:
+                result = db_con.execute("INSERT INTO event VALUES (:log_date, :levelname, :source, :message, 1)",{"log_date": log_date, "levelname":levelname, "source":source, "message":message})
+            db_con.commit()
+            db_con.close()
+        except Exception as e:
+            print ("Exception in log_event: " + str(e))
+            pass
     def __get_reading_column_value(self, column_name):
         db_con = self.get_db_connection()
         result = db_con.execute("SELECT " + column_name + " FROM readings").fetchone()
