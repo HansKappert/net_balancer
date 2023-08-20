@@ -1,0 +1,14 @@
+FROM python:3.9-alpine
+WORKDIR home/net_balancer-main
+# replace with your own account name
+ENV TESLA_USER=hans.kappert@hetconsultancyhuis.nl
+ENV FLASK_APP=web.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV DATABASE_DIR=/home/net_balancer-main/database
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+EXPOSE 8081
+COPY src src
+# Create this cache.json file first by running gui.py and logging into your account 
+COPY src/cache.json .
+CMD ["python3", "src/web.py"]

@@ -1,13 +1,20 @@
 import sqlite3
 import logging
 import time
+import os
 from pytz                             import timezone
 from datetime                         import date, datetime, timedelta
 from common.database_logging_handler  import database_logging_handler
 
 
 class persistence:
-    DBNAME = 'energy_mediator.db'
+    # test if there is a environment variable database_dir
+    if 'DATABASE_DIR' in os.environ:
+    # get environment variable database_dir
+        DATABASE_DIR = os.environ['DATABASE_DIR']
+    else:
+        DATABASE_DIR = ''
+    DBNAME = os.path.join(DATABASE_DIR,'energy_mediator.db')
 
     stats_collect_qry = """
     SELECT :year, :month, :day, :hour, 
