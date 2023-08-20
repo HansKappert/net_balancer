@@ -1,20 +1,15 @@
-## Draait op Alle platformen.
-Getest op RaspberryPI, OrangePI zero, MacOs
+## Runs on All Platforms.
+Tested on RaspberryPI, OrangePI zero, MacOs
 
-## Om te installeren:
+## To install:
+See Installation.docx
 
-Zie Installatie.docx
-
-## achtergrond info
-Dit project gebruikt kennis en stukjes code die Gé Janssen heeft geschreven om de slimme meter uit te lezen. Dank voor de input. Zie het werk van Gé dat hij hiervoor heeft gemaakt op:
+## background info
+This project uses knowledge and pieces of code written by Gé Janssen to read the smart meter. Thanks for the input. See Gé's work created for this purpose at:
 http://gejanssen.com/howto/Slimme-meter-uitlezen/index.html
-en
+and
 http://gejanssen.com/howto/rpi-rrd-power/index.html
 
-Daarnaast wordt het TeslaPy project van TDorsers gebruikt:
+In addition, TDorsers' TeslaPy project is used:
 https://github.com/tdorssers/TeslaPy 
-
-Niet limitatieve lijst van bronnen die gebruikt zijn bij de realisatie van dit project:
-https://www.digitalocean.com/community/tutorials/how-to-make-a-web-application-using-flask-in-python-3
-https://flask.palletsprojects.com/en/2.0.x/patterns/packages/
 
