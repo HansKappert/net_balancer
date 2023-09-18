@@ -46,12 +46,10 @@ if __name__ == "__main__":
     data_model = model(db)
 
     log_handler = logging.StreamHandler()
-    log_handler.setLevel(logging.DEBUG)
-    logger.addHandler(log_handler)
+    logging.getLogger().addHandler(log_handler)
     
     log_handler = database_logging_handler(db)
-    log_handler.setLevel(logging.INFO)
-    logger.addHandler(log_handler)
+    logging.getLogger().addHandler(log_handler)
 
     logger.info ("Device name  : " + args.device_name)
 
