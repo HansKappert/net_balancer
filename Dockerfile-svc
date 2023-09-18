@@ -1,0 +1,16 @@
+FROM python:3.9-alpine
+WORKDIR home/net_balancer-main
+# replace with your own account name
+ENV TESLA_USER=hans.kappert@hetconsultancyhuis.nl
+
+
+ENV DATABASE_DIR=/home/net_balancer-main/database
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+COPY src src
+# Create this cache.json file first by running gui.py and logging into your account 
+COPY src/cache.json .
+# To test if the service can start without a P1 cable, use the stub device parameter
+# CMD ["python3", "src/mediation_service.py","-d=stub"]
+CMD   ["python3", "src/mediation_service.py","-d=/dev/tty.usbserial-A169FR2N"]

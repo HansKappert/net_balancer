@@ -216,15 +216,16 @@ class tesla_energy_consumer(energy_consumer):
         return estimation_dict
 
     def charge_below_price(self, average_price, price_percentage):
-        return average_price - (price_percentage/100 * abs(average_price))
+        return round(average_price - ((100-price_percentage)/100 * abs(average_price)),2)
 
     def balance(self, current_hour_price,average_price, average_surplus):
 
         self.block_status_publishing = True
         has_taken_surplus = False
         price_percentage = self.price_percentage
-        if current_hour_price < self.charge_below_price(average_price, price_percentage):
-            self.logger.info(f"Price this hour ({current_hour_price}) is below {price_percentage}% of today's average ({average_price}), so consume at maximum")
+        charge_below_price = self.charge_below_price(average_price, price_percentage)
+        if current_hour_price < charge_below_price:
+            self.logger.info(f"Price this hour ({current_hour_price}) is below {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so consume at maximum")
             self.status = f"Uurprijs ({current_hour_price}) is lager dan {price_percentage}% van daggemiddelde ({average_price}), dus maximaal consumeren" 
             max_consumption_power = self.max_consumption_power
             if self.can_consume_this_surplus(max_consumption_power):
@@ -232,7 +233,7 @@ class tesla_energy_consumer(energy_consumer):
             else:
                 self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
         else:
-            self.logger.info(f"Price this hour ({current_hour_price}) is above {price_percentage}% of today's average ({average_price}), so balance ")
+            self.logger.info(f"Price this hour ({current_hour_price}) is above {charge_below_price} ({average_price} - ({price_percentage}/100 * abs({average_price}))), so balance ")
             self.status = f"Uurprijs ({current_hour_price}) is hoger dan {price_percentage}% van daggemiddelde ({average_price}), dus alleen overtollige energie consumeren" 
             self.logger.debug(f"Average surplus: {average_surplus}")
             if average_surplus: # if there is some plus or minus surplus

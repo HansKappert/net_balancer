@@ -1,0 +1,18 @@
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile-web
+    ports:
+      - "8081:8081"
+    volumes:
+      - database:/home/net_balancer-main/database
+  svc:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile-svc
+    volumes:
+      - database:/home/net_balancer-main/database
+
+volumes:
+  database:

@@ -23,7 +23,7 @@ class TestChargeBelowPrice(unittest.TestCase):
         except Exception as e:
             print(e)            
         # Testing when price percentage is 0
-        self.assertEqual(tesla.charge_below_price(100, 0), 100)
+        self.assertEqual(tesla.charge_below_price(100, 1), 1)
         
         # Testing when price percentage is 100
         self.assertEqual(tesla.charge_below_price(100, 50), 50)
@@ -35,9 +35,10 @@ class TestChargeBelowPrice(unittest.TestCase):
         self.assertEqual(tesla.charge_below_price(-100, 50), -150)
         
         # Testing with different average prices and price percentages
-        self.assertEqual(tesla.charge_below_price(200, 25), 150)
-        self.assertEqual(tesla.charge_below_price(50, 75), 12.5)
-        self.assertEqual(tesla.charge_below_price(75.5, 10), 67.95)
+        self.assertEqual(tesla.charge_below_price(200, 25), 50)
+        self.assertEqual(tesla.charge_below_price(50, 75), 37.5)
+        self.assertEqual(tesla.charge_below_price(75.5, 90), 67.95)
+        self.assertEqual(tesla.charge_below_price(0.09, 80), 0.07)
 
 if __name__ == '__main__':
     unittest.main()
