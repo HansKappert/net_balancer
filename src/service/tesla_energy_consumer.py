@@ -96,8 +96,15 @@ class tesla_energy_consumer(energy_consumer):
             self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
             self._battery_range = self.dist_units(self.charge_state['battery_range'])
             
-            self.latitude_current = float(self.drive_state['latitude'])
-            self.longitude_current = float(self.drive_state['longitude'])
+            if 'latitude' in self.drive_state and 'longitude' in self.drive_state:
+                self.latitude_current = float(self.drive_state['latitude'])
+                self.longitude_current = float(self.drive_state['longitude'])
+            elif 'native_latitude' in self.drive_state and 'native_longitude' in self.drive_state:
+                self.latitude_current = float(self.drive_state['native_latitude'])
+                self.longitude_current = float(self.drive_state['native_longitude'])
+            elif 'active_route_latitude' in self.drive_state and 'active_route_longitude' in self.drive_state:
+                self.latitude_current = float(self.drive_state['active_route_latitude'])
+                self.longitude_current = float(self.drive_state['active_route_longitude'])
 
             self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
             self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
@@ -456,8 +463,10 @@ class tesla_energy_consumer(energy_consumer):
     def is_at_home(self):
         self.__update_vehicle_data()  
         (lat,lon) = self.persistence.get_tesla_home_coords()
-        if 'longitude' in self.drive_state and 'latitude' in self.drive_state:
-            if abs(float(self.drive_state['longitude']) - lon) < 0.000100 and abs(float(self.drive_state['latitude'])  - lat) < 0.000100: 
+
+        if hasattr(self, 'longitude_current'):
+            if  abs(self.longitude_current - lon) < 0.000100 and \
+                abs(self.latitude_current  - lat) < 0.000100: 
                 return True
         return False
 
