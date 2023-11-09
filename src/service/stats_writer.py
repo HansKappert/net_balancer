@@ -22,8 +22,6 @@ class stats_writer:
         log_handler = database_logging_handler(self.persistence)
         log_handler.setLevel(logging.INFO)
         self.logger.addHandler(log_handler)
-
-
         
 
     def write_stats(self):
@@ -65,7 +63,10 @@ class stats_writer:
         self.state = "running"
         while self.state == "running":
             self.logger.debug("Writing statistics...")
-            self.write_stats()
+            try:
+                self.write_stats()
+            except Exception as e:
+                self.logger.exception(e)
             time.sleep(10)
         self.logger.debug("Statistics writer ended.")
 
