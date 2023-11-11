@@ -225,7 +225,7 @@ class persistence:
             db_con.commit()
             db_con.close()
         except Exception as e:
-            print ("Exception in log_event: " + str(e))
+            self.logger.error("Exception in log_event: " + str(e))
             pass
     def __get_reading_column_value(self, column_name):
         db_con = self.get_db_connection()
@@ -383,15 +383,19 @@ class persistence:
         else:
             return 0
     def set_consumer_balance(self, consumer_name, value):
-        db_con = self.get_db_connection()  
-        result = db_con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
-        if (result == None):
-            print("update of consumer setting successful")
-        else:
-            print("update of consumer setting failed")
-        db_con.commit()
-        db_con.close()
-
+        db_con = self.get_db_connection() 
+        try: 
+            result = db_con.execute("UPDATE consumer SET balance = :value WHERE name = :consumer_name",{"value":value, "consumer_name":consumer_name})
+            db_con.commit()
+            db_con.close()
+            if (result.rowcount == 1):
+                self.logger.info("update of consumer setting successful")
+            else:
+                self.logger.error("update of consumer setting failed")
+        except Exception as e:
+            self.logger.exception(e)
+            db_con.close()
+        
     #  consumer balance
     def get_consumer_status(self, consumer_name):
         db_con = self.get_db_connection()
