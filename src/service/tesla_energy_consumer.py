@@ -62,12 +62,12 @@ class tesla_energy_consumer(energy_consumer):
                 self.logger.info(f"Error during initializing Tesla energy consumer: {e}")            
         return False
 
-    def solve_captcha(self, svg):
+    def solve_captcha(self, svg) -> str:
         with open('captcha.svg', 'wb') as f:
             f.write(svg)
         return input('Captcha: ')
 
-    def __update_vehicle_data(self):
+    def __update_vehicle_data(self) -> None:
         diff = datetime.now() - self._last_vehicle_data_update
         if diff.total_seconds() < 5 and len(self.drive_state) > 0: 
             return
@@ -113,8 +113,8 @@ class tesla_energy_consumer(energy_consumer):
     # def consumer_is_consuming(self):
     #     return self.is_consuming
         
-    def stop_consuming(self):
-        if not self.may_stop_consuming():
+    def stop_consuming(self) -> bool:
+        if not self.may_stop_consuming:
             return
 
         if self.is_consuming:
@@ -126,7 +126,7 @@ class tesla_energy_consumer(energy_consumer):
         else:
             self.logger.info("Stop charging command is not needed. Vehicle wasn't charging")   
             
-    def start_consuming(self, surplus_power):
+    def start_consuming(self, surplus_power) -> bool:
         """
         Tell the consumer to start consumer the given amout of power.
         Make sure beofrehand that the consumer is capable and willing
@@ -157,7 +157,7 @@ class tesla_energy_consumer(energy_consumer):
             return False
 
 
-    def get_forecasted_battery_level(self):
+    def get_forecasted_battery_level(self) -> dict:
         self.__update_vehicle_data()
         estimation_dict = {}
         if 'charge_rate' in self.charge_state:
@@ -215,10 +215,21 @@ class tesla_energy_consumer(energy_consumer):
                     estimation_dict[next_hour] = battery_range_at_next_hour
         return estimation_dict
 
-    def charge_below_price(self, average_price, price_percentage):
+    def charge_below_price(self, average_price, price_percentage) -> float:
         return round(average_price - ((100-price_percentage)/100 * abs(average_price)),2)
 
-    def balance(self, current_hour_price,average_price, average_surplus):
+    def balance(self, current_hour_price,average_price, average_surplus) -> bool:
+        """
+        Balances the energy consumption based on the current hour price, average price, and average surplus.
+
+        Parameters:
+            current_hour_price (float): The price of the current hour.
+            average_price (float): The average price of today.
+            average_surplus (float): The average surplus power taken the last few minutes.
+
+        Returns:
+            bool: True if surplus has been taken, False otherwise.
+        """
 
         self.block_status_publishing = True
         has_taken_surplus = False
@@ -244,10 +255,12 @@ class tesla_energy_consumer(energy_consumer):
                         has_taken_surplus = True
                     else:
                         self.logger.debug("Tesla could not start consuming, so no surplus has been taken")
+            else:
+                self.stop_consuming()
         self.block_status_publishing = False
         return has_taken_surplus
     
-    def can_consume_this_surplus(self, surplus_power):
+    def can_consume_this_surplus(self, surplus_power) -> bool:
         """
         Function that returs true if the consumer is able to serve (consume the given)
         surpplus energy. This allows for multiple consumers and a mediator to choose
@@ -285,7 +298,7 @@ class tesla_energy_consumer(energy_consumer):
             return True
         return False
 
-    def power_to_current(self, power):
+    def power_to_current(self, power) -> int:
         """
         Function that returns a rounded number indicating how much current will 
         flow for given power and set voltage. The formula is P=VI, so fof this
@@ -293,7 +306,7 @@ class tesla_energy_consumer(energy_consumer):
         """
         return int(power / self.voltage)
 
-    def calc_new_charge_current(self, charger_actual_current, surplus_power):
+    def calc_new_charge_current(self, charger_actual_current, surplus_power) -> int:
         """
         This function returns a number between and including 0 and some maximum.
         It uses the current power consumption and the given surplus to calculate
@@ -304,12 +317,12 @@ class tesla_energy_consumer(energy_consumer):
         amps_new = min(self.power_to_current(self.max_consumption_power),amps_new)
         return amps_new
 
-    def __set_charge_current(self, amps):
+    def __set_charge_current(self, amps) -> None:
         if amps >= 0:
             self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
             self.__update_vehicle_data()
 
-    def dist_units(self, miles, speed=False):
+    def dist_units(self, miles, speed=False) -> str:
             """ Format and convert distance or speed to GUI setting units """
             if miles is None:
                 return None
@@ -321,68 +334,68 @@ class tesla_energy_consumer(energy_consumer):
             return '%.1f %s' % (miles, 'mph' if speed else 'mi')
     
     @property 
-    def name(self):
+    def name(self) -> str:
         return self._name
     
     #propery for blocking the status publishing
     @property
-    def block_status_publishing(self):
+    def block_status_publishing(self) -> bool:
         return self._block_status_publishing
     @block_status_publishing.setter
-    def block_status_publishing(self,value):
+    def block_status_publishing(self,value) -> None:
         if value == False:
             self.persistence.set_consumer_status(self._name, self.status)
         self._block_status_publishing = value
 
     @property
-    def status(self):
+    def status(self) -> str:
         if self.block_status_publishing:
             return self._status
         else:
             return self.persistence.get_consumer_status(self._name)
     @status.setter
-    def status(self,value):
+    def status(self,value)  -> None:
         self._status = value
 
     @property
-    def battery_range(self):
+    def battery_range(self) -> float:
         self.__update_vehicle_data()
         return float(self._battery_range.split(' ')[0])
         
     @property
-    def max_consumption_power(self):
+    def max_consumption_power(self) -> int:
         self._consumption = self.persistence.get_consumer_consumption_max(self._name)
         return self._consumption
     @max_consumption_power.setter
-    def max_consumption_power(self,value):
+    def max_consumption_power(self,value) -> None:
         self._consumption = value
         self.persistence.set_consumer_consumption_max(self._name, value)
 
     @property
-    def balance_above(self):
+    def balance_above(self) -> int:
         self._balance_above = self.persistence.get_tesla_balance_above()
         return self._balance_above
     @balance_above.setter
-    def balance_above(self,value):
+    def balance_above(self,value) -> None:
         self._balance_above = value
         self.persistence.set_tesla_balance_above(value)
 
     @property
-    def price_percentage(self):
+    def price_percentage(self) -> int:
         self._price_percentage = self.persistence.get_tesla_price_percentage()
         return self._price_percentage
     @price_percentage.setter
-    def price_percentage(self,value):
+    def price_percentage(self,value) -> None:
         self._price_percentage = value
         self.persistence.set_tesla_price_percentage(value)
 
 
     @property
-    def charge_until(self):
+    def charge_until(self) -> int:
         self._charge_until = self.persistence.get_tesla_charge_until()
         return self._charge_until
     @charge_until.setter
-    def charge_until(self,value):
+    def charge_until(self,value) -> None:
         self._charge_until = value
         self.persistence.set_tesla_charge_until(value)
         try:
@@ -394,28 +407,28 @@ class tesla_energy_consumer(energy_consumer):
 
 
     @property
-    def isConsuming(self):
+    def isConsuming(self) -> bool:
         return self.is_consuming
     
     @property
-    def consumption_amps_now(self):
+    def consumption_amps_now(self) -> int:
         self.__update_vehicle_data()
         return self._consumption_amps_now
     
     @property
-    def consumption_power_now(self):
+    def consumption_power_now(self) -> float:
         self.__update_vehicle_data()
         return self.consumption_amps_now * self.voltage
     
     @property
-    def balance_activated(self):
+    def balance_activated(self) -> bool:
         is_activated = self.persistence.get_consumer_balance(self._name) 
         if not is_activated:
             self.status = "Balanceren is uitgeschakeld"
         return is_activated
     
     @balance_activated.setter
-    def balance_activated(self,value):
+    def balance_activated(self,value) -> None:
         """
         Bij het uitschakelen van balaceren, moeten we zorgen dat de tesla of volle sterkte gaat laden.
         Het daadwerkelijk starten en stoppen moeten we niet forceren, maar overlaten aan
@@ -428,7 +441,7 @@ class tesla_energy_consumer(energy_consumer):
             
 
     @property
-    def can_start_consuming(self):
+    def can_start_consuming(self) -> bool:
         self.__update_vehicle_data()
         
         if not self.is_at_home:
@@ -445,7 +458,7 @@ class tesla_energy_consumer(energy_consumer):
 
     
     @property
-    def is_disconnected(self):
+    def is_disconnected(self) -> bool:
         self.__update_vehicle_data()  
         if self.charge_state['charging_state'] == "Disconnected":
             self.logger.debug(f"Charging state is {self.vehicle['charge_state']['charging_state']}")   
@@ -453,7 +466,7 @@ class tesla_energy_consumer(energy_consumer):
         return False
 
     @property
-    def is_at_home(self):
+    def is_at_home(self) -> bool:
         self.__update_vehicle_data()  
         (lat,lon) = self.persistence.get_tesla_home_coords()
 
@@ -463,18 +476,25 @@ class tesla_energy_consumer(energy_consumer):
                 return True
         return False
 
+
     @property
-    def may_stop_consuming(self):
+    def may_stop_consuming(self) -> bool:
+        """
+        Checks if the vehicle may stop consuming.
+        
+        Returns:
+            bool: True if the vehicle may stop consuming, False otherwise.
+        """
         self.__update_vehicle_data()
         
         if not self.is_at_home:
             self.logger.info("Will not stop because car is not at home")
             self.status = "Niet thuis"
-            return True
-        return False
+            return False
+        return True
 
     @property
-    def battery_level(self):
+    def battery_level(self) -> int:
         self.__update_vehicle_data()
         if 'battery_level' in self.charge_state:
             return int(self.charge_state['battery_level'])
@@ -482,7 +502,7 @@ class tesla_energy_consumer(energy_consumer):
             return 0
 
     @property
-    def est_battery_range(self):
+    def est_battery_range(self) -> float:
         self.__update_vehicle_data()
         return self._est_battery_range
 
