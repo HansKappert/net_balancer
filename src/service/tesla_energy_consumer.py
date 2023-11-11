@@ -99,14 +99,7 @@ class tesla_energy_consumer(energy_consumer):
             if 'latitude' in self.drive_state and 'longitude' in self.drive_state:
                 self.latitude_current = float(self.drive_state['latitude'])
                 self.longitude_current = float(self.drive_state['longitude'])
-            elif 'native_latitude' in self.drive_state and 'native_longitude' in self.drive_state:
-                self.latitude_current = float(self.drive_state['native_latitude'])
-                self.longitude_current = float(self.drive_state['native_longitude'])
-            elif 'active_route_latitude' in self.drive_state and 'active_route_longitude' in self.drive_state:
-                self.latitude_current = float(self.drive_state['active_route_latitude'])
-                self.longitude_current = float(self.drive_state['active_route_longitude'])
-
-            self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
+                self.persistence.set_tesla_current_coords(self.latitude_current, self.longitude_current)            
             self.persistence.set_consumer_consumption_now(self._name, self.consumption_amps_now)
 
             self._max_power_consumption  = self.persistence.get_consumer_consumption_max(self._name)
