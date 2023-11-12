@@ -266,10 +266,10 @@ class tesla_energy_consumer(energy_consumer):
         surpplus energy. This allows for multiple consumers and a mediator to choose
         the most appropriate consumer, with algorithms yet to be developed.
         """
-        if self.balance_activated == False:
-            self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
-            self.status = "Balanceren is uitgeschakeld"
-            return False
+        # if self.balance_activated == False:
+        #     self.logger.info("Het balanceren voor de gebruiker Tesla is uitgeschakeld")
+        #     self.status = "Balanceren is uitgeschakeld"
+        #     return False
 
         if not self._can_start_consuming: # property will call self.__update_vehicle_data()
             self.logger.debug("Cannot start consuming")
@@ -295,17 +295,16 @@ class tesla_energy_consumer(energy_consumer):
     
         if surplus_power and surplus_power <= self._max_power_consumption:
             return True
-        self.logger.info(f"surplus_power: {surplus_power} with self._max_power_consumption: {self._max_power_consumption}")
+        self.logger.info(f"Surplus_power {surplus_power} exceeds max_power_consumption: {self._max_power_consumption}")
         return False
 
     def _consume_at_maximum(self):
         max_consumption_power = self.max_consumption_power
-        self.logger.info(f"max_consumption_power: {max_consumption_power}")
         if self.can_consume_this_surplus(max_consumption_power):
             self.logger.info("Calling start_consuming with {max_consumption_power}")
             self.start_consuming(max_consumption_power)
         else:
-            self.logger.info("Tesla could not consume_this_surplus")
+            self.logger.info("Tesla could not consume this surplus")
 
             
     def power_to_current(self, power) -> int:
