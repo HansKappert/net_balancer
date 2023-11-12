@@ -27,7 +27,7 @@ class tesla_energy_consumer(energy_consumer):
         self._price_percentage = db.get_tesla_price_percentage()
         self._status = ""
         self._old_status = ""
-        self._block_status_publishing  = False
+        self._block_status_publishing  = False # while doing logic, we don't want to see the status changing in the web frontend
         if logger:
             self.logger = logger
         else:
@@ -89,7 +89,7 @@ class tesla_energy_consumer(energy_consumer):
             self.charge_state = self.vehicle['charge_state']
             self.drive_state = self.vehicle['drive_state']
             self.is_consuming = self.charge_state['charging_state'].lower() == 'charging'
-            if self.is_at_home:
+            if self._is_at_home:
                 self._consumption_amps_now = self.charge_state['charger_actual_current']
             else: 
                 self._consumption_amps_now = 0
@@ -114,7 +114,7 @@ class tesla_energy_consumer(energy_consumer):
     #     return self.is_consuming
         
     def stop_consuming(self) -> bool:
-        if not self.may_stop_consuming:
+        if not self._may_stop_consuming:
             return
 
         if self.is_consuming:
@@ -271,7 +271,7 @@ class tesla_energy_consumer(energy_consumer):
             self.status = "Balanceren is uitgeschakeld"
             return False
 
-        if not self.can_start_consuming: # property will call self.__update_vehicle_data()
+        if not self._can_start_consuming: # property will call self.__update_vehicle_data()
             self.logger.debug("Cannot start consuming")
             return False
 
@@ -440,24 +440,27 @@ class tesla_energy_consumer(energy_consumer):
         Het daadwerkelijk starten en stoppen moeten we niet forceren, maar overlaten aan
         bijv. Jedlix, of de gebruiker (via zijn Tesla app).
         """
+        self.block_status_publishing = True
         self.persistence.set_consumer_balance(self._name,value)
         if value == False:
             curr_level = int(self.charge_state['battery_level'])
             self.logger.info("Tesla opladen op maximale snelheid. Huidig batterij perc. is {}%".format(curr_level))
+            
             self.status = f"Tot maximum ({self.charge_state['charge_limit_soc']})% opladen"
             self._consume_at_maximum()
+        self.block_status_publishing = False
             
 
     @property
-    def can_start_consuming(self) -> bool:
+    def _can_start_consuming(self) -> bool:
         self.__update_vehicle_data()
         
-        if not self.is_at_home:
+        if not self._is_at_home:
             self.logger.info("Kan niet laden want de Tesla is niet op de thuislokatie")
             self.status = "Niet thuis"
             return False 
 
-        if  self.is_disconnected:
+        if  self._is_disconnected:
             self.logger.info("Kan niet laden want de Tesla is niet aangesloten")
             self.status = "Niet aangesloten"
             return False
@@ -466,7 +469,7 @@ class tesla_energy_consumer(energy_consumer):
 
     
     @property
-    def is_disconnected(self) -> bool:
+    def _is_disconnected(self) -> bool:
         self.__update_vehicle_data()  
         if self.charge_state['charging_state'] == "Disconnected":
             self.logger.debug(f"Charging state is {self.vehicle['charge_state']['charging_state']}")   
@@ -474,7 +477,7 @@ class tesla_energy_consumer(energy_consumer):
         return False
 
     @property
-    def is_at_home(self) -> bool:
+    def _is_at_home(self) -> bool:
         self.__update_vehicle_data()  
         (lat,lon) = self.persistence.get_tesla_home_coords()
 
@@ -486,7 +489,7 @@ class tesla_energy_consumer(energy_consumer):
 
 
     @property
-    def may_stop_consuming(self) -> bool:
+    def _may_stop_consuming(self) -> bool:
         """
         Checks if the vehicle may stop consuming.
         
@@ -495,7 +498,7 @@ class tesla_energy_consumer(energy_consumer):
         """
         self.__update_vehicle_data()
         
-        if not self.is_at_home:
+        if not self._is_at_home:
             self.logger.info("Will not stop because car is not at home")
             self.status = "Niet thuis"
             return False
@@ -510,7 +513,7 @@ class tesla_energy_consumer(energy_consumer):
             return 0
 
     @property
-    def est_battery_range(self) -> float:
+    def _est_battery_range(self) -> float:
         self.__update_vehicle_data()
         return self._est_battery_range
 

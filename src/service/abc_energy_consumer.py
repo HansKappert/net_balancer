@@ -50,7 +50,7 @@ class energy_consumer(ABC):
         pass
 
     @property
-    def can_start_consuming(self):
+    def _can_start_consuming(self):
         """
         This function should report back to the caller if the 
         consumer is able to start consuming at all. The class 
