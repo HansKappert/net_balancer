@@ -299,8 +299,12 @@ class tesla_energy_consumer(energy_consumer):
 
     def _consume_at_maximum(self):
         max_consumption_power = self.max_consumption_power
+        self.logger.info(f"max_consumption_power: {max_consumption_power}")
         if self.can_consume_this_surplus(max_consumption_power):
+            self.logger.info("Calling start_consuming with {max_consumption_power}")
             self.start_consuming(max_consumption_power)
+        else:
+            self.logger.info("Tesla could not consume_this_surplus")
 
             
     def power_to_current(self, power) -> int:
