@@ -578,8 +578,6 @@ def get_current_production():
 def put_balance(value, consumer_name):
     try:
         app.logger.info("Setting balance to " + str(value))
-        print("Setting balance to " + str(value))
-        db.set_consumer_balance(consumer_name, value)
         data_model.get_consumer(consumer_name).balance_activated = value == 1
         return jsonify({'result': 'Ok'})
     except Exception as e:
