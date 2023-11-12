@@ -516,6 +516,8 @@ class tesla_energy_consumer(energy_consumer):
     def est_battery_range(self) -> float:
         self.__update_vehicle_data()
         return self._est_battery_range
-    
+    @est_battery_range.setter
+    def est_battery_range(self, value) -> None:
+        self._est_battery_range = value
 
         
