@@ -298,9 +298,9 @@ class tesla_energy_consumer(energy_consumer):
         return False
 
     def _consume_at_maximum(self):
-        curr_level = int(self.charge_state['battery_level'])
-        max_current_consumption = self.power_to_current(self._max_power_consumption)
-        self.__set_charge_current(max_current_consumption)
+        max_consumption_power = self.max_consumption_power
+        if self.can_consume_this_surplus(max_consumption_power):
+            self.start_consuming(max_consumption_power)
 
             
     def power_to_current(self, power) -> int:
