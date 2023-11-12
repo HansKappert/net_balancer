@@ -295,6 +295,7 @@ class tesla_energy_consumer(energy_consumer):
     
         if surplus_power and surplus_power <= self._max_power_consumption:
             return True
+        self.logger.info(f"surplus_power: {surplus_power} with self._max_power_consumption: {self._max_power_consumption}")
         return False
 
     def _consume_at_maximum(self):
