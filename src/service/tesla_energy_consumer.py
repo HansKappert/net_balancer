@@ -289,6 +289,7 @@ class tesla_energy_consumer(energy_consumer):
         curr_level = int(self.charge_state['battery_level'])
         if curr_level < self.balance_above:
             self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
+            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
             self._consume_at_maximum()
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
@@ -300,8 +301,7 @@ class tesla_energy_consumer(energy_consumer):
         curr_level = int(self.charge_state['battery_level'])
         max_current_consumption = self.power_to_current(self._max_power_consumption)
         self.__set_charge_current(max_current_consumption)
-        self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
-        
+
             
     def power_to_current(self, power) -> int:
         """
@@ -442,6 +442,9 @@ class tesla_energy_consumer(energy_consumer):
         """
         self.persistence.set_consumer_balance(self._name,value)
         if value == False:
+            curr_level = int(self.charge_state['battery_level'])
+            self.logger.info("Tesla opladen op maximale snelheid. Huidig batterij perc. is {}%".format(curr_level))
+            self.status = f"Tot maximum ({self.charge_state['charge_limit_soc']})% opladen"
             self._consume_at_maximum()
             
 
