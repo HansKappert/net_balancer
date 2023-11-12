@@ -93,7 +93,7 @@ class tesla_energy_consumer(energy_consumer):
                 self._consumption_amps_now = self.charge_state['charger_actual_current']
             else: 
                 self._consumption_amps_now = 0
-            self._est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
+            self.est_battery_range = self.dist_units(self.charge_state['est_battery_range'])
             self._battery_range = self.dist_units(self.charge_state['battery_range'])
             
             if 'latitude' in self.drive_state and 'longitude' in self.drive_state:
@@ -513,8 +513,9 @@ class tesla_energy_consumer(energy_consumer):
             return 0
 
     @property
-    def _est_battery_range(self) -> float:
+    def est_battery_range(self) -> float:
         self.__update_vehicle_data()
         return self._est_battery_range
+    
 
         
