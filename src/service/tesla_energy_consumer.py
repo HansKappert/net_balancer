@@ -288,6 +288,7 @@ class tesla_energy_consumer(energy_consumer):
         # Charge at full speed until battery level exceeds 'balance_above' setting
         curr_level = int(self.charge_state['battery_level'])
         if curr_level < self.balance_above:
+            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
             self._consume_at_maximum()
             return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
@@ -300,7 +301,7 @@ class tesla_energy_consumer(energy_consumer):
         max_current_consumption = self.power_to_current(self._max_power_consumption)
         self.__set_charge_current(max_current_consumption)
         self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
-        self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
+        
             
     def power_to_current(self, power) -> int:
         """
@@ -323,7 +324,8 @@ class tesla_energy_consumer(energy_consumer):
 
     def __set_charge_current(self, amps) -> None:
         if amps >= 0:
-            self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
+            res = self.vehicle.command("CHARGING_AMPS",charging_amps=amps)
+            self.logger.debug("Set charge current result: " + str(res))
             self.__update_vehicle_data()
 
     def dist_units(self, miles, speed=False) -> str:
