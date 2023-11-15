@@ -233,6 +233,16 @@ class tesla_energy_consumer(energy_consumer):
 
         self.block_status_publishing = True
         has_taken_surplus = False
+
+        # Charge at full speed until battery level exceeds 'balance_above' setting
+        curr_level = int(self.charge_state['battery_level'])
+        if curr_level < self.balance_above:
+            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
+            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
+            self._consume_at_maximum()
+            return True # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
+
+
         price_percentage = self.price_percentage
         charge_below_price = self.charge_below_price(average_price, price_percentage)
         if current_hour_price < charge_below_price:
@@ -285,13 +295,13 @@ class tesla_energy_consumer(energy_consumer):
         
         self.__update_vehicle_data() 
 
-        # Charge at full speed until battery level exceeds 'balance_above' setting
-        curr_level = int(self.charge_state['battery_level'])
-        if curr_level < self.balance_above:
-            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
-            self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
-            self._consume_at_maximum()
-            return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
+        # # Charge at full speed until battery level exceeds 'balance_above' setting
+        # curr_level = int(self.charge_state['battery_level'])
+        # if curr_level < self.balance_above:
+        #     self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
+        #     self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
+        #     self._consume_at_maximum()
+        #     return False # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
     
         if surplus_power and surplus_power <= self._max_power_consumption:
             return True
