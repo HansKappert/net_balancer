@@ -438,6 +438,9 @@ class tesla_energy_consumer(energy_consumer):
     @property
     def consumption_power_now(self) -> float:
         self.__update_vehicle_data()
+        # if self.consumption_amps_now is none, return 0
+        if self.consumption_amps_now is None:
+            return 0
         return self.consumption_amps_now * self.voltage
     
     @property
