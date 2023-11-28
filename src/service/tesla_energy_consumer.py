@@ -233,7 +233,10 @@ class tesla_energy_consumer(energy_consumer):
 
         self.block_status_publishing = True
         has_taken_surplus = False
-
+        self.__update_vehicle_data() 
+        if not 'battery_level' in self.charge_state:
+            return False
+        
         # Charge at full speed until battery level exceeds 'balance_above' setting
         curr_level = int(self.charge_state['battery_level'])
         if curr_level < self.balance_above:
