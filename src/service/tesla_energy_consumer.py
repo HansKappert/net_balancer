@@ -80,7 +80,7 @@ class tesla_energy_consumer(energy_consumer):
             self.initialize()
         try:
             if not self.vehicle:
-                self.logger.warn("No known vehicle")
+                self.logger.warning("No known vehicle")
                 return
             if self.vehicle['state'] == 'asleep':
                 self.vehicle.sync_wake_up()

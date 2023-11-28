@@ -26,15 +26,16 @@ class stats_writer:
 
     def write_stats(self):
         when = datetime.now()
+        consumer_tesla = self.data_model.get_consumer("Tesla")
         current_price_kwh                            = self.persistence.get_price_at_datetime(when)
         if current_price_kwh is not None:
             current_price_kwm                        = current_price_kwh / 60   # price in euro
             current_price_kw10s                      = current_price_kwm / 6
             current_price_w10s                       = current_price_kw10s / 1000
-            tesla_consumption                        = self.data_model.get_consumer("Tesla").consumption_power_now
+            tesla_consumption                        = consumer_tesla.consumption_power_now if consumer_tesla else 0
             tesla_cost                               = tesla_consumption * current_price_w10s
             consumption                              = self.data_model.current_consumption
-            tesla_consumption                        = self.data_model.get_consumer("Tesla").consumption_power_now
+            tesla_consumption                        = consumer_tesla.consumption_power_now if consumer_tesla else 0
             production                               = self.data_model.current_production
             gas_reading                              = self.data_model.current_gas_reading
             meter_reading_delivered_to_client_low    = self.data_model.meter_reading_delivered_to_client_low
