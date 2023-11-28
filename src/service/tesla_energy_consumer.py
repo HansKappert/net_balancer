@@ -69,7 +69,7 @@ class tesla_energy_consumer(energy_consumer):
 
     def __update_vehicle_data(self) -> None:
         diff = datetime.now() - self._last_vehicle_data_update
-        if diff.total_seconds() < 5 and len(self.drive_state) > 0: 
+        if diff.total_seconds() < 8 and len(self.drive_state) > 0: 
             return
         
         try:
@@ -80,6 +80,7 @@ class tesla_energy_consumer(energy_consumer):
             self.initialize()
         try:
             if not self.vehicle:
+                self.logger.warn("No known vehicle")
                 return
             if self.vehicle['state'] == 'asleep':
                 self.vehicle.sync_wake_up()
@@ -235,6 +236,7 @@ class tesla_energy_consumer(energy_consumer):
         has_taken_surplus = False
         self.__update_vehicle_data() 
         if not 'battery_level' in self.charge_state:
+            self.logger.info("Charge state unknown, cannot balance")
             return False
         
         # Charge at full speed until battery level exceeds 'balance_above' setting
