@@ -586,6 +586,11 @@ def put_balance(value, consumer_name):
 
 
 
+# Get OS env var DEBUG
+import os
+
+debug = os.environ.get('DEBUG') 
+debug = debug or False
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port=8081,debug=True)
+    app.run(host='0.0.0.0',port=8081,debug=debug )
     # app.run(host='0.0.0.0',port=8081,debug=True, use_debugger=False, use_reloader=False, passthrough_errors=True)
