@@ -30,11 +30,6 @@ if __name__ == "__main__":
 
     default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-    
-    if (args.device_name == None):
-        print("Please specify the Smart Meter device name")
-        quit()
-
     db = persistence()
     data_model = model(db)
 
@@ -52,12 +47,10 @@ if __name__ == "__main__":
     log_handler.setLevel(logging.INFO)
     logging.getLogger().addHandler(log_handler)
 
-
-
-dblog_handler = database_logging_handler(db)
-dblog_handler.setLevel(logging.INFO)
-
-
+    
+    if (args.device_name == None):
+        logger.error("Please specify the Smart Meter device name")
+        quit()
 
 
     logger.info ("Device name  : " + args.device_name)
