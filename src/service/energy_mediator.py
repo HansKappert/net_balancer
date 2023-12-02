@@ -69,5 +69,5 @@ class mediator:
         th.start()
 
         while True:
-            self.__mediate_once()
+            self.mediate_once()
             time.sleep(self.mediation_delay)
