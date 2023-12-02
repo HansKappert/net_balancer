@@ -3,7 +3,7 @@ __pycache__
 dist
 output
 venv
-
+.env
 cache.json
 .DS_Store
 energy_mediator.db

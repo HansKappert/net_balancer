@@ -157,7 +157,7 @@ class tesla_energy_consumer(energy_consumer):
             except Exception as e:
                 self.logger.info("Exception during setting of the current:".format(e))
             
-            res = False
+            res = True
             if  not self.is_consuming:
                 try:
                     res = self.vehicle.command('START_CHARGE')
@@ -508,7 +508,7 @@ class tesla_energy_consumer(energy_consumer):
             self.status = "Niet aangesloten"
             return False
 
-        return True, ""
+        return True
 
     
     @property
