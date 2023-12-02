@@ -28,7 +28,6 @@ if __name__ == "__main__":
                     help="logging level: d=debug, i=info, w=warning, e=error")
     args = ap.parse_args()
 
-    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
     db = persistence()
     data_model = model(db)
@@ -39,6 +38,9 @@ if __name__ == "__main__":
         'w': logging.WARN,
         'e': logging.ERROR
     }
+    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=default_format)
+
     log_handler = logging.StreamHandler()
     log_handler.setLevel(level_translator[args.loglevel])
     logging.getLogger().addHandler(log_handler)
