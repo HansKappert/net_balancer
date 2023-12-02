@@ -26,7 +26,7 @@ class mediator:
 
 
 
-    def __mediate_once(self):
+    def mediate_once(self):
         """
         This function is called on a frequent base by the mediate method.
         It's task is to find a consumer that is willing and able to consume some 
