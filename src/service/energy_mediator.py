@@ -38,6 +38,9 @@ class mediator:
         """
         self.data_model.mediation_service_status = ""
         average_surplus = self.data_model.average_surplus(6)
+        # wait until the average surplus is calculated
+        if not average_surplus:
+            return
         found_active_consumer = False
         has_taken_surplus = False
         for consumer in self.data_model.consumers:
