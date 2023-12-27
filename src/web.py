@@ -577,17 +577,20 @@ def get_current_production():
 @app.route('/balance/set/<int:value>/<string:consumer_name>', methods=['GET'])
 def put_balance(value, consumer_name):
     try:
-        logger.info("Setting balance to " + str(value))
-        print("Setting balance to " + str(value))
-        db.set_consumer_balance(consumer_name, value)
+        app.logger.info("Setting balance to " + str(value))
         data_model.get_consumer(consumer_name).balance_activated = value == 1
         return jsonify({'result': 'Ok'})
     except Exception as e:
-        logger.exception(e)
+        app.logger.exception(e)
         return jsonify({'result': 'Error: ' + e})
 
 
 
+# Get OS env var DEBUG
+import os
+
+debug = os.environ.get('DEBUG') 
+debug = debug or False
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port=8081,debug=True)
+    app.run(host='0.0.0.0',port=8081,debug=debug )
     # app.run(host='0.0.0.0',port=8081,debug=True, use_debugger=False, use_reloader=False, passthrough_errors=True)

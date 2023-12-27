@@ -28,28 +28,32 @@ if __name__ == "__main__":
                     help="logging level: d=debug, i=info, w=warning, e=error")
     args = ap.parse_args()
 
-    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    if args.loglevel == None or args.loglevel == 'i':
-        logging.basicConfig(level=logging.INFO, format=default_format)
-    elif args.loglevel == 'd':
-        logging.basicConfig(level=logging.DEBUG, format=default_format)
-    elif args.loglevel == 'w':
-        logging.basicConfig(level=logging.WARN, format=default_format)
-    elif args.loglevel == 'e':
-        logging.basicConfig(level=logging.ERROR, format=default_format)
-    
-    if (args.device_name == None):
-        print("Please specify the Smart Meter device name")
-        quit()
 
     db = persistence()
     data_model = model(db)
 
+    level_translator = {
+        'd': logging.DEBUG,
+        'i': logging.INFO,
+        'w': logging.WARN,
+        'e': logging.ERROR
+    }
+    default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=default_format)
+
     log_handler = logging.StreamHandler()
+    log_handler.setLevel(level_translator[args.loglevel])
     logging.getLogger().addHandler(log_handler)
     
     log_handler = database_logging_handler(db)
+    log_handler.setLevel(logging.INFO)
     logging.getLogger().addHandler(log_handler)
+
+    
+    if (args.device_name == None):
+        logger.error("Please specify the Smart Meter device name")
+        quit()
+
 
     logger.info ("Device name  : " + args.device_name)
 
@@ -73,7 +77,7 @@ if __name__ == "__main__":
             logger.exception(e)
         data_model.add_consumer(tesla)
     else:
-        logger.warn("Please set TESLA_USER environment variable")
+        logger.warning("Please set TESLA_USER environment variable")
     logger.debug ("Data model created")
 
     # Start some background processes

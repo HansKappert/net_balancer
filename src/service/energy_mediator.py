@@ -26,7 +26,7 @@ class mediator:
 
 
 
-    def __mediate_once(self):
+    def mediate_once(self):
         """
         This function is called on a frequent base by the mediate method.
         It's task is to find a consumer that is willing and able to consume some 
@@ -38,6 +38,9 @@ class mediator:
         """
         self.data_model.mediation_service_status = ""
         average_surplus = self.data_model.average_surplus(6)
+        # wait until the average surplus is calculated
+        if not average_surplus:
+            return
         found_active_consumer = False
         has_taken_surplus = False
         for consumer in self.data_model.consumers:
@@ -69,5 +72,5 @@ class mediator:
         th.start()
 
         while True:
-            self.__mediate_once()
+            self.mediate_once()
             time.sleep(self.mediation_delay)
