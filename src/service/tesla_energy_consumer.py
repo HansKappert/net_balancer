@@ -256,7 +256,7 @@ class tesla_energy_consumer(energy_consumer):
         # Charge at full speed until battery level exceeds 'balance_above' setting
         curr_level = int(self.charge_state.get('battery_level',0))
         if curr_level < self.balance_above:
-            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%)"
+            self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%), daarna balanceren"
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
             self._consume_at_maximum()
             return True # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
@@ -402,6 +402,7 @@ class tesla_energy_consumer(energy_consumer):
     @status.setter
     def status(self,value)  -> None:
         self._status = value
+        self.persistence.set_consumer_status(self._name, value)
 
     @property
     def battery_range(self) -> float:
@@ -469,11 +470,12 @@ class tesla_energy_consumer(energy_consumer):
             return 0
         return self.consumption_amps_now * self.voltage
     
+
     @property
     def balance_activated(self) -> bool:
         is_activated = self.persistence.get_consumer_balance(self._name) 
-        if not is_activated:
-            self.status = "Balanceren is uitgeschakeld"
+        # if not is_activated:
+        #     self.status = "Balanceren is uitgeschakeld"
         return is_activated
     
     @balance_activated.setter
@@ -482,6 +484,7 @@ class tesla_energy_consumer(energy_consumer):
         Bij het uitschakelen van balaceren, moeten we zorgen dat de tesla of volle sterkte gaat laden.
         Het daadwerkelijk starten en stoppen moeten we niet forceren, maar overlaten aan
         bijv. Jedlix, of de gebruiker (via zijn Tesla app).
+        Nu, bij het uitschakelen wordt wel éénmalig het laden gestart.
         """
         self.block_status_publishing = True
         self.persistence.set_consumer_balance(self._name,value)
