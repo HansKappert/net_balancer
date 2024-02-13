@@ -49,15 +49,15 @@ class P1reader(P1data_reader):
             try:
                 p1_raw = self.ser.readline()
                 # self.logger.debug(p1_raw)
-            except:
-                err = ("Cannot read serial port %s. Incomplete data frame returned." % self.ser.name)
+                p1_str=str(p1_raw, "utf-8")
+                p1_line=p1_str.strip()
+                data_frame.append(p1_line)
+                p1_teller = p1_teller +1
+            except Exception as e:
+                err = f"Cannot read serial port {self.ser.name}. Incomplete data frame returned. Error: {e}"
                 self.logger.error(err) 
                 return data_frame, err
             
-            p1_str=str(p1_raw, "utf-8")
-            p1_line=p1_str.strip()
-            data_frame.append(p1_line)
-            p1_teller = p1_teller +1
 
         
         #Close port and show status
