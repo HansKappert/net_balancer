@@ -18,7 +18,6 @@ from common.database_logging_handler import database_logging_handler
 
 if __name__ == "__main__":
         
-    logger = logging.getLogger(__name__)
         
     ap = argparse.ArgumentParser()
     
@@ -38,17 +37,20 @@ if __name__ == "__main__":
         'w': logging.WARN,
         'e': logging.ERROR
     }
+    logger = logging.getLogger(__name__)
+
     default_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=default_format)
 
     log_handler = logging.StreamHandler()
     log_handler.setLevel(level_translator[args.loglevel])
-    logging.getLogger().addHandler(log_handler)
+    logger.addHandler(log_handler)
     
     log_handler = database_logging_handler(db)
     log_handler.setLevel(logging.INFO)
-    logging.getLogger().addHandler(log_handler)
+    logger.addHandler(log_handler)
 
+    
     
     if (args.device_name == None):
         logger.error("Please specify the Smart Meter device name")
@@ -78,7 +80,8 @@ if __name__ == "__main__":
         data_model.add_consumer(tesla)
     else:
         logger.warning("Please set TESLA_USER environment variable")
-    logger.debug ("Data model created")
+    logger.info ("Energy consumer is setup")
+
 
     # Start some background processes
     cleaner = eventlog_cleaner(db)
@@ -101,7 +104,6 @@ if __name__ == "__main__":
     th.start()
     logger.info ("Cum_stats writer is setup")
 
-    logger.info ("Energy consumer is setup")
     energy_mediator = mediator(data_model) # a list of consumers is part of this data model
     logger.info ("Mediator is created. Starting mediation")
     energy_mediator.mediate(producer=producer)
