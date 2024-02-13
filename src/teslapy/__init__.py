@@ -6,7 +6,7 @@ for reuse and refreshed automatically. The vehicle option codes are loaded from
 
 # Author: Tim Dorssers
 
-__version__ = '2.8.0'
+__version__ = '2.9.0'
 
 import os
 import ast
@@ -192,7 +192,8 @@ class Tesla(OAuth2Session):
         url = urljoin(self.sso_base_url, url)
         kwargs['code_challenge'] = code_challenge
         kwargs['code_challenge_method'] = 'S256'
-        without_hint, state = super(Tesla, self).authorization_url(url, **kwargs)
+        without_hint, state = super(Tesla, self).authorization_url(url,
+                                                                   **kwargs)
         # Detect account's registered region
         kwargs['login_hint'] = self.email
         kwargs['state'] = state
@@ -291,9 +292,9 @@ class Tesla(OAuth2Session):
     def _cache_load(self):
         """ Default cache loader method """
         try:
-            with open(self.cache_file) as infile:
+            with open(self.cache_file, encoding='utf-8') as infile:
                 cache = json.load(infile)
-        except (IOError, ValueError) as e:
+        except (IOError, ValueError):
             logger.warning('Cannot load cache: %s',
                            self.cache_file, exc_info=True)
             cache = {}
@@ -302,9 +303,10 @@ class Tesla(OAuth2Session):
     def _cache_dump(self, cache):
         """ Default cache dumper method """
         try:
-            with open(self.cache_file, 'w') as outfile:
+            with open(self.cache_file, 'w', encoding='utf-8') as outfile:
                 json.dump(cache, outfile)
-            os.chmod(self.cache_file, (stat.S_IWUSR | stat.S_IRUSR | stat.S_IRGRP))
+            os.chmod(self.cache_file, (stat.S_IWUSR | stat.S_IRUSR | 
+                                       stat.S_IRGRP))
         except IOError:
             logger.error('Cache not updated')
         else:
@@ -372,7 +374,8 @@ class Tesla(OAuth2Session):
 
     def vehicle_list(self):
         """ Returns a list of `Vehicle` objects """
-        return [Vehicle(v, self) for v in self.api('VEHICLE_LIST')['response']]
+        return [Vehicle(p, self) for p in self.api('PRODUCT_LIST')['response']
+                if 'vehicle_id' in p]
 
     def battery_list(self):
         """ Returns a list of `Battery` objects """
@@ -540,10 +543,31 @@ class Vehicle(JsonDict):
         return list(filter(None, [self.decode_option(code)
                                   for code in codes.split(',')]))
 
-    def get_vehicle_data(self):
-        """ A rollup of all the data request endpoints plus vehicle config.
-        Raises HTTPError when vehicle is not online. """
-        self.update(self.api('VEHICLE_DATA')['response'])
+    def get_vehicle_data(self, endpoints='location_data;charge_state;'
+                                         'climate_state;vehicle_state;'
+                                         'gui_settings;vehicle_config'):
+        """ Allow specifying individual endpoints to query. Defaults to all
+        endpoints. Raises HTTPError when vehicle is not online.
+
+        endpoints: string containing each endpoint to query, separate with ;"""
+        self.update(self.api('VEHICLE_DATA', endpoints=endpoints)['response'])
+        self.timestamp = time.time()
+        return self
+
+    def get_vehicle_location_data(self, max_age=300):
+        """ Get basic and location_data. Wakes vehicle if location data is not
+        already present, or older than max_age seconds. Raises  HTTPError when
+        vehicle is not online.
+
+        max_age: how long in seconds before refreshing location data. Defaults
+                 to 300 (5 minutes). """
+        last_update = self.get('drive_state', {}).get('gps_as_of')
+        # Check for cached data more recent than max_age
+        if last_update is None or last_update < (time.time() - max_age):
+            self.sync_wake_up()
+            self.update(self.api('VEHICLE_DATA',
+                                 endpoints='location_data')['response'])
+            self.timestamp = time.time()
         self.timestamp = time.time()
         return self
 
@@ -561,6 +585,13 @@ class Vehicle(JsonDict):
     def get_charge_history(self):
         """ Lists vehicle charging history data points """
         return self.api('VEHICLE_CHARGE_HISTORY')['response']
+
+    def get_charge_history_v2(self):
+        """ Lists vehicle charging history data points """
+        url = 'https://ownership.tesla.com/mobile-app/charging/history'
+        return self.tesla.get(url, params={
+            'vin': self['vin'], 'deviceLanguage': 'en', 'deviceCountry': 'US',
+            'operationName': 'getChargingHistoryV2'})['data']
 
     def mobile_enabled(self):
         """ Checks if the Mobile Access setting is enabled in the car. Raises
@@ -581,7 +612,7 @@ class Vehicle(JsonDict):
         # Retrieve image from compositor
         url = 'https://static-assets.tesla.com/v1/compositor/'
         response = requests.get(url, params=params, verify=self.tesla.verify,
-                                proxies=self.tesla.proxies)
+                                proxies=self.tesla.proxies, timeout=30)
         response.raise_for_status()  # Raise HTTPError, if one occurred
         return response.content
 
@@ -618,12 +649,10 @@ class Vehicle(JsonDict):
         return time.strftime('%I:%M:%S %p', tm)
 
     def last_seen(self):
-        """ Returns vehicle last seen natural time. Raises ValueError. """
+        """ Returns vehicle last seen natural time. """
         units = ((60, 'a second'), (60, 'a minute'), (24, 'an hour'),
                  (7, 'a day'), (4.35, 'a week'), (12, 'a month'), (0, 'a year'))
         diff = time.time() - self['charge_state']['timestamp'] / 1000
-        if diff < 0:
-            raise ValueError('Timestamp is in the future')
         if diff >= 1:
             for length, unit in units:
                 if diff < length or not length:
@@ -636,37 +665,41 @@ class Vehicle(JsonDict):
     def decode_vin(self):
         """ Returns decoded VIN as dict """
         make = 'Tesla Model ' + self['vin'][3]
-        body = {'A': 'Hatch back 5 Dr / LHD', 'B': 'Hatch back 5 Dr / RHD',
-                'C': 'Class E MPV / 5 Dr / LHD', 'E': 'Sedan 4 Dr / LHD',
-                'D': 'Class E MPV / 5 Dr / RHD', 'F': 'Sedan 4 Dr / RHD',
-                'G': 'Class D MPV / 5 Dr / LHD', 'H': 'Class D MPV / 5 Dr / RHD'
-                }.get(self['vin'][4], 'Unknown')
-        belt = {'1': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
-                     'PODS, side inflatable restraints, knee airbags (FR)',
-                '3': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
-                     'side inflatable restraints, knee airbags (FR)',
-                '4': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
-                     'side inflatable restraints, knee airbags (FR)',
-                '5': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
-                     'side inflatable restraints',
-                '6': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
-                     'side inflatable restraints',
-                '7': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
-                     'side inflatable restraints & active hood',
-                '8': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
-                     'side inflatable restraints & active hood',
-                'A': 'Type 2 manual seatbelts (FR, SR*3, TR*2) with front '
-                     'airbags, PODS, side inflatable restraints, knee airbags (FR)',
-                'B': 'Type 2 manual seatbelts (FR, SR*2, TR*2) with front '
-                     'airbags, PODS, side inflatable restraints, knee airbags (FR)',
-                'C': 'Type 2 manual seatbelts (FR, SR*2, TR*2) with front '
-                     'airbags, PODS, side inflatable restraints, knee airbags (FR)',
-                'D': 'Type 2 Manual Seatbelts (FR, SR*3) with front airbag, '
-                     'PODS, side inflatable restraints, knee airbags (FR)'
-                }.get(self['vin'][5], 'Unknown')
-        batt = {'E': 'Electric (NMC)', 'F': 'Li-Phosphate (LFP)',
-                'H': 'High Capacity (NMC)', 'S': 'Standard (NMC)',
-                'V': 'Ultra Capacity (NMC)'}.get(self['vin'][6], 'Unknown')
+        body = {
+            'A': 'Hatch back 5 Dr / LHD', 'B': 'Hatch back 5 Dr / RHD',
+            'C': 'Class E MPV / 5 Dr / LHD', 'E': 'Sedan 4 Dr / LHD',
+            'D': 'Class E MPV / 5 Dr / RHD', 'F': 'Sedan 4 Dr / RHD',
+            'G': 'Class D MPV / 5 Dr / LHD', 'H': 'Class D MPV / 5 Dr / RHD'
+        }.get(self['vin'][4], 'Unknown')
+        belt = {
+            '1': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
+                 'PODS, side inflatable restraints, knee airbags (FR)',
+            '3': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
+                 'side inflatable restraints, knee airbags (FR)',
+            '4': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
+                 'side inflatable restraints, knee airbags (FR)',
+            '5': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
+                 'side inflatable restraints',
+            '6': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
+                 'side inflatable restraints',
+            '7': 'Type 2 manual seatbelts (FR, SR*3) with front airbags, '
+                 'side inflatable restraints & active hood',
+            '8': 'Type 2 manual seatbelts (FR, SR*2) with front airbags, '
+                 'side inflatable restraints & active hood',
+            'A': 'Type 2 manual seatbelts (FR, SR*3, TR*2) with front '
+                 'airbags, PODS, side inflatable restraints, knee airbags (FR)',
+            'B': 'Type 2 manual seatbelts (FR, SR*2, TR*2) with front '
+                 'airbags, PODS, side inflatable restraints, knee airbags (FR)',
+            'C': 'Type 2 manual seatbelts (FR, SR*2, TR*2) with front '
+                 'airbags, PODS, side inflatable restraints, knee airbags (FR)',
+            'D': 'Type 2 Manual Seatbelts (FR, SR*3) with front airbag, '
+                 'PODS, side inflatable restraints, knee airbags (FR)'
+        }.get(self['vin'][5], 'Unknown')
+        batt = {
+            'E': 'Electric (NMC)', 'F': 'Li-Phosphate (LFP)',
+            'H': 'High Capacity (NMC)', 'S': 'Standard (NMC)',
+            'V': 'Ultra Capacity (NMC)'
+        }.get(self['vin'][6], 'Unknown')
         drive = {'1': 'Single Motor - Standard', '2': 'Dual Motor - Standard',
                  '3': 'Single Motor - Performance', '5': 'P2 Dual Motor',
                  '4': 'Dual Motor - Performance', '6': 'P2 Tri Motor',
@@ -708,9 +741,19 @@ class Product(JsonDict):
         self.tesla = tesla
 
     def api(self, name, **kwargs):
-        """ Endpoint request with battery_id or site_id path variable """
-        pathvars = {'battery_id': self['id'], 'site_id': self['energy_site_id']}
-        return self.tesla.api(name, pathvars, **kwargs)
+        """ Endpoint request with site_id path variable """
+        path_vars = {'site_id': self['energy_site_id']}
+        return self.tesla.api(name, path_vars, **kwargs)
+
+    def get_site_info(self):
+        """ Retrieve current site/battery information """
+        self.update(self.api('SITE_CONFIG')['response'])
+        return self
+
+    def get_site_data(self):
+        """ Retrieve current site/battery live status """
+        self.update(self.api('SITE_DATA')['response'])
+        return self
 
     def get_calendar_history_data(
             self, kind='energy', period='day', start_date=None,
@@ -768,8 +811,8 @@ class BatteryTariffPeriodCost(
     """ Represents the costs of a tariff period
     buy: A float containing the import price
     sell: A float containing the export price
-    name: The name for the period, must be 'ON_PEAK', 'PARTIAL_PEAK', 'OFF_PEAK',
-    or 'SUPER_OFF_PEAK'
+    name: The name for the period, must be 'ON_PEAK', 'PARTIAL_PEAK',
+          'OFF_PEAK', or 'SUPER_OFF_PEAK'
     """
     __slots__ = ()
 
@@ -788,14 +831,9 @@ class BatteryTariffPeriod(
 class Battery(Product):
     """ Powerwall class """
 
-    def get_battery_data(self):
-        """ Retrieve detailed state and configuration of the battery """
-        self.update(self.api('BATTERY_DATA')['response'])
-        return self
-
     def set_operation(self, mode):
         """ Set battery operation to self_consumption, backup or autonomous """
-        return self.command('BATTERY_OPERATION_MODE', default_real_mode=mode)
+        return self.command('OPERATION_MODE', default_real_mode=mode)
 
     def set_backup_reserve_percent(self, percent):
         """ Set the minimum backup reserve percent for that battery """
@@ -855,8 +893,8 @@ class Battery(Product):
                 if bg_period[0] <= period.start and period.end <= bg_period[1]:
                     slot_found = True
                     # If the period matches the start/end times, then we just
-                    # need to adjust the existing background time slot. Otherwise
-                    # we need to split it.
+                    # need to adjust the existing background time slot.
+                    # Otherwise we need to split it.
                     if bg_period[0] == period.start:
                         background_time[index][0] = period.end
                     elif bg_period[1] == period.end:
@@ -870,9 +908,10 @@ class Battery(Product):
             costs[period.cost].append(period)
 
             # The loop above can leave background time slots with zero duration.
-            # It's difficult to filter them out above as the list indexes can get
-            # out of sync as we end up modifying the array being iterated over.
-            # As a result it's easier to filter out invalid background slots now.
+            # It's difficult to filter them out above as the list indexes can
+            # get out of sync as we end up modifying the array being iterated
+            # over. As a result it's easier to filter out invalid background
+            # slots now.
             background_time = list(filter(lambda t: t[0] != t[1],
                                           background_time))
 
@@ -922,8 +961,4 @@ class Battery(Product):
 
 class SolarPanel(Product):
     """ Solar panel class """
-
-    def get_site_data(self):
-        """ Retrieve current site generation data """
-        self.update(self.api('SITE_DATA')['response'])
-        return self
+    pass
