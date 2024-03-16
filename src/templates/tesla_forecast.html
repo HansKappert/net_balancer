@@ -15,12 +15,20 @@ var placeholder = document.getElementById('placeholder');
 placeholder.setAttribute("style","height:" + (window.innerHeight - 100) * 0.9 + "px");
 
 var forecasts = {{ forecasts|safe }};
+var xAxisLabels = {{ labels   |safe }};
+function xAxisLabelGenerator(x){
+    return xAxisLabels[Math.floor(x)];
+}
+
+
 
 options_prices = {
   xaxis : {
     title : "Tijd",
-    tickDecimals:0,
-    noTicks:24
+    tickLabels: "all",
+    transform: xAxisLabelGenerator,
+    tickFormatter: xAxisLabelGenerator,
+    noTicks: xAxisLabels.length
   },
   yaxis : {
     title : "Km",

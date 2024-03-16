@@ -6,7 +6,7 @@ from flask                           import Flask, request, jsonify, render_temp
 from flask.logging                   import default_handler
 from geopy.geocoders                 import Nominatim
 from datetime                        import datetime,timedelta
-
+import math
 from common.model                    import model
 from common.persistence              import persistence
 from common.database_logging_handler import database_logging_handler
@@ -481,13 +481,16 @@ def prices():
                             max_price=max_price
                             )
   
+
 @app.route('/tesla_forecast', methods=['GET'])
 def tesla_forecast():
     forecasts = data_model.get_consumer("Tesla").get_forecasted_battery_level()
     fc = []
+    labels = []
     for idx,forecast in enumerate(forecasts):
-        fc.append([24 if forecast.hour == 0 else forecast.hour, forecasts[forecast]])
-    return render_template('tesla_forecast.html', forecasts=fc)
+        labels.append(str(forecast.hour))
+        fc.append([idx, forecasts[forecast][1]])
+    return render_template('tesla_forecast.html', forecasts=fc, labels=labels)
         
 @app.route('/consumer_tesla', methods=['GET','POST'])
 def consumer_tesla():
