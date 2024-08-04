@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import math
 import logging
+import os
 from service.abc_energy_consumer        import energy_consumer
 from teslapy                            import Tesla
 from teslapy                            import VehicleError
@@ -44,8 +45,11 @@ class tesla_energy_consumer(energy_consumer):
 
         self.vehicle = None
         
-        
-        
+        self.push_service = os.environ.get("PUSH_SERVICE","default") 
+        if self.push_service:
+            import importlib
+            self.push_service_module = importlib.import_module(f"push_services.{self.push_service}")
+            self.push_service = self.push_service_module.push_service()
 
     def initialize(self, **kwargs):
         if kwargs and kwargs['email']:
@@ -123,6 +127,8 @@ class tesla_energy_consumer(energy_consumer):
             self.logger.error("Error during getting vehicle data: " + str(e))
             return        
 
+    def send_pushmessage(self, message):
+        pass
 
     # def consumer_is_consuming(self):
     #     return self.is_consuming
@@ -163,7 +169,9 @@ class tesla_energy_consumer(energy_consumer):
                     res = self.vehicle.command('START_CHARGE')
                     self.logger.debug("Start command result: " + str(res))
                 except Exception as e:
-                    self.logger.info("Exception when giving the START_CHARGE command:{}".format(e))
+                    self.logger.error("Exception when giving the START_CHARGE command:{}".format(e))
+                    self.push_service.send_message(message="Tesla charge fail", description="Exception when giving the START_CHARGE command:{}".format(e), type=self.push_service_module.push_message_type.error)
+
                     return False
             self.__update_vehicle_data()
             return res
