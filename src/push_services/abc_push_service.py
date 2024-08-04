@@ -10,7 +10,7 @@ class push_message_type:
 class push_service(ABC):
     @abstractmethod
     def __init__(self):
-        self.api_key = os.environ.get("PUSH_SERVICE_API_KEY")
+        self.api_key = os.environ.get("PUSH_SERVICE_API_KEY", "")
         pass
 
     @abstractmethod
