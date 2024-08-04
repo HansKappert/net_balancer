@@ -281,6 +281,9 @@ class tesla_energy_consumer(energy_consumer):
         if curr_level < self.balance_above:
             self.status = f"Snelladen tot {self.balance_above}%. Nu ({curr_level}%), daarna balanceren"
             self.logger.info("Tesla opladen op maximale snelheid tot {}%. Huidig batterij perc. is {}%".format(self.balance_above, curr_level))
+            if not self._can_start_consuming: # property will call self.__update_vehicle_data()
+                self.logger.debug("Cannot start consuming")
+                return False
             self._consume_at_maximum()
             return True # this will disqualify this consumer for consuming the given (possibly small amount of) surplus power.
 
