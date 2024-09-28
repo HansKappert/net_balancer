@@ -69,18 +69,17 @@ if __name__ == "__main__":
     logger.info ("Energy producer is setup")
 
     if "TESLA_USER" in os.environ:
-        tesla = tesla_energy_consumer(db)
-        tesla_user = os.environ["TESLA_USER"]
-
         try:
+            tesla = tesla_energy_consumer(db)
+            tesla_user = os.environ["TESLA_USER"]
             tesla.initialize(email=tesla_user)
+            data_model.add_consumer(tesla)
+            logger.info ("Energy consumer is setup")
         except Exception as e:
             print(e)
             logger.exception(e)
-        data_model.add_consumer(tesla)
     else:
-        logger.warning("Please set TESLA_USER environment variable")
-    logger.info ("Energy consumer is setup")
+        logger.info("TESLA_USER environment variable was not set. Skipping tesla energy consumer setup")
 
 
     # Start some background processes
