@@ -88,8 +88,9 @@ class tesla_energy_consumer(energy_consumer):
             if not self.vehicle:
                 self.logger.warning("No known vehicle")
                 return
-            if self.vehicle.get('state') == 'asleep':
-                self.vehicle.sync_wake_up()
+            self.logger.info(f"Vehicle state is {self.vehicle.get('state')}")
+            #if self.vehicle.get('state') == 'asleep':
+            self.vehicle.sync_wake_up()
         
             self.vehicle.get_vehicle_data()
             self._last_vehicle_data_update = datetime.now()
