@@ -372,10 +372,10 @@ class tesla_energy_consumer(energy_consumer):
     def power_to_current(self, power) -> int:
         """
         Function that returns a rounded number indicating how much current will 
-        flow for given power and set voltage. The formula is P=VI, so fof this
+        flow for given power and set voltage. The formula is P=VI, so for this
         function I=P/V
         """
-        return int(power / self.voltage)
+        return int(power / self.voltage / 3) # 3 phase current 
 
     def calc_new_charge_current(self, charger_actual_current:int, surplus_power:int) -> int:
         """
@@ -383,9 +383,11 @@ class tesla_energy_consumer(energy_consumer):
         It uses the current power consumption and the given surplus to calculate
         a new current that it should consume
         """
+        amps_max = self.power_to_current(self.max_consumption_power)
         amps_new = charger_actual_current + self.power_to_current(surplus_power)
+        # make sure the new amps is between 0 and the maximum
         amps_new = max(0, amps_new)
-        amps_new = min(self.power_to_current(self.max_consumption_power),amps_new)
+        amps_new = min(amps_max, amps_new)
         return amps_new
 
     def __set_charge_current(self, amps) -> None:
